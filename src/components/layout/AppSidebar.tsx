@@ -1,17 +1,11 @@
 import { LayoutDashboard, FileText, BarChart3, Users, Settings, LogOut, ChevronDown } from "lucide-react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -29,6 +23,17 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const initials = user?.nome
+    ? user.nome.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
+    : "??";
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/login");
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -55,9 +60,7 @@ export function AppSidebar() {
                       to={item.url}
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-primary font-semibold"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                          isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                         }`
                       }
                     >
@@ -75,12 +78,7 @@ export function AppSidebar() {
           <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
             <CollapsibleTrigger className="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-accent-foreground w-full rounded-lg hover:bg-sidebar-accent/50 transition-colors">
               <Settings className="h-4 w-4 shrink-0" />
-              {!collapsed && (
-                <>
-                  <span>Configurações</span>
-                  <ChevronDown className="ml-auto h-3 w-3" />
-                </>
-              )}
+              {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarGroupContent>
@@ -92,9 +90,7 @@ export function AppSidebar() {
                           to={item.url}
                           className={({ isActive }) =>
                             `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-colors ${
-                              isActive
-                                ? "bg-sidebar-accent text-sidebar-primary font-semibold"
-                                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                              isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                             }`
                           }
                         >
@@ -113,15 +109,15 @@ export function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center gap-3 px-3 py-3 border-t border-sidebar-border">
           <div className="h-8 w-8 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary text-xs font-bold shrink-0">
-            JD
+            {initials}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">João Demo</p>
-              <p className="text-xs text-sidebar-foreground/50">Agente</p>
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{user?.nome || "Usuário"}</p>
+              <p className="text-xs text-sidebar-foreground/50">{user?.cargo || "Agente"}</p>
             </div>
           )}
-          <button className="text-sidebar-foreground/50 hover:text-sidebar-accent-foreground transition-colors shrink-0">
+          <button onClick={handleSignOut} className="text-sidebar-foreground/50 hover:text-sidebar-accent-foreground transition-colors shrink-0" title="Sair">
             <LogOut className="h-4 w-4" />
           </button>
         </div>

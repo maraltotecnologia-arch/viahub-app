@@ -3,20 +3,37 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (session) navigate("/dashboard", { replace: true });
+  }, [session]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     setLoading(true);
-    setTimeout(() => {
-      navigate("/dashboard");
+
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (authError) {
+      setError("Email ou senha incorretos");
       setLoading(false);
-    }, 800);
+      return;
+    }
+
+    // Auth state change will handle redirect via AuthContext
+    setLoading(false);
   };
 
   return (
@@ -34,33 +51,18 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="seu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+              <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+            {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             <div className="text-center">
-              <a href="#" className="text-sm text-primary hover:underline">
-                Esqueci minha senha
-              </a>
+              <a href="#" className="text-sm text-primary hover:underline">Esqueci minha senha</a>
             </div>
           </form>
         </div>

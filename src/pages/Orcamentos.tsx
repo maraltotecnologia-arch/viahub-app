@@ -2,50 +2,57 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search } from "lucide-react";
-
-const mockOrcamentos = [
-  { id: "1", cliente: "Maria Silva", titulo: "Lua de mel - Maldivas", valor: "R$ 32.500,00", status: "enviado", validade: "15/03/2026", criado: "28/02/2026" },
-  { id: "2", cliente: "Carlos Souza", titulo: "Família - Orlando", valor: "R$ 18.900,00", status: "aprovado", validade: "10/03/2026", criado: "27/02/2026" },
-  { id: "3", cliente: "Ana Costa", titulo: "Negócios - Lisboa", valor: "R$ 8.200,00", status: "rascunho", validade: "05/03/2026", criado: "27/02/2026" },
-  { id: "4", cliente: "Pedro Lima", titulo: "Aventura - Patagônia", valor: "R$ 12.800,00", status: "perdido", validade: "01/03/2026", criado: "26/02/2026" },
-  { id: "5", cliente: "Lucia Mendes", titulo: "Cruzeiro - Caribe", valor: "R$ 22.400,00", status: "emitido", validade: "20/03/2026", criado: "25/02/2026" },
-  { id: "6", cliente: "Roberto Alves", titulo: "Europa - 15 dias", valor: "R$ 45.000,00", status: "enviado", validade: "12/03/2026", criado: "24/02/2026" },
-  { id: "7", cliente: "Fernanda Dias", titulo: "Tailândia + Bali", valor: "R$ 28.700,00", status: "rascunho", validade: "08/03/2026", criado: "23/02/2026" },
-  { id: "8", cliente: "Marcos Oliveira", titulo: "Ski - Bariloche", valor: "R$ 9.500,00", status: "aprovado", validade: "18/03/2026", criado: "22/02/2026" },
-];
+import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
-  rascunho: "muted",
-  enviado: "default",
-  aprovado: "success",
-  perdido: "destructive",
-  emitido: "info",
+  rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
 };
 
+const PAGE_SIZE = 20;
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
 export default function Orcamentos() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [page, setPage] = useState(0);
 
-  const filtered = mockOrcamentos.filter((o) => {
-    const matchSearch = o.cliente.toLowerCase().includes(search.toLowerCase()) || o.titulo.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "todos" || o.status === statusFilter;
-    return matchSearch && matchStatus;
+  const { data, isLoading } = useQuery({
+    queryKey: ["orcamentos", user?.agencia_id, statusFilter, search, page],
+    enabled: !!user?.agencia_id,
+    queryFn: async () => {
+      let query = supabase
+        .from("orcamentos")
+        .select("id, titulo, valor_final, status, validade, criado_em, clientes(nome)", { count: "exact" })
+        .eq("agencia_id", user!.agencia_id!)
+        .order("criado_em", { ascending: false })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      if (statusFilter !== "todos") query = query.eq("status", statusFilter);
+      if (search.trim()) query = query.or(`titulo.ilike.%${search}%`);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return { rows: data, count: count ?? 0 };
+    },
   });
+
+  const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Orçamentos</h2>
         <Button variant="gradient" asChild>
-          <Link to="/orcamentos/novo">
-            <Plus className="h-4 w-4 mr-2" />
-            Novo Orçamento
-          </Link>
+          <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
         </Button>
       </div>
 
@@ -54,12 +61,10 @@ export default function Orcamentos() {
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Buscar por cliente ou título..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+              <Input placeholder="Buscar por título..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="rascunho">Rascunho</SelectItem>
@@ -72,36 +77,52 @@ export default function Orcamentos() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Valor Final</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead>Criado em</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((o) => (
-                <TableRow key={o.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell>
-                    <Link to={`/orcamentos/${o.id}`} className="font-medium hover:text-primary">
-                      {o.cliente}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{o.titulo}</TableCell>
-                  <TableCell className="font-semibold">{o.valor}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusVariant[o.status]}>{o.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{o.validade}</TableCell>
-                  <TableCell className="text-muted-foreground">{o.criado}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {isLoading ? (
+            <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Valor Final</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Validade</TableHead>
+                    <TableHead>Criado em</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data?.rows?.map((o) => (
+                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell>
+                        <Link to={`/orcamentos/${o.id}`} className="font-medium hover:text-primary">
+                          {(o.clientes as any)?.nome || "Sem cliente"}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{o.titulo || "Sem título"}</TableCell>
+                      <TableCell className="font-semibold">{fmt(Number(o.valor_final) || 0)}</TableCell>
+                      <TableCell><Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge></TableCell>
+                      <TableCell className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {data?.rows?.length === 0 && (
+                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum orçamento encontrado</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">Página {page + 1} de {totalPages}</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}><ChevronLeft className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}><ChevronRight className="h-4 w-4" /></Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
     </div>
