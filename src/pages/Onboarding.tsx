@@ -6,13 +6,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { CheckCircle2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const steps = ["Dados da Agência", "Markup Padrão", "Confirmação"];
 
+const tiposServico = ["aereo", "hotel", "pacote", "seguro", "transfer"];
+const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pacote: "Pacote", seguro: "Seguro", transfer: "Transfer" };
+
 export default function Onboarding() {
   const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
   const progress = ((step + 1) / steps.length) * 100;
+
+  const [nomeFantasia, setNomeFantasia] = useState("");
+  const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [markups, setMarkups] = useState(
+    tiposServico.map((t) => ({ tipo: t, markup: 0, taxa: 0 }))
+  );
+
+  const updateMarkup = (tipo: string, field: "markup" | "taxa", value: number) => {
+    setMarkups(markups.map((m) => (m.tipo === tipo ? { ...m, [field]: value } : m)));
+  };
+
+  const handleNext = async () => {
+    if (!user?.agencia_id) return;
+
+    if (step === 0) {
+      if (!nomeFantasia.trim()) {
+        toast({ title: "Preencha o nome fantasia", variant: "destructive" });
+        return;
+      }
+      setLoading(true);
+      const { error } = await supabase
+        .from("agencias")
+        .update({ nome_fantasia: nomeFantasia, email, telefone })
+        .eq("id", user.agencia_id);
+      setLoading(false);
+      if (error) { toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" }); return; }
+      setStep(1);
+    } else if (step === 1) {
+      setLoading(true);
+      const rows = markups.map((m) => ({
+        agencia_id: user.agencia_id!,
+        tipo_servico: m.tipo,
+        markup_percentual: m.markup,
+        taxa_fixa: m.taxa,
+      }));
+      const { error } = await supabase.from("configuracoes_markup").insert(rows);
+      setLoading(false);
+      if (error) { toast({ title: "Erro ao salvar markup", description: error.message, variant: "destructive" }); return; }
+      setStep(2);
+    }
+  };
+
+  const handleFinish = async () => {
+    if (!user?.agencia_id) return;
+    setLoading(true);
+    const { error } = await supabase
+      .from("agencias")
+      .update({ onboarding_completo: true })
+      .eq("id", user.agencia_id);
+    if (error) { toast({ title: "Erro ao finalizar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+    await refreshUser();
+    setLoading(false);
+    navigate("/dashboard");
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
@@ -35,33 +99,31 @@ export default function Onboarding() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>{steps[step]}</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>{steps[step]}</CardTitle></CardHeader>
           <CardContent>
             {step === 0 && (
               <div className="space-y-4">
-                <div className="space-y-2"><Label>Nome Fantasia</Label><Input placeholder="Minha Agência de Viagens" /></div>
-                <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="contato@minhaagencia.com" /></div>
-                <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 0000-0000" /></div>
+                <div className="space-y-2"><Label>Nome Fantasia</Label><Input placeholder="Minha Agência de Viagens" value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="contato@minhaagencia.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+                <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 0000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} /></div>
               </div>
             )}
 
             {step === 1 && (
               <div className="space-y-4">
-                {["Aéreo", "Hotel", "Pacote", "Seguro"].map((tipo) => (
-                  <div key={tipo} className="grid grid-cols-3 gap-3 items-end">
+                {markups.map((m) => (
+                  <div key={m.tipo} className="grid grid-cols-3 gap-3 items-end">
                     <div className="space-y-1">
-                      <Label className="text-xs">{tipo}</Label>
-                      <Input placeholder="0" disabled className="font-medium bg-muted" value={tipo} />
+                      <Label className="text-xs">{tiposLabel[m.tipo]}</Label>
+                      <Input disabled className="font-medium bg-muted" value={tiposLabel[m.tipo]} />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Markup %</Label>
-                      <Input type="number" placeholder="10" />
+                      <Input type="number" placeholder="10" value={m.markup || ""} onChange={(e) => updateMarkup(m.tipo, "markup", Number(e.target.value))} />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Taxa Fixa (R$)</Label>
-                      <Input type="number" placeholder="0" />
+                      <Input type="number" placeholder="0" value={m.taxa || ""} onChange={(e) => updateMarkup(m.tipo, "taxa", Number(e.target.value))} />
                     </div>
                   </div>
                 ))}
@@ -77,14 +139,16 @@ export default function Onboarding() {
             )}
 
             <div className="flex justify-between mt-6">
-              {step > 0 && (
-                <Button variant="outline" onClick={() => setStep(step - 1)}>Voltar</Button>
-              )}
+              {step > 0 && <Button variant="outline" onClick={() => setStep(step - 1)}>Voltar</Button>}
               <div className="ml-auto">
                 {step < 2 ? (
-                  <Button variant="gradient" onClick={() => setStep(step + 1)}>Próximo</Button>
+                  <Button variant="gradient" onClick={handleNext} disabled={loading}>
+                    {loading ? "Salvando..." : "Próximo"}
+                  </Button>
                 ) : (
-                  <Button variant="gradient" onClick={() => navigate("/dashboard")}>Acessar Sistema</Button>
+                  <Button variant="gradient" onClick={handleFinish} disabled={loading}>
+                    {loading ? "Finalizando..." : "Acessar Sistema"}
+                  </Button>
                 )}
               </div>
             </div>
