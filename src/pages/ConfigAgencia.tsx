@@ -9,11 +9,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function ConfigAgencia() {
   const { user, refreshUser } = useAuth();
+  const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
@@ -23,23 +25,23 @@ export default function ConfigAgencia() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: agencia, isLoading } = useQuery({
-    queryKey: ["agencia", user?.agencia_id],
-    enabled: !!user?.agencia_id,
+    queryKey: ["agencia", agenciaId],
+    enabled: !!agenciaId,
     queryFn: async () => {
-      const { data, error } = await supabase.from("agencias").select("*").eq("id", user!.agencia_id!).maybeSingle();
+      const { data, error } = await supabase.from("agencias").select("*").eq("id", agenciaId!).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
 
   const { data: usuarios } = useQuery({
-    queryKey: ["agencia-usuarios", user?.agencia_id],
-    enabled: !!user?.agencia_id,
+    queryKey: ["agencia-usuarios", agenciaId],
+    enabled: !!agenciaId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("usuarios")
         .select("id, nome, email, cargo, ativo")
-        .eq("agencia_id", user!.agencia_id!);
+        .eq("agencia_id", agenciaId!);
       if (error) throw error;
       return data;
     },
@@ -60,14 +62,14 @@ export default function ConfigAgencia() {
   }, [agencia]);
 
   const handleSave = async () => {
-    if (!user?.agencia_id) return;
+    if (!agenciaId) return;
     setSaving(true);
     const { error } = await supabase.from("agencias").update({
       nome_fantasia: form.nome_fantasia,
       cnpj: form.cnpj || null,
       email: form.email || null,
       telefone: form.telefone || null,
-    }).eq("id", user.agencia_id);
+    }).eq("id", agenciaId);
     if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); } else {
       toast({ title: "Dados salvos com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["agencia"] });
@@ -78,7 +80,7 @@ export default function ConfigAgencia() {
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user?.agencia_id) return;
+    if (!file || !agenciaId) return;
 
     const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
@@ -92,7 +94,7 @@ export default function ConfigAgencia() {
 
     setUploading(true);
     const ext = file.name.split(".").pop();
-    const path = `${user.agencia_id}/logo.${ext}`;
+    const path = `${agenciaId}/logo.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from("logos-agencias")
@@ -108,17 +110,17 @@ export default function ConfigAgencia() {
       .from("logos-agencias")
       .getPublicUrl(path);
 
-    const logoUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+    const logoUrl = publicUrlData.publicUrl;
 
     const { error: updateError } = await supabase
       .from("agencias")
       .update({ logo_url: logoUrl } as any)
-      .eq("id", user.agencia_id);
+      .eq("id", agenciaId);
 
     if (updateError) {
       toast({ title: "Erro ao salvar URL", description: updateError.message, variant: "destructive" });
     } else {
-      setLogoPreview(logoUrl);
+      setLogoPreview(`${logoUrl}?t=${Date.now()}`);
       queryClient.invalidateQueries({ queryKey: ["agencia"] });
       toast({ title: "Logo atualizado com sucesso!" });
     }
