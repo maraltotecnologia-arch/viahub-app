@@ -31,7 +31,7 @@ const PERIODOS = [
 
 const TIPOS_SERVICO = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
 const STATUS_OPTIONS = ["Todos", "aprovado", "emitido"];
-const PIE_COLORS = ["#1E3A8A", "#2563EB", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
+const PIE_COLORS = ["#2563EB", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981", "#EF4444"];
 const PAGE_SIZE = 20;
 
 function getDateRange(periodo: string, customStart?: Date, customEnd?: Date) {
@@ -335,8 +335,8 @@ export default function Relatorios() {
                       <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                       <XAxis dataKey="name" fontSize={11} className="fill-muted-foreground" />
                       <YAxis fontSize={11} className="fill-muted-foreground" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" />
-                      <Bar dataKey="valor" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                      <Bar dataKey="valor" fill="#2563EB" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
