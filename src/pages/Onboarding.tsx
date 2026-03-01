@@ -35,20 +35,41 @@ export default function Onboarding() {
   };
 
   const handleNext = async () => {
-    if (!user?.agencia_id) return;
-
     if (step === 0) {
       if (!nomeFantasia.trim()) {
         toast({ title: "Preencha o nome fantasia", variant: "destructive" });
         return;
       }
       setLoading(true);
+
+      // 1. Buscar agencia_id do usuário logado
+      const { data: sessionData } = await supabase.auth.getUser();
+      const userId = sessionData?.user?.id;
+      if (!userId) {
+        toast({ title: "Usuário não autenticado", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      const { data: userData, error: userError } = await supabase
+        .from("usuarios")
+        .select("agencia_id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (userError || !userData?.agencia_id) {
+        toast({ title: "Erro ao salvar dados. Tente novamente.", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
+      // 2. UPDATE usando o agencia_id retornado
       const { error } = await supabase
         .from("agencias")
         .update({ nome_fantasia: nomeFantasia, email, telefone })
-        .eq("id", user.agencia_id);
+        .eq("id", userData.agencia_id);
       setLoading(false);
-      if (error) { toast({ title: "Erro ao salvar dados", description: error.message, variant: "destructive" }); return; }
+      if (error) { toast({ title: "Erro ao salvar dados. Tente novamente.", description: error.message, variant: "destructive" }); return; }
       setStep(1);
     } else if (step === 1) {
       setLoading(true);
