@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Building2, Plus, DollarSign, Users, Activity } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
@@ -160,8 +161,14 @@ export default function AdminAgencias() {
                 })}
                 {agencias?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                      Nenhuma agência cadastrada
+                    <TableCell colSpan={6}>
+                      <EmptyState
+                        icon={<Building2 className="h-9 w-9" />}
+                        title="Nenhuma agência cadastrada"
+                        description="Cadastre a primeira agência cliente da plataforma"
+                        actionLabel="Cadastrar agência"
+                        onAction={() => navigate("/admin/agencias/nova")}
+                      />
                     </TableCell>
                   </TableRow>
                 )}

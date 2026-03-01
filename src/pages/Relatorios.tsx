@@ -11,7 +11,8 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { CalendarIcon, Download, Filter } from "lucide-react";
+import { CalendarIcon, Download, Filter, BarChart2 } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -340,7 +341,7 @@ export default function Relatorios() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-12">Sem dados no período</p>
+                  <EmptyState icon={<BarChart2 className="h-9 w-9" />} title="Sem dados no período" description="Aprove orçamentos para começar a ver seus relatórios financeiros" />
                 )}
               </CardContent>
             </Card>
@@ -359,7 +360,7 @@ export default function Relatorios() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <p className="text-sm text-muted-foreground text-center py-12">Sem dados no período</p>
+                  <EmptyState icon={<BarChart2 className="h-9 w-9" />} title="Sem dados no período" description="Aprove orçamentos para começar a ver seus relatórios financeiros" />
                 )}
               </CardContent>
             </Card>
