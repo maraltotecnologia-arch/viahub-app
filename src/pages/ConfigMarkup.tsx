@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Save } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface MarkupRow {
@@ -23,20 +23,20 @@ const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pa
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function ConfigMarkup() {
-  const { user } = useAuth();
+  const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [configs, setConfigs] = useState<MarkupRow[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["markup-config", user?.agencia_id],
-    enabled: !!user?.agencia_id,
+    queryKey: ["markup-config", agenciaId],
+    enabled: !!agenciaId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("configuracoes_markup")
         .select("*")
-        .eq("agencia_id", user!.agencia_id!);
+        .eq("agencia_id", agenciaId!);
       if (error) throw error;
       return data;
     },
@@ -61,7 +61,7 @@ export default function ConfigMarkup() {
   };
 
   const save = async (row: MarkupRow) => {
-    if (!user?.agencia_id) return;
+    if (!agenciaId) return;
     setSavingId(row.tipo);
 
     if (row.id) {
@@ -73,7 +73,7 @@ export default function ConfigMarkup() {
       if (error) { toast({ title: "Erro ao salvar", variant: "destructive" }); } else { toast({ title: `Markup de ${tiposLabel[row.tipo]} salvo!` }); }
     } else {
       const { error } = await supabase.from("configuracoes_markup").insert({
-        agencia_id: user.agencia_id,
+        agencia_id: agenciaId!,
         tipo_servico: row.tipo,
         markup_percentual: row.markup,
         taxa_fixa: row.taxa,

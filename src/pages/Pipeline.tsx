@@ -2,8 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -19,19 +19,19 @@ const statusConfig: { id: string; title: string; variant: "muted" | "default" | 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Pipeline() {
-  const { user } = useAuth();
+  const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dragId, setDragId] = useState<string | null>(null);
 
   const { data: orcamentos, isLoading } = useQuery({
-    queryKey: ["pipeline", user?.agencia_id],
-    enabled: !!user?.agencia_id,
+    queryKey: ["pipeline", agenciaId],
+    enabled: !!agenciaId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
         .select("id, titulo, valor_final, status, validade, clientes(nome)")
-        .eq("agencia_id", user!.agencia_id!);
+        .eq("agencia_id", agenciaId!);
       if (error) throw error;
       return data;
     },

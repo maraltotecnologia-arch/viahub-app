@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import useAgenciaId from "@/hooks/useAgenciaId";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -20,19 +20,19 @@ const PAGE_SIZE = 20;
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Orcamentos() {
-  const { user } = useAuth();
+  const agenciaId = useAgenciaId();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["orcamentos", user?.agencia_id, statusFilter, search, page],
-    enabled: !!user?.agencia_id,
+    queryKey: ["orcamentos", agenciaId, statusFilter, search, page],
+    enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
         .select("id, titulo, valor_final, status, validade, criado_em, clientes(nome)", { count: "exact" })
-        .eq("agencia_id", user!.agencia_id!)
+        .eq("agencia_id", agenciaId!)
         .order("criado_em", { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
 
