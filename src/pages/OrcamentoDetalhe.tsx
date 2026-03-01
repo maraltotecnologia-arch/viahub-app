@@ -11,12 +11,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import useAgenciaId from "@/hooks/useAgenciaId";
-import OrcamentoPreview, { type OrcamentoPDFData } from "@/components/pdf/OrcamentoPreview";
+import { type OrcamentoPDFData } from "@/components/pdf/OrcamentoPreview";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { pdf, PDFViewer } from "@react-pdf/renderer";
+import OrcamentoPDFDocument from "@/components/pdf/OrcamentoPDFDocument";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
@@ -38,7 +38,7 @@ export default function OrcamentoDetalhe() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
-  const pdfRef = useRef<HTMLDivElement>(null);
+  
 
   const { data: orc, isLoading } = useQuery({
     queryKey: ["orcamento", id],
@@ -101,70 +101,15 @@ export default function OrcamentoDetalhe() {
     if (!pdfData) { toast({ title: "Dados incompletos para gerar PDF", variant: "destructive" }); return; }
     setGeneratingPdf(true);
     try {
-      // Render hidden element for capture
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "-9999px";
-      container.style.top = "0";
-      document.body.appendChild(container);
-
-      const { createRoot } = await import("react-dom/client");
-      const root = createRoot(container);
-
-      await new Promise<void>((resolve) => {
-        const RefComponent = () => {
-          const innerRef = useRef<HTMLDivElement>(null);
-          React.useEffect(() => {
-            // Wait for images to load
-            const images = container.querySelectorAll("img");
-            const promises = Array.from(images).map(
-              (img) =>
-                new Promise<void>((res) => {
-                  if (img.complete) return res();
-                  img.onload = () => res();
-                  img.onerror = () => res();
-                })
-            );
-            Promise.all(promises).then(() => {
-              setTimeout(() => resolve(), 200);
-            });
-          }, []);
-          return <OrcamentoPreview ref={innerRef} data={pdfData} />;
-        };
-        root.render(<RefComponent />);
-      });
-
-      const canvas = await html2canvas(container.firstElementChild as HTMLElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-
-      root.unmount();
-      document.body.removeChild(container);
-
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position -= pageHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-
+      const blob = await pdf(<OrcamentoPDFDocument data={pdfData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       const clienteName = (orc?.clientes as any)?.nome || "Cliente";
       const numero = (orc as any)?.numero_orcamento || "ORC";
-      pdf.save(`${numero} ${clienteName}.pdf`);
+      link.href = url;
+      link.download = `${numero} ${clienteName}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
       toast({ title: "PDF gerado com sucesso!" });
     } catch (e) {
       console.error("Erro ao gerar PDF:", e);
@@ -340,16 +285,17 @@ export default function OrcamentoDetalhe() {
               <CollapsibleContent>
                 <CardContent>
                   {pdfData ? (
-                    <div
+                    <PDFViewer
                       style={{
-                        overflowY: "auto",
-                        maxHeight: 600,
+                        width: "100%",
+                        height: 600,
                         border: "1px solid #E5E7EB",
                         borderRadius: 8,
                       }}
+                      showToolbar={false}
                     >
-                      <OrcamentoPreview data={pdfData} />
-                    </div>
+                      <OrcamentoPDFDocument data={pdfData} />
+                    </PDFViewer>
                   ) : (
                     <p className="text-sm text-muted-foreground text-center py-8">Carregando dados...</p>
                   )}
