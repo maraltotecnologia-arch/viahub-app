@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2 } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -219,6 +219,7 @@ export default function OrcamentoDetalhe() {
     const seq = String((count ?? 0) + 1).padStart(4, "0");
     const numero_orcamento = `ORC-${year}-${seq}`;
 
+    const gerarToken = () => Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const { data: newOrc, error } = await supabase
       .from("orcamentos")
       .insert({
@@ -236,6 +237,7 @@ export default function OrcamentoDetalhe() {
         validade: null,
         observacoes: orc.observacoes,
         forma_pagamento: orc.forma_pagamento,
+        token_publico: gerarToken(),
       })
       .select("id")
       .single();
@@ -598,6 +600,19 @@ export default function OrcamentoDetalhe() {
               <Button variant="outline" className="w-full justify-start" onClick={() => setShowSaveTemplate(true)}>
                 <BookmarkPlus className="h-4 w-4 mr-2" /> Salvar como Template
               </Button>
+              {(orc as any).token_publico && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const link = `${window.location.origin}/orcamento/${(orc as any).token_publico}`;
+                    navigator.clipboard.writeText(link);
+                    toast({ title: "Link copiado! Compartilhe com seu cliente." });
+                  }}
+                >
+                  <Link2 className="h-4 w-4 mr-2" /> Copiar Link Público
+                </Button>
+              )}
             </CardContent>
           </Card>
 

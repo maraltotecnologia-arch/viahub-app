@@ -419,6 +419,7 @@ export type Database = {
           observacoes: string | null
           status: string | null
           titulo: string | null
+          token_publico: string | null
           usuario_id: string | null
           validade: string | null
           valor_custo: number | null
@@ -440,6 +441,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           titulo?: string | null
+          token_publico?: string | null
           usuario_id?: string | null
           validade?: string | null
           valor_custo?: number | null
@@ -461,6 +463,7 @@ export type Database = {
           observacoes?: string | null
           status?: string | null
           titulo?: string | null
+          token_publico?: string | null
           usuario_id?: string | null
           validade?: string | null
           valor_custo?: number | null

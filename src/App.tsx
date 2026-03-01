@@ -26,6 +26,7 @@ import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import NotFound from "./pages/NotFound";
+import OrcamentoPublico from "./pages/OrcamentoPublico";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+        <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -47,6 +49,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
