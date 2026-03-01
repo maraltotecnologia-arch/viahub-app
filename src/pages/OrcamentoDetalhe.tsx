@@ -14,6 +14,16 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { type OrcamentoPDFData } from "@/components/pdf/OrcamentoPreview";
+import { useEffect } from "react";
+
+const getImageDimensions = (url: string): Promise<{width: number, height: number}> => {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve({ width: 150, height: 50 });
+    img.src = url;
+  });
+};
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import OrcamentoPDFDocument from "@/components/pdf/OrcamentoPDFDocument";
@@ -38,7 +48,7 @@ export default function OrcamentoDetalhe() {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
-  
+  const [logoDims, setLogoDims] = useState<{width: number, height: number}>({width: 150, height: 50});
 
   const { data: orc, isLoading } = useQuery({
     queryKey: ["orcamento", id],
@@ -80,6 +90,15 @@ export default function OrcamentoDetalhe() {
       return data;
     },
   });
+  useEffect(() => {
+    if (agencia?.logo_url) {
+      getImageDimensions(agencia.logo_url).then((dims) => {
+        const maxH = 50, maxW = 150;
+        const ratio = Math.min(maxW / dims.width, maxH / dims.height);
+        setLogoDims({ width: Math.round(dims.width * ratio), height: Math.round(dims.height * ratio) });
+      });
+    }
+  }, [agencia?.logo_url]);
 
   const buildPdfData = (): OrcamentoPDFData | null => {
     if (!orc || !agencia) return null;
@@ -93,6 +112,7 @@ export default function OrcamentoDetalhe() {
         quantidade: i.quantidade,
       })),
       agencia,
+      logoDims,
     };
   };
 
