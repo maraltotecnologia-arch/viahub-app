@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -228,6 +228,69 @@ export default function ConfigAgencia() {
           </Table>
         </CardContent>
       </Card>
+      <AlterarSenhaSection />
     </div>
+  );
+}
+
+function AlterarSenhaSection() {
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmar, setConfirmar] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const { toast } = useToast();
+
+  const handleAlterar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (novaSenha.length < 6) {
+      setError("A nova senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+    if (novaSenha !== confirmar) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    setLoading(true);
+    const { error: updateError } = await supabase.auth.updateUser({ password: novaSenha });
+
+    if (updateError) {
+      setError(updateError.message);
+      setLoading(false);
+      return;
+    }
+
+    toast({ title: "Senha alterada com sucesso!" });
+    setSenhaAtual("");
+    setNovaSenha("");
+    setConfirmar("");
+    setLoading(false);
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Segurança — Alterar Senha</CardTitle></CardHeader>
+      <CardContent>
+        <form onSubmit={handleAlterar} className="space-y-4 max-w-sm">
+          <div className="space-y-2">
+            <Label>Senha Atual</Label>
+            <Input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label>Nova Senha</Label>
+            <Input type="password" placeholder="Mínimo 6 caracteres" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} required />
+          </div>
+          <div className="space-y-2">
+            <Label>Confirmar Nova Senha</Label>
+            <Input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button variant="gradient" disabled={loading}>{loading ? "Salvando..." : "Alterar Senha"}</Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
