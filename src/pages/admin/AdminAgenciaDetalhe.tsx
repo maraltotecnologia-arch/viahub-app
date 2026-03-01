@@ -160,14 +160,14 @@ export default function AdminAgenciaDetalhe() {
         <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
       </Button>
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 mb-4 md:mb-0">
           <h2 className="text-2xl font-bold">{agencia.nome_fantasia}</h2>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${planoInfo.color}`}>
             {planoInfo.label}
           </span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {editing ? (
             <>
               <Button onClick={handleSave}>Salvar</Button>
