@@ -45,7 +45,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="md:flex [&_[data-sidebar=sidebar]]:!bg-[rgba(255,255,255,0.07)] [&_[data-sidebar=sidebar]]:backdrop-blur-[24px] [&_[data-sidebar=sidebar]]:[-webkit-backdrop-filter:blur(24px)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-white/[0.12] [&_[data-sidebar=sidebar]]:shadow-none max-md:[&_[data-sidebar=sidebar]]:!bg-[rgba(255,255,255,0.07)] max-md:[&_[data-sidebar=sidebar]]:backdrop-blur-[24px]">
+    <Sidebar collapsible="icon" className="md:flex [&_[data-sidebar=sidebar]]:!bg-[#0F172A] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[#1E293B]">
       <SidebarContent>
         <div className="p-4 pb-5 border-b border-sidebar-border">
           <h1 className="text-xl font-extrabold tracking-tight">

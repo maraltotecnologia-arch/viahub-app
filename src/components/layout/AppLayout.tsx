@@ -28,24 +28,17 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
-      {/* Fixed gradient background — matching login */}
-      <div className="fixed inset-0 z-0" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 40%, #2563EB 70%, #06B6D4 100%)" }}>
-        <div className="fixed -top-[150px] -right-[100px] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }} />
-        <div className="fixed -bottom-[100px] -left-[150px] w-[400px] h-[400px] rounded-full pointer-events-none" style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.12)" }} />
-        <div className="fixed top-[35%] left-[30%] w-[300px] h-[300px] rounded-full pointer-events-none blur-[60px]" style={{ background: "rgba(37,99,235,0.06)" }} />
-      </div>
-
-      <div className="min-h-screen flex w-full relative z-[1]">
+      <div className="min-h-screen flex w-full bg-[#F8FAFC]">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 bg-[rgba(255,255,255,0.1)] backdrop-blur-[20px] [-webkit-backdrop-filter:blur(20px)] border-b border-white/[0.12] max-md:bg-[rgba(255,255,255,0.1)] max-md:backdrop-blur-[20px]">
+          <header className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 bg-white border-b border-[#F1F5F9] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
             <SidebarTrigger className="shrink-0">
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
             <div className="ml-auto flex items-center gap-3">
               {!isMobile && (
                 <>
-                  <span className="text-sm font-medium text-white">{displayName}</span>
+                  <span className="text-sm font-medium text-foreground">{displayName}</span>
                   {cargoLabel && <CargoBadge cargo={cargoLabel} />}
                 </>
               )}
@@ -55,7 +48,7 @@ export default function AppLayout() {
               </div>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto bg-[rgba(255,255,255,0.12)] backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)] border-l border-white/[0.12] relative z-[5] max-md:backdrop-blur-[8px]">
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
             <Outlet />
           </main>
         </div>
