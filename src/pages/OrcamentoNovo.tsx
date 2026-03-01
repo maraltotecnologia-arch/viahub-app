@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Trash2, Save, Send, ArrowLeft, FileText } from "lucide-react";
+import { registrarHistorico } from "@/lib/historico-orcamento";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useAuth } from "@/contexts/AuthContext";
@@ -383,6 +384,18 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
       queryClient.invalidateQueries({ queryKey: ["orcamento", orcamentoId] });
       queryClient.invalidateQueries({ queryKey: ["orcamento-itens", orcamentoId] });
+
+      // Register edit history
+      if (user && agenciaId) {
+        await registrarHistorico({
+          orcamento_id: orcamentoId!,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "editado",
+          descricao: "Orçamento editado",
+        });
+      }
+
       toast({ title: "Orçamento atualizado!", description: `${titulo || "Orçamento"} - ${fmt(valorFinal)}` });
       setLoading(false);
       navigate(`/orcamentos/${orcamentoId}`);
@@ -435,6 +448,29 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
 
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+
+      // Register history
+      if (user && agenciaId) {
+        await registrarHistorico({
+          orcamento_id: orc.id,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "criado",
+          descricao: "Orçamento criado",
+        });
+        if (enviar) {
+          await registrarHistorico({
+            orcamento_id: orc.id,
+            usuario_id: user.id,
+            agencia_id: agenciaId,
+            tipo: "status_alterado",
+            status_anterior: "rascunho",
+            status_novo: "enviado",
+            descricao: "Status alterado de Rascunho para Enviado",
+          });
+        }
+      }
+
       toast({ title: enviar ? "Orçamento enviado!" : "Rascunho salvo!", description: `${titulo || "Novo orçamento"} - ${fmt(valorFinal)}` });
       setLoading(false);
       navigate(`/orcamentos/${orc.id}`);
