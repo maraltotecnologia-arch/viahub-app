@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { validarValidade, validarData, todayStr, limitarAnoInput } from "@/lib/date-utils";
 
 interface Item {
   id: string;
@@ -459,7 +460,23 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lua de mel - Maldivas" value={titulo} onChange={(e) => setTitulo(e.target.value)} /></div>
-            <div className="space-y-2"><Label>Validade</Label><Input type="date" value={validade} onChange={(e) => setValidade(e.target.value)} /></div>
+            <div className="space-y-2">
+              <Label>Validade</Label>
+              <Input
+                type="date"
+                value={validade}
+                min={todayStr()}
+                max="2099-12-31"
+                onChange={(e) => setValidade(e.target.value)}
+                onKeyDown={limitarAnoInput}
+                className={validade && !validarValidade(validade) ? "border-destructive" : ""}
+              />
+              {validade && !validarValidade(validade) && (
+                <p className="text-xs text-destructive">
+                  {!validarData(validade) ? "Data inválida" : "A validade deve ser uma data futura"}
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label>Moeda</Label>
               <Select value={moeda} onValueChange={setMoeda}>
