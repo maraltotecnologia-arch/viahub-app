@@ -28,10 +28,16 @@ export default function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      {/* Fixed gradient background */}
+      <div className="fixed inset-0 z-0 bg-gradient-to-br from-[#0F172A] via-[#1E3A8A] to-[#0F172A]">
+        <div className="fixed -top-[200px] -left-[200px] w-[600px] h-[600px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(37,99,235,0.15) 0%, transparent 70%)" }} />
+        <div className="fixed -bottom-[200px] -right-[200px] w-[500px] h-[500px] rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(6,182,212,0.1) 0%, transparent 70%)" }} />
+      </div>
+
+      <div className="min-h-screen flex w-full relative z-[1]">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center border-b border-border/60 px-4 bg-background shrink-0 shadow-[0_1px_3px_hsl(0_0%_0%/0.04)]">
+          <header className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 bg-[rgba(248,250,252,0.85)] backdrop-blur-[16px] [-webkit-backdrop-filter:blur(16px)] border-b border-white/60 shadow-[0_1px_3px_rgba(0,0,0,0.04)] md:bg-[rgba(248,250,252,0.85)] max-md:bg-[#F8FAFC] max-md:backdrop-blur-none">
             <SidebarTrigger className="shrink-0">
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
@@ -48,7 +54,7 @@ export default function AppLayout() {
               </div>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto bg-[hsl(210_40%_98%)]">
+          <main className="flex-1 p-4 md:p-6 overflow-auto bg-[rgba(248,250,252,0.92)] md:bg-[rgba(248,250,252,0.92)] max-md:bg-[#F8FAFC] max-md:backdrop-blur-none relative z-[5]">
             <Outlet />
           </main>
         </div>

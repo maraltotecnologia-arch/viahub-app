@@ -66,7 +66,7 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
   title: string; value: string; icon: any; iconBg: string; isLoading?: boolean;
 }) {
   return (
-    <Card className="border border-border/60 rounded-2xl shadow-[0_1px_3px_hsl(0_0%_0%/0.04),0_4px_16px_hsl(0_0%_0%/0.04)] hover:shadow-[0_4px_20px_hsl(0_0%_0%/0.08)] hover:-translate-y-0.5 transition-all duration-200">
+    <Card className="rounded-2xl bg-white/85 backdrop-blur-[12px] [-webkit-backdrop-filter:blur(12px)] border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.04)] hover:bg-white/[0.92] hover:shadow-[0_8px_32px_rgba(0,0,0,0.1),0_2px_4px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-200">
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
