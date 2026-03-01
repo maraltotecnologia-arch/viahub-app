@@ -25,11 +25,11 @@ const CARGO_LABELS: Record<string, string> = {
   superadmin: "Superadmin",
 };
 
-const CARGO_VARIANTS: Record<string, "default" | "success" | "secondary" | "destructive" | "outline" | "muted"> = {
-  admin: "default",
-  agente: "success",
-  financeiro: "secondary",
-  superadmin: "destructive",
+const CARGO_CLASSES: Record<string, string> = {
+  superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
+  admin: "bg-blue-50 text-blue-700 border border-blue-200",
+  agente: "bg-green-50 text-green-700 border border-green-200",
+  financeiro: "bg-amber-50 text-amber-700 border border-amber-200",
 };
 
 export default function ConfigUsuarios() {
@@ -202,7 +202,7 @@ export default function ConfigUsuarios() {
                   <TableCell className="font-medium">{u.nome || "-"}</TableCell>
                   <TableCell>{u.email || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant={CARGO_VARIANTS[u.cargo || "agente"] || "outline"}>
+                    <Badge variant="outline" className={CARGO_CLASSES[u.cargo || "agente"] || ""}>
                       {CARGO_LABELS[u.cargo || "agente"] || u.cargo}
                     </Badge>
                   </TableCell>
@@ -214,8 +214,12 @@ export default function ConfigUsuarios() {
                   <TableCell className="space-x-2">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(u)}>Editar</Button>
                     <Button
-                      variant={u.ativo ? "destructive" : "success"}
+                      variant="outline"
                       size="sm"
+                      className={u.ativo
+                        ? "border-red-300 text-red-500 hover:bg-red-50"
+                        : "border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                      }
                       onClick={() => toggleAtivo(u)}
                     >
                       {u.ativo ? "Desativar" : "Ativar"}

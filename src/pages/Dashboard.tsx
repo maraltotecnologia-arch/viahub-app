@@ -69,8 +69,8 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
     <Card className="border border-border/60 rounded-2xl shadow-[0_1px_3px_hsl(0_0%_0%/0.04),0_4px_16px_hsl(0_0%_0%/0.04)] hover:shadow-[0_4px_20px_hsl(0_0%_0%/0.08)] hover:-translate-y-0.5 transition-all duration-200">
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${iconBg}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
+            <Icon className="h-[22px] w-[22px]" />
           </div>
           <span className="text-sm text-muted-foreground">{title}</span>
         </div>
@@ -173,10 +173,10 @@ function SuperadminDashboard() {
   });
 
   const metricCards = [
-    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-primary/10 text-primary" },
-    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-primary/10 text-primary" },
-    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-success/10 text-success" },
-    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-info/10 text-info" },
+    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-100 text-blue-600" },
+    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-100 text-violet-600" },
+    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600" },
+    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600" },
   ];
 
   return (
@@ -202,8 +202,8 @@ function SuperadminDashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="hsl(217, 91%, 60%)" radius={[6, 6, 0, 0]} />
+                   <Tooltip contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                   <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -286,10 +286,10 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   });
 
   const metricCards = [
-    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-primary/10 text-primary" },
-    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-success/10 text-success" },
-    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-info/10 text-info" },
-    { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-accent/10 text-accent" },
+    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-100 text-blue-600" },
+    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600" },
+    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-100 text-violet-600" },
+    { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600" },
   ];
 
   return (
@@ -314,8 +314,8 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="total" fill="hsl(217, 91%, 60%)" radius={[6, 6, 0, 0]} />
+                   <Tooltip contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                   <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             )}

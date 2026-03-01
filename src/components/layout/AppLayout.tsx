@@ -4,9 +4,20 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import useUserRole from "@/hooks/useUserRole";
 import NotificacoesDropdown from "@/components/NotificacoesDropdown";
+
+const CARGO_BADGE_CLASSES: Record<string, string> = {
+  Superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
+  Administrador: "bg-blue-50 text-blue-700 border border-blue-200",
+  Agente: "bg-green-50 text-green-700 border border-green-200",
+  Financeiro: "bg-amber-50 text-amber-700 border border-amber-200",
+};
+
+function CargoBadge({ cargo }: { cargo: string }) {
+  const cls = CARGO_BADGE_CLASSES[cargo] || "bg-muted text-muted-foreground border border-border";
+  return <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>{cargo}</span>;
+}
 
 export default function AppLayout() {
   const { user } = useAuth();
@@ -28,7 +39,7 @@ export default function AppLayout() {
               {!isMobile && (
                 <>
                   <span className="text-sm font-medium">{displayName}</span>
-                  {cargoLabel && <Badge variant="outline" className="text-xs">{cargoLabel}</Badge>}
+                  {cargoLabel && <CargoBadge cargo={cargoLabel} />}
                 </>
               )}
               <NotificacoesDropdown />
@@ -37,7 +48,7 @@ export default function AppLayout() {
               </div>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 overflow-auto bg-muted/30">
+          <main className="flex-1 p-4 md:p-6 overflow-auto bg-[hsl(210_40%_98%)]">
             <Outlet />
           </main>
         </div>
