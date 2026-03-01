@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +20,12 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
+
+  useEffect(() => {
+    if (user?.onboarding_completo) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
   const { toast } = useToast();
   const progress = ((step + 1) / steps.length) * 100;
 
