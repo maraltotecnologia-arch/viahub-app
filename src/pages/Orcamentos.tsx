@@ -17,6 +17,7 @@ import SortableTableHead from "@/components/SortableTableHead";
 import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import EmptyState from "@/components/EmptyState";
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -156,7 +157,7 @@ export default function Orcamentos() {
                       <p className="text-sm text-muted-foreground">{o.titulo || "Sem título"}</p>
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-semibold">{fmt(Number(o.valor_final) || 0)}</span>
-                        <span className="text-muted-foreground text-xs">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</span>
+                        <span className="text-muted-foreground text-xs">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -215,17 +216,17 @@ export default function Orcamentos() {
                       <TableCell>
                         {(() => {
                           const ind = getValidadeIndicator(o.validade, o.status);
-                          if (!ind) return <span className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</span>;
+                          if (!ind) return <span className="text-muted-foreground">{o.validade ? formatarApenasDatabrasilia(o.validade + "T12:00:00") : "-"}</span>;
                           const IndIcon = ind.icon;
                           return (
                             <span className={`inline-flex items-center gap-1 ${ind.className}`}>
                               <IndIcon className="h-3.5 w-3.5" />
-                              {o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}
+                              {o.validade ? formatarApenasDatabrasilia(o.validade + "T12:00:00") : "-"}
                             </span>
                           );
                         })()}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</TableCell>
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (

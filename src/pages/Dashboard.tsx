@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAlertas from "@/hooks/useAlertas";
 import StatusBadge from "@/components/StatusBadge";
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -222,7 +223,7 @@ function SuperadminDashboard() {
                     <div>
                       <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {o.clientes?.nome || "Sem cliente"} • {o.agencias?.nome_fantasia || "—"} • {o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : ""}
+                        {o.clientes?.nome || "Sem cliente"} • {o.agencias?.nome_fantasia || "—"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -334,7 +335,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                     <div>
                       <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {(o.clientes as any)?.nome || "Sem cliente"} • {o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : ""}
+                        {(o.clientes as any)?.nome || "Sem cliente"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">

@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 const iconByTipo: Record<string, React.ElementType> = {
   criado: Plus,
@@ -52,12 +53,7 @@ export default function HistoricoOrcamento({ orcamentoId }: Props) {
         {eventos.map((ev: any) => {
           const Icon = iconByTipo[ev.tipo] || Clock;
           const color = colorByTipo[ev.tipo] || "#94A3B8";
-          const data = ev.criado_em
-            ? new Date(ev.criado_em).toLocaleString("pt-BR", {
-                day: "2-digit", month: "2-digit", year: "numeric",
-                hour: "2-digit", minute: "2-digit",
-              })
-            : "";
+          const data = ev.criado_em ? formatarDataHoraBrasilia(ev.criado_em) : "";
           const nomeUsuario = ev.usuarios?.nome || "Sistema";
 
           return (

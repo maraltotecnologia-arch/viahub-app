@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquare } from "lucide-react";
+import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 interface Props {
   orcamentoId: string;
@@ -90,12 +91,7 @@ export default function NotasInternas({ orcamentoId }: Props) {
         <div className="space-y-3">
           {comentarios.map((c: any) => {
             const nome = c.usuarios?.nome || "Usuário";
-            const data = c.criado_em
-              ? new Date(c.criado_em).toLocaleString("pt-BR", {
-                  day: "2-digit", month: "2-digit", year: "numeric",
-                  hour: "2-digit", minute: "2-digit",
-                })
-              : "";
+            const data = c.criado_em ? formatarDataHoraBrasilia(c.criado_em) : "";
             return (
               <div key={c.id} className="flex gap-3 items-start">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-xs font-bold shrink-0">

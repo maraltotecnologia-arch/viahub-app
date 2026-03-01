@@ -39,6 +39,7 @@ import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import HistoricoOrcamento from "@/components/orcamento/HistoricoOrcamento";
 import NotasInternas from "@/components/orcamento/NotasInternas";
 import { registrarHistorico } from "@/lib/historico-orcamento";
+import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -128,6 +129,20 @@ export default function OrcamentoDetalhe() {
       return data;
     },
   });
+  // Auto-generate token_publico if missing
+  useEffect(() => {
+    if (orc && !orc.token_publico) {
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      supabase
+        .from('orcamentos')
+        .update({ token_publico: token })
+        .eq('id', orc.id)
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ['orcamento', id] });
+        });
+    }
+  }, [orc, id, queryClient]);
+
   useEffect(() => {
     if (agencia?.logo_url) {
       getImageDimensions(agencia.logo_url).then((dims) => {
@@ -428,7 +443,7 @@ export default function OrcamentoDetalhe() {
             <CardContent>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><span className="text-muted-foreground">Cliente:</span> <span className="font-medium ml-1">{(orc.clientes as any)?.nome || "Sem cliente"}</span></div>
-                <div><span className="text-muted-foreground">Validade:</span> <span className="font-medium ml-1">{orc.validade ? new Date(orc.validade).toLocaleDateString("pt-BR") : "-"}</span></div>
+                <div><span className="text-muted-foreground">Validade:</span> <span className="font-medium ml-1">{orc.validade ? formatarApenasDatabrasilia(orc.validade + "T12:00:00") : "-"}</span></div>
                 <div><span className="text-muted-foreground">Moeda:</span> <span className="font-medium ml-1">{orc.moeda}</span></div>
                 <div><span className="text-muted-foreground">Pagamento:</span> <span className="font-medium ml-1">{orc.forma_pagamento}</span></div>
               </div>
@@ -620,12 +635,12 @@ export default function OrcamentoDetalhe() {
             <CardHeader><CardTitle className="text-base">Histórico</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span>{orc.criado_em ? new Date(orc.criado_em).toLocaleDateString("pt-BR") : "-"}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Atualizado em</span><span>{orc.atualizado_em ? new Date(orc.atualizado_em).toLocaleDateString("pt-BR") : "-"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span>{orc.criado_em ? formatarApenasDatabrasilia(orc.criado_em) : "-"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Atualizado em</span><span>{orc.atualizado_em ? formatarApenasDatabrasilia(orc.atualizado_em) : "-"}</span></div>
                 {(orc as any).enviado_whatsapp && (
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5 text-success" /> Enviado via WhatsApp</span>
-                    <span>{(orc as any).enviado_whatsapp_em ? new Date((orc as any).enviado_whatsapp_em).toLocaleString("pt-BR") : "Sim"}</span>
+                    <span>{(orc as any).enviado_whatsapp_em ? formatarDataHoraBrasilia((orc as any).enviado_whatsapp_em) : "Sim"}</span>
                   </div>
                 )}
               </div>

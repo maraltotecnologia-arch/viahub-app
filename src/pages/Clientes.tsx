@@ -15,6 +15,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SortableTableHead from "@/components/SortableTableHead";
 import EmptyState from "@/components/EmptyState";
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
 const PAGE_SIZE = 20;
 
@@ -168,7 +169,7 @@ export default function Clientes() {
                       <TableCell>{c.email || "-"}</TableCell>
                       <TableCell>{c.telefone || "-"}</TableCell>
                       <TableCell className="font-semibold">{(c.orcamentos as any)?.[0]?.count ?? 0}</TableCell>
-                      <TableCell className="text-muted-foreground">{c.criado_em ? new Date(c.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell className="text-muted-foreground">{c.criado_em ? formatarApenasDatabrasilia(c.criado_em) : "-"}</TableCell>
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (
