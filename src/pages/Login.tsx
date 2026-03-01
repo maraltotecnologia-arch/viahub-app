@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,11 +11,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { session } = useAuth();
-
-  useEffect(() => {
-    if (session) navigate("/dashboard", { replace: true });
-  }, [session]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +25,8 @@ export default function Login() {
       return;
     }
 
-    // Auth state change will handle redirect via AuthContext
     setLoading(false);
+    navigate("/dashboard", { replace: true });
   };
 
   return (
