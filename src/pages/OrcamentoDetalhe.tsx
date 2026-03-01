@@ -315,7 +315,7 @@ export default function OrcamentoDetalhe() {
 
           <Card className="border-primary/30">
             <CardContent className="pt-6">
-              <div className="grid grid-cols-4 gap-4 text-center">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div><p className="text-xs text-muted-foreground">Custo Total</p><p className="text-lg font-bold">{fmt(custoTotal)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Valor Final</p><p className="text-lg font-bold text-primary">{fmt(Number(orc.valor_final) || 0)}</p></div>
                 <div><p className="text-xs text-muted-foreground">Lucro</p><p className="text-lg font-bold text-success">{fmt(Number(orc.lucro_bruto) || 0)}</p></div>

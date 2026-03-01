@@ -62,7 +62,7 @@ export default function Pipeline() {
   return (
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold">Pipeline</h2>
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex flex-col md:flex-row gap-4 md:overflow-x-auto pb-4">
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
@@ -71,7 +71,7 @@ export default function Pipeline() {
           return (
             <div
               key={col.id}
-              className="min-w-[280px] flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
+              className="min-w-0 md:min-w-[280px] flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
               style={{
                 background: isDropActive ? "#EFF6FF" : "transparent",
                 border: isDropActive ? "2px dashed #2563EB" : "2px dashed transparent",

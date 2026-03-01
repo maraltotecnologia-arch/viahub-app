@@ -65,85 +65,72 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
           padding: 48,
         }}
       >
-        {/* Top-right geometric triangle */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: 80,
-            height: 80,
-            background: "linear-gradient(135deg, transparent 50%, #2563EB 50%)",
-          }}
-        />
+        {/* Decorative top-left circles */}
+        <div style={{ position: "absolute", top: -100, left: -100, width: 300, height: 300, borderRadius: "50%", background: "#F0F4FF" }} />
+        <div style={{ position: "absolute", top: -60, left: -60, width: 200, height: 200, borderRadius: "50%", background: "#E8EEFF" }} />
+
+        {/* Decorative top-right rectangles */}
+        <div style={{ position: "absolute", top: -40, right: -30, width: 120, height: 180, background: "#1E3A8A", transform: "rotate(15deg)" }} />
+        <div style={{ position: "absolute", top: -20, right: 10, width: 80, height: 140, background: "#2563EB", transform: "rotate(15deg)" }} />
 
         {/* HEADER */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#1E3A5F", letterSpacing: 1, textTransform: "uppercase" as const }}>
-              {agencia.nome_fantasia}
-            </div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", position: "relative", zIndex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#1E3A8A", letterSpacing: 1, textTransform: "uppercase" as const }}>
+            {agencia.nome_fantasia}
           </div>
-          <div style={{ textAlign: "right", paddingTop: 16 }}>
-            {agencia.telefone && <div style={{ fontSize: 11, color: "#4B5563" }}>{agencia.telefone}</div>}
-            {agencia.email && <div style={{ fontSize: 11, color: "#4B5563" }}>{agencia.email}</div>}
+          <div style={{ textAlign: "right" }}>
+            {agencia.telefone && <div style={{ fontSize: 11, color: "#374151" }}>{agencia.telefone}</div>}
+            {agencia.email && <div style={{ fontSize: 11, color: "#374151" }}>{agencia.email}</div>}
           </div>
         </div>
 
         {/* TÍTULO DO ORÇAMENTO */}
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginTop: 24, position: "relative", zIndex: 1 }}>
           {agencia.logo_url && (
-            <img
-              src={agencia.logo_url}
-              alt="Logo"
-              style={{ maxHeight: 50, objectFit: "contain", marginBottom: 8 }}
-              crossOrigin="anonymous"
-            />
+            <img src={agencia.logo_url} alt="Logo" style={{ height: 48, objectFit: "contain", marginBottom: 8 }} crossOrigin="anonymous" />
           )}
-          <div style={{ fontSize: 28, fontWeight: 800, color: "#2563EB" }}>
+          <div style={{ fontSize: 32, fontWeight: 800, color: "#1E3A8A", letterSpacing: -0.5 }}>
             ORÇAMENTO #{orcamento.numero_orcamento || "—"}
           </div>
-          <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#2563EB", marginTop: 4 }}>
             Data: {fmtDate(orcamento.criado_em ?? null)}
           </div>
         </div>
 
-        {/* DADOS DO CLIENTE */}
-        <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, marginBottom: 4 }}>
-            <span style={{ color: "#2563EB", fontWeight: 700 }}>A/C:</span>
-          </div>
-          <div style={{ fontSize: 14, fontWeight: 700 }}>{cliente?.nome || "-"}</div>
-          {cliente?.email && <div style={{ fontSize: 12, color: "#6B7280" }}>{cliente.email}</div>}
-          {cliente?.telefone && <div style={{ fontSize: 12, color: "#6B7280" }}>{cliente.telefone}</div>}
+        {/* SEÇÃO A/C */}
+        <div style={{ marginTop: 32 }}>
+          <div style={{ color: "#2563EB", fontWeight: 700, fontSize: 13 }}>A/C:</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "#111827" }}>{cliente?.nome || "-"}</div>
+          {cliente?.email && <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>{cliente.email}</div>}
+          {cliente?.telefone && <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.6 }}>{cliente.telefone}</div>}
         </div>
 
         {/* TABELA DE SERVIÇOS */}
-        <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 16 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 40 }}>
           <thead>
-            <tr style={{ borderBottom: "2px solid #2563EB" }}>
-              <th style={{ textAlign: "left", color: "#2563EB", fontWeight: 700, padding: "8px 12px", fontSize: 11, textTransform: "uppercase" as const }}>
+            <tr style={{ borderBottom: "2px solid #1E3A8A" }}>
+              <th style={{ textAlign: "left", color: "#1E3A8A", fontWeight: 700, padding: "8px 12px", fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase" as const, width: "25%" }}>
                 Serviço
               </th>
-              <th style={{ textAlign: "left", color: "#2563EB", fontWeight: 700, padding: "8px 12px", fontSize: 11, textTransform: "uppercase" as const }}>
+              <th style={{ textAlign: "left", color: "#1E3A8A", fontWeight: 700, padding: "8px 12px", fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase" as const, width: "55%" }}>
                 Descrição
               </th>
-              <th style={{ textAlign: "right", color: "#2563EB", fontWeight: 700, padding: "8px 12px", fontSize: 11, textTransform: "uppercase" as const, width: 140 }}>
+              <th style={{ textAlign: "right", color: "#1E3A8A", fontWeight: 700, padding: "8px 12px", fontSize: 12, letterSpacing: 0.5, textTransform: "uppercase" as const, width: "20%" }}>
                 Valor
               </th>
             </tr>
           </thead>
           <tbody>
             {itens.map((item, idx) => (
-              <tr key={idx} style={{ borderBottom: "1px solid #E5E7EB" }}>
-                <td style={{ padding: "10px 12px", fontWeight: 600, fontSize: 12 }}>
+              <tr key={idx}>
+                <td style={{ padding: 12, fontSize: 13, color: "#111827", border: "1px solid #E5E7EB" }}>
                   {item.tipo}
                   {(item.quantidade ?? 1) > 1 ? ` (x${item.quantidade})` : ""}
                 </td>
-                <td style={{ padding: "10px 12px", fontSize: 11, color: "#6B7280" }}>
+                <td style={{ padding: 12, fontSize: 12, color: "#374151", border: "1px solid #E5E7EB" }}>
                   {item.descricao || "-"}
                 </td>
-                <td style={{ padding: "10px 12px", textAlign: "right", fontSize: 12 }}>
+                <td style={{ padding: 12, textAlign: "right", fontSize: 13, color: "#111827", fontWeight: 500, border: "1px solid #E5E7EB" }}>
                   {fmt(Number(item.valor_final) || 0)}
                 </td>
               </tr>
@@ -152,35 +139,36 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
         </table>
 
         {/* TOTAL */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 32 }}>
-          <div style={{
-            background: "#2563EB",
-            color: "#fff",
-            padding: "8px 16px",
-            fontWeight: 700,
-            fontSize: 14,
-            display: "inline-block",
-          }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+          <div style={{ background: "#1E3A8A", color: "#fff", padding: "10px 24px", fontWeight: 700, fontSize: 14, letterSpacing: 0.5 }}>
             TOTAL: {fmt(Number(orcamento.valor_final) || total)}
           </div>
         </div>
 
+        {/* Decorative diagonal lines - center left */}
+        <div style={{ position: "absolute", left: 0, top: 650 }}>
+          <div style={{ width: 120, height: 2, background: "#2563EB", transform: "rotate(-30deg)", position: "absolute", top: 0, left: -20 }} />
+          <div style={{ width: 80, height: 2, background: "#06B6D4", transform: "rotate(-30deg)", position: "absolute", top: 14, left: -10 }} />
+          <div style={{ width: 60, height: 2, background: "#2563EB", transform: "rotate(-30deg)", position: "absolute", top: 28, left: 0 }} />
+          <div style={{ width: 100, height: 2, background: "#06B6D4", transform: "rotate(-30deg)", position: "absolute", top: 42, left: -15 }} />
+        </div>
+
         {/* FORMA DE PAGAMENTO E CONDIÇÕES */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ width: 40, height: 3, background: "#2563EB", marginBottom: 8 }} />
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase" as const, marginBottom: 4 }}>
-            Forma de Pagamento
+        <div style={{ marginTop: 32, textAlign: "center" as const }}>
+          <div style={{ width: 48, height: 3, background: "#2563EB", margin: "0 auto 12px" }} />
+          <div style={{ color: "#1E3A8A", fontWeight: 700, fontSize: 13, letterSpacing: 0.5 }}>
+            FORMA DE PAGAMENTO
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, marginTop: 4 }}>
             {formatarFormaPagamento(orcamento.forma_pagamento)}
           </div>
 
-          <div style={{ width: 40, height: 3, background: "#2563EB", marginBottom: 8 }} />
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase" as const, marginBottom: 4 }}>
-            Termos e Condições
+          <div style={{ width: 48, height: 3, background: "#2563EB", margin: "16px auto 12px" }} />
+          <div style={{ color: "#1E3A8A", fontWeight: 700, fontSize: 13, letterSpacing: 0.5 }}>
+            TERMOS E CONDIÇÕES
           </div>
           {orcamento.validade && (
-            <div style={{ fontSize: 12, marginBottom: 4 }}>
+            <div style={{ fontSize: 12, marginTop: 4 }}>
               Este orçamento é válido até {fmtDate(orcamento.validade)}
             </div>
           )}
@@ -191,30 +179,13 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
           )}
         </div>
 
-        {/* Bottom-left decorative geometric shapes */}
-        <div style={{ position: "absolute", bottom: 0, left: 0 }}>
-          <div style={{
-            width: 60, height: 60, background: "#2563EB", opacity: 0.15,
-            transform: "rotate(45deg)", position: "absolute", bottom: -20, left: -20,
-          }} />
-          <div style={{
-            width: 40, height: 40, background: "#2563EB", opacity: 0.25,
-            transform: "rotate(30deg)", position: "absolute", bottom: 10, left: 20,
-          }} />
-          <div style={{
-            width: 30, height: 30, background: "#2563EB", opacity: 0.35,
-            transform: "rotate(60deg)", position: "absolute", bottom: 30, left: 5,
-          }} />
-        </div>
+        {/* Decorative bottom-right diagonal bars */}
+        <div style={{ position: "absolute", bottom: 60, right: -40, width: 200, height: 30, background: "#1E3A8A", transform: "rotate(-30deg)" }} />
+        <div style={{ position: "absolute", bottom: 30, right: -20, width: 160, height: 20, background: "#2563EB", transform: "rotate(-30deg)" }} />
+        <div style={{ position: "absolute", bottom: 10, right: 0, width: 120, height: 15, background: "#06B6D4", transform: "rotate(-30deg)" }} />
 
         {/* RODAPÉ */}
-        <div style={{
-          position: "absolute",
-          bottom: 24,
-          left: 48,
-          right: 48,
-          textAlign: "center",
-        }}>
+        <div style={{ position: "absolute", bottom: 24, left: 48, right: 48, textAlign: "center" as const }}>
           <div style={{ fontSize: 9, color: "#9CA3AF" }}>
             {agencia.nome_fantasia}
             {agencia.email ? ` · ${agencia.email}` : ""}
