@@ -103,6 +103,55 @@ export type Database = {
           },
         ]
       }
+      comentarios_orcamento: {
+        Row: {
+          agencia_id: string
+          criado_em: string | null
+          id: string
+          orcamento_id: string
+          texto: string
+          usuario_id: string
+        }
+        Insert: {
+          agencia_id: string
+          criado_em?: string | null
+          id?: string
+          orcamento_id: string
+          texto: string
+          usuario_id: string
+        }
+        Update: {
+          agencia_id?: string
+          criado_em?: string | null
+          id?: string
+          orcamento_id?: string
+          texto?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comentarios_orcamento_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comentarios_orcamento_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comentarios_orcamento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       configuracoes_markup: {
         Row: {
           acrescimo_cartao: number | null
@@ -140,6 +189,64 @@ export type Database = {
             columns: ["agencia_id"]
             isOneToOne: false
             referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_orcamento: {
+        Row: {
+          agencia_id: string
+          criado_em: string | null
+          descricao: string | null
+          id: string
+          orcamento_id: string
+          status_anterior: string | null
+          status_novo: string | null
+          tipo: string
+          usuario_id: string | null
+        }
+        Insert: {
+          agencia_id: string
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          orcamento_id: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tipo: string
+          usuario_id?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          criado_em?: string | null
+          descricao?: string | null
+          id?: string
+          orcamento_id?: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          tipo?: string
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_orcamento_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_orcamento_orcamento_id_fkey"
+            columns: ["orcamento_id"]
+            isOneToOne: false
+            referencedRelation: "orcamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_orcamento_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]

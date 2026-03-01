@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -36,6 +36,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { pdf, PDFViewer } from "@react-pdf/renderer";
 import OrcamentoPDFDocument from "@/components/pdf/OrcamentoPDFDocument";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
+import HistoricoOrcamento from "@/components/orcamento/HistoricoOrcamento";
+import NotasInternas from "@/components/orcamento/NotasInternas";
+import { registrarHistorico } from "@/lib/historico-orcamento";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -65,6 +68,25 @@ export default function OrcamentoDetalhe() {
   const [templateNome, setTemplateNome] = useState("");
   const [templateDescricao, setTemplateDescricao] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
+
+  // Collapsible state with localStorage persistence
+  const [historicoOpen, setHistoricoOpen] = useState(() => {
+    const stored = localStorage.getItem(`orc-historico-${id}`);
+    return stored !== null ? stored === "true" : true;
+  });
+  const [notasOpen, setNotasOpen] = useState(() => {
+    const stored = localStorage.getItem(`orc-notas-${id}`);
+    return stored !== null ? stored === "true" : true;
+  });
+
+  const toggleHistorico = (open: boolean) => {
+    setHistoricoOpen(open);
+    localStorage.setItem(`orc-historico-${id}`, String(open));
+  };
+  const toggleNotas = (open: boolean) => {
+    setNotasOpen(open);
+    localStorage.setItem(`orc-notas-${id}`, String(open));
+  };
 
   const { data: orc, isLoading } = useQuery({
     queryKey: ["orcamento", id],
@@ -166,6 +188,18 @@ export default function OrcamentoDetalhe() {
     const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", id);
     if (error) { toast({ title: "Erro ao atualizar status", variant: "destructive" }); } else {
       toast({ title: `Status alterado para ${newStatus}` });
+      if (user && agenciaId) {
+        await registrarHistorico({
+          orcamento_id: id,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "status_alterado",
+          status_anterior: currentStatus,
+          status_novo: newStatus,
+          descricao: `Status alterado de ${statusLabels[currentStatus] || currentStatus} para ${statusLabels[newStatus] || newStatus}`,
+        });
+        queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+      }
       queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
     }
@@ -224,6 +258,18 @@ export default function OrcamentoDetalhe() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+
+    // Register history on the NEW quote
+    if (user) {
+      await registrarHistorico({
+        orcamento_id: newOrc.id,
+        usuario_id: user.id,
+        agencia_id: agenciaId,
+        tipo: "duplicado",
+        descricao: `Orçamento duplicado de ${(orc as any).numero_orcamento || orc.titulo || ""}`,
+      });
+    }
+
     toast({ title: "Orçamento duplicado com sucesso!" });
     setDuplicating(false);
     setShowDuplicateConfirm(false);
@@ -291,6 +337,30 @@ export default function OrcamentoDetalhe() {
     const updates: Record<string, any> = { enviado_whatsapp: true, enviado_whatsapp_em: new Date().toISOString() };
     if (orc?.status === 'rascunho') updates.status = 'enviado';
     await supabase.from('orcamentos').update(updates).eq('id', id!);
+
+    // Register history
+    if (user && agenciaId) {
+      await registrarHistorico({
+        orcamento_id: id!,
+        usuario_id: user.id,
+        agencia_id: agenciaId,
+        tipo: "enviado_whatsapp",
+        descricao: "Orçamento enviado via WhatsApp",
+      });
+      if (orc?.status === 'rascunho') {
+        await registrarHistorico({
+          orcamento_id: id!,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "status_alterado",
+          status_anterior: "rascunho",
+          status_novo: "enviado",
+          descricao: "Status alterado de Rascunho para Enviado",
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+    }
+
     queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
     queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
     toast({ title: updates.status === 'enviado' ? "Enviado via WhatsApp! Status atualizado para Enviado." : "Enviado via WhatsApp!" });
@@ -426,6 +496,46 @@ export default function OrcamentoDetalhe() {
                   ) : (
                     <p className="text-sm text-muted-foreground text-center py-8">Carregando dados...</p>
                   )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Histórico */}
+          <Collapsible open={historicoOpen} onOpenChange={toggleHistorico}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start gap-2 -ml-2">
+                    <History className="h-4 w-4" />
+                    <span className="text-base font-semibold">Histórico</span>
+                    <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${historicoOpen ? "rotate-180" : ""}`} />
+                  </Button>
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent>
+                  <HistoricoOrcamento orcamentoId={id!} />
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
+
+          {/* Notas Internas */}
+          <Collapsible open={notasOpen} onOpenChange={toggleNotas}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start gap-2 -ml-2">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="text-base font-semibold">Notas Internas</span>
+                    <ChevronDown className={`h-4 w-4 ml-auto transition-transform ${notasOpen ? "rotate-180" : ""}`} />
+                  </Button>
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent>
+                  <NotasInternas orcamentoId={id!} />
                 </CardContent>
               </CollapsibleContent>
             </Card>
