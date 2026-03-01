@@ -18,8 +18,8 @@ interface MarkupRow {
   acrescimoCartao: number;
 }
 
-const tiposServico = ["aereo", "hotel", "pacote", "seguro", "transfer"];
-const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pacote: "Pacote", seguro: "Seguro", transfer: "Transfer" };
+const tiposServico = ["aereo", "hotel", "pacote", "passeio", "seguro", "transfer"];
+const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pacote: "Pacote", passeio: "Passeio", seguro: "Seguro", transfer: "Transfer" };
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function ConfigMarkup() {
