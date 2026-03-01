@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,13 +19,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
-
-  useEffect(() => {
-    if (user?.onboarding_completo) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [user, navigate]);
+  const { user } = useAuth();
   const { toast } = useToast();
   const progress = ((step + 1) / steps.length) * 100;
 
@@ -78,9 +72,23 @@ export default function Onboarding() {
       if (error) { toast({ title: "Erro ao salvar dados. Tente novamente.", description: error.message, variant: "destructive" }); return; }
       setStep(1);
     } else if (step === 1) {
+      if (!user?.id) return;
       setLoading(true);
+
+      const { data: userData, error: userError } = await supabase
+        .from("usuarios")
+        .select("agencia_id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (userError || !userData?.agencia_id) {
+        toast({ title: "Erro ao salvar markup", variant: "destructive" });
+        setLoading(false);
+        return;
+      }
+
       const rows = markups.map((m) => ({
-        agencia_id: user.agencia_id!,
+        agencia_id: userData.agencia_id,
         tipo_servico: m.tipo,
         markup_percentual: m.markup,
         taxa_fixa: m.taxa,
@@ -93,14 +101,26 @@ export default function Onboarding() {
   };
 
   const handleFinish = async () => {
-    if (!user?.agencia_id) return;
+    if (!user?.id) return;
     setLoading(true);
+
+    const { data: userData, error: userError } = await supabase
+      .from("usuarios")
+      .select("agencia_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (userError || !userData?.agencia_id) {
+      toast({ title: "Erro ao finalizar", variant: "destructive" });
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase
       .from("agencias")
       .update({ onboarding_completo: true })
-      .eq("id", user.agencia_id);
+      .eq("id", userData.agencia_id);
     if (error) { toast({ title: "Erro ao finalizar", description: error.message, variant: "destructive" }); setLoading(false); return; }
-    await refreshUser();
     setLoading(false);
     navigate("/dashboard");
   };

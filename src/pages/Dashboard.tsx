@@ -1,28 +1,94 @@
+import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, DollarSign, TrendingUp, Percent } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
-  rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
+  rascunho: "muted",
+  enviado: "default",
+  aprovado: "success",
+  perdido: "destructive",
+  emitido: "info",
 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const agenciaId = user?.agencia_id;
+  const navigate = useNavigate();
+  const [agenciaId, setAgenciaId] = useState<string | null>(null);
+  const [checkingAccess, setCheckingAccess] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const checkAccess = async () => {
+      if (!user) {
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      try {
+        const { data: perfil, error: perfilError } = await supabase
+          .from("usuarios")
+          .select("agencia_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (perfilError || !perfil?.agencia_id) {
+          await supabase.auth.signOut();
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        const { data: agencia, error: agenciaError } = await supabase
+          .from("agencias")
+          .select("onboarding_completo")
+          .eq("id", perfil.agencia_id)
+          .maybeSingle();
+
+        if (agenciaError || !agencia) {
+          await supabase.auth.signOut();
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        if (agencia.onboarding_completo === false) {
+          navigate("/onboarding", { replace: true });
+          return;
+        }
+
+        if (mounted) {
+          setAgenciaId(perfil.agencia_id);
+        }
+      } catch {
+        await supabase.auth.signOut();
+        navigate("/login", { replace: true });
+      } finally {
+        if (mounted) {
+          setCheckingAccess(false);
+        }
+      }
+    };
+
+    checkAccess();
+
+    return () => {
+      mounted = false;
+    };
+  }, [user, navigate]);
 
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-metrics", agenciaId],
-    enabled: !!agenciaId,
+    enabled: !!agenciaId && !checkingAccess,
     queryFn: async () => {
       const { data: orcamentos, error } = await supabase
         .from("orcamentos")
@@ -45,7 +111,7 @@ export default function Dashboard() {
 
   const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ["dashboard-chart", agenciaId],
-    enabled: !!agenciaId,
+    enabled: !!agenciaId && !checkingAccess,
     queryFn: async () => {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
       const { data, error } = await supabase
@@ -56,7 +122,9 @@ export default function Dashboard() {
       if (error) throw error;
 
       const counts: Record<string, number> = { rascunho: 0, enviado: 0, aprovado: 0, perdido: 0, emitido: 0 };
-      data?.forEach((o) => { if (o.status && counts[o.status] !== undefined) counts[o.status]++; });
+      data?.forEach((o) => {
+        if (o.status && counts[o.status] !== undefined) counts[o.status]++;
+      });
       return Object.entries(counts).map(([name, total]) => ({
         name: name.charAt(0).toUpperCase() + name.slice(1),
         total,
@@ -66,7 +134,7 @@ export default function Dashboard() {
 
   const { data: recentes, isLoading: recentesLoading } = useQuery({
     queryKey: ["dashboard-recentes", agenciaId],
-    enabled: !!agenciaId,
+    enabled: !!agenciaId && !checkingAccess,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
@@ -85,6 +153,19 @@ export default function Dashboard() {
     { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent },
     { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp },
   ];
+
+  if (checkingAccess) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        <Skeleton className="h-8 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}><CardContent className="pt-6"><Skeleton className="h-8 w-24" /></CardContent></Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

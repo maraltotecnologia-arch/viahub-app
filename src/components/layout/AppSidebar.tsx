@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -24,15 +25,13 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
-  const initials = user?.nome
-    ? user.nome.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()
-    : "??";
+  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate("/login");
+    await supabase.auth.signOut();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -113,8 +112,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{user?.nome || "Usuário"}</p>
-              <p className="text-xs text-sidebar-foreground/50">{user?.cargo || "Agente"}</p>
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{user?.email || "Usuário"}</p>
+              <p className="text-xs text-sidebar-foreground/50">Agente</p>
             </div>
           )}
           <button onClick={handleSignOut} className="text-sidebar-foreground/50 hover:text-sidebar-accent-foreground transition-colors shrink-0" title="Sair">
