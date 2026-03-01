@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
+import { validarCNPJ, validarTelefone } from "@/lib/validators";
 
 const planos = [
   { value: "starter_a", label: "Starter — R$397/mês" },
@@ -39,6 +40,7 @@ export default function AdminAgenciaNova() {
   const [emailAdmin, setEmailAdmin] = useState("");
   const [senha, setSenha] = useState(gerarSenha());
   const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
+  const [cnpjError, setCnpjError] = useState("");
 
   useEffect(() => {
     if (!roleLoading && !isSuperadmin) {
@@ -130,12 +132,16 @@ export default function AdminAgenciaNova() {
       toast.success("Agência cadastrada com sucesso!");
 
       if (enviarWhatsapp && telefone) {
-        const tel = telefone.replace(/\D/g, "");
-        const telFormatado = tel.startsWith("55") ? tel : `55${tel}`;
-        const msg = encodeURIComponent(
-          `Olá! Seu acesso ao ViaHub foi criado.\nEmail: ${emailAdmin}\nSenha: ${senha}\nAcesse: ${window.location.origin}`
-        );
-        window.open(`https://wa.me/${telFormatado}?text=${msg}`, "_blank");
+        if (!validarTelefone(telefone)) {
+          toast.error("Número de WhatsApp inválido. Digite DDD + número (ex: 54999999999)");
+        } else {
+          const tel = telefone.replace(/\D/g, "");
+          const telFormatado = tel.startsWith("55") ? tel : `55${tel}`;
+          const msg = encodeURIComponent(
+            `Olá! Seu acesso ao ViaHub foi criado.\nEmail: ${emailAdmin}\nSenha: ${senha}\nAcesse: ${window.location.origin}`
+          );
+          window.open(`https://wa.me/${telFormatado}?text=${msg}`, "_blank");
+        }
       }
 
       navigate(`/admin/agencias/${agencia.id}`);
@@ -160,7 +166,18 @@ export default function AdminAgenciaNova() {
             </div>
             <div className="space-y-2">
               <Label>CNPJ</Label>
-              <Input value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+              <Input
+                value={cnpj}
+                onChange={(e) => { setCnpj(e.target.value); setCnpjError(""); }}
+                onBlur={() => {
+                  const v = cnpj.replace(/\D/g, "");
+                  if (!v) { setCnpjError(""); return; }
+                  if (!validarCNPJ(cnpj)) setCnpjError("CNPJ inválido");
+                  else setCnpjError("");
+                }}
+                className={cnpjError ? "border-destructive" : cnpj.replace(/\D/g, "").length === 14 && !cnpjError ? "border-green-500" : ""}
+              />
+              {cnpjError && <p className="text-xs text-destructive">{cnpjError}</p>}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

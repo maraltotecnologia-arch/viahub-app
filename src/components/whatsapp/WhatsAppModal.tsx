@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { validarTelefone } from "@/lib/validators";
 
 interface WhatsAppModalProps {
   open: boolean;
@@ -49,8 +50,14 @@ export default function WhatsAppModal({
   const [mensagem, setMensagem] = useState(mensagemPadrao);
   const [gerarPdf, setGerarPdf] = useState(true);
   const [sending, setSending] = useState(false);
+  const [phoneError, setPhoneError] = useState("");
 
   const handleSend = async () => {
+    if (!validarTelefone(telefone)) {
+      setPhoneError("Número inválido. Digite DDD + número (ex: 54999999999)");
+      return;
+    }
+    setPhoneError("");
     setSending(true);
     try {
       await onSend(telefone, mensagem, gerarPdf);
@@ -81,11 +88,16 @@ export default function WhatsAppModal({
               id="whatsapp-phone"
               placeholder="5554999999999"
               value={telefone}
-              onChange={(e) => setTelefone(e.target.value.replace(/\D/g, ""))}
+              onChange={(e) => { setTelefone(e.target.value.replace(/\D/g, "")); setPhoneError(""); }}
+              className={phoneError ? "border-destructive" : ""}
             />
-            <p className="text-xs text-muted-foreground">
-              Digite o número com DDD e código do país (ex: 55 + DDD + número)
-            </p>
+            {phoneError ? (
+              <p className="text-xs text-destructive">{phoneError}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                Digite o número com DDD e código do país (ex: 55 + DDD + número)
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

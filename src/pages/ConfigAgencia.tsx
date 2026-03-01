@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { validarCNPJ } from "@/lib/validators";
 
 export default function ConfigAgencia() {
   const { user, refreshUser } = useAuth();
@@ -23,6 +24,8 @@ export default function ConfigAgencia() {
   const [uploading, setUploading] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cnpjError, setCnpjError] = useState<string | null>(null);
+  const [cnpjValid, setCnpjValid] = useState(false);
 
   const { data: agencia, isLoading } = useQuery({
     queryKey: ["agencia", agenciaId],
@@ -189,7 +192,21 @@ export default function ConfigAgencia() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Nome Fantasia</Label><Input value={form.nome_fantasia} onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })} /></div>
-            <div className="space-y-2"><Label>CNPJ</Label><Input value={form.cnpj} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>CNPJ</Label>
+              <Input
+                value={form.cnpj}
+                onChange={(e) => { setForm({ ...form, cnpj: e.target.value }); setCnpjError(null); setCnpjValid(false); }}
+                onBlur={() => {
+                  const v = form.cnpj.replace(/\D/g, "");
+                  if (!v) { setCnpjError(null); setCnpjValid(false); return; }
+                  if (validarCNPJ(form.cnpj)) { setCnpjError(null); setCnpjValid(true); }
+                  else { setCnpjError("CNPJ inválido"); setCnpjValid(false); }
+                }}
+                className={cnpjError ? "border-destructive" : cnpjValid ? "border-green-500" : ""}
+              />
+              {cnpjError && <p className="text-xs text-destructive">{cnpjError}</p>}
+            </div>
             <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
           </div>

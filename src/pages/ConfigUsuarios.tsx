@@ -15,6 +15,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { validarTelefone } from "@/lib/validators";
 
 const CARGO_LABELS: Record<string, string> = {
   admin: "Administrador",
@@ -42,6 +44,7 @@ export default function ConfigUsuarios() {
   const [addForm, setAddForm] = useState({ nome: "", email: "", cargo: "agente", senha: "", whatsapp: false, telefone: "" });
   const [editForm, setEditForm] = useState({ nome: "", cargo: "" });
   const [saving, setSaving] = useState(false);
+  const [confirmUser, setConfirmUser] = useState<any>(null);
 
   const { data: usuarios, isLoading } = useQuery({
     queryKey: ["agencia-usuarios-config", agenciaId],
@@ -112,8 +115,12 @@ export default function ConfigUsuarios() {
       }
 
       if (addForm.whatsapp && addForm.telefone) {
-        const msg = `Olá ${addForm.nome}!\nVocê foi adicionado ao ViaHub.\nEmail: ${addForm.email}\nSenha: ${addForm.senha}\nAcesse: ${window.location.origin}`;
-        window.open(`https://wa.me/55${addForm.telefone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
+        if (!validarTelefone(addForm.telefone)) {
+          toast({ title: "Número de WhatsApp inválido. Digite DDD + número (ex: 54999999999)", variant: "destructive" });
+        } else {
+          const msg = `Olá ${addForm.nome}!\nVocê foi adicionado ao ViaHub.\nEmail: ${addForm.email}\nSenha: ${addForm.senha}\nAcesse: ${window.location.origin}`;
+          window.open(`https://wa.me/55${addForm.telefone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
+        }
       }
 
       toast({ title: "Usuário criado com sucesso!", description: "O acesso está ativo imediatamente. Envie as credenciais ao usuário." });
@@ -140,18 +147,24 @@ export default function ConfigUsuarios() {
     setSaving(false);
   };
 
-  const toggleAtivo = async (u: any) => {
-    if (u.id === user?.id) {
-      toast({ title: "Você não pode desativar sua própria conta.", variant: "destructive" });
-      return;
-    }
-    const { error } = await supabase.from("usuarios").update({ ativo: !u.ativo }).eq("id", u.id);
+  const handleToggleConfirm = async () => {
+    if (!confirmUser) return;
+    const { error } = await supabase.from("usuarios").update({ ativo: !confirmUser.ativo }).eq("id", confirmUser.id);
     if (error) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });
     } else {
       queryClient.invalidateQueries({ queryKey: ["agencia-usuarios-config"] });
-      toast({ title: u.ativo ? "Usuário desativado" : "Usuário ativado" });
+      toast({ title: confirmUser.ativo ? "Usuário desativado" : "Usuário ativado" });
     }
+    setConfirmUser(null);
+  };
+
+  const toggleAtivo = (u: any) => {
+    if (u.id === user?.id) {
+      toast({ title: "Você não pode desativar sua própria conta.", variant: "destructive" });
+      return;
+    }
+    setConfirmUser(u);
   };
 
   const openEdit = (u: any) => {
@@ -301,6 +314,19 @@ export default function ConfigUsuarios() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmUser}
+        onOpenChange={(open) => { if (!open) setConfirmUser(null); }}
+        title={confirmUser?.ativo ? "Desativar usuário" : "Ativar usuário"}
+        description={confirmUser?.ativo
+          ? `Tem certeza que deseja desativar ${confirmUser?.nome || "este usuário"}? Ele não poderá mais acessar o sistema.`
+          : `Tem certeza que deseja reativar ${confirmUser?.nome || "este usuário"}?`
+        }
+        confirmLabel={confirmUser?.ativo ? "Desativar" : "Ativar"}
+        variant={confirmUser?.ativo ? "destructive" : "default"}
+        onConfirm={handleToggleConfirm}
+      />
     </div>
   );
 }
