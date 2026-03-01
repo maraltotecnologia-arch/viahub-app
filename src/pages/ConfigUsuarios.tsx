@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
-import { createClient } from "@supabase/supabase-js";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const CARGO_LABELS: Record<string, string> = {
@@ -66,25 +65,40 @@ export default function ConfigUsuarios() {
     setSaving(true);
 
     try {
-      const supabaseAdmin = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-      );
+      // Verificar se email já existe na tabela usuarios
+      const { data: existente } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("email", addForm.email)
+        .maybeSingle();
 
-      const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
-        email: addForm.email,
-        password: addForm.senha,
-        options: { emailRedirectTo: window.location.origin },
+      if (existente) {
+        toast({ title: "Este email já está cadastrado.", variant: "destructive" });
+        setSaving(false);
+        return;
+      }
+
+      // Criar usuário via edge function (email já confirmado)
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ email: addForm.email, password: addForm.senha }),
       });
 
-      if (authError || !authData.user) {
-        toast({ title: "Erro ao criar usuário", description: authError?.message || "Erro desconhecido", variant: "destructive" });
+      const result = await res.json();
+      if (!res.ok) {
+        toast({ title: "Erro ao criar usuário", description: result.error, variant: "destructive" });
         setSaving(false);
         return;
       }
 
       const { error: insertError } = await supabase.from("usuarios").insert({
-        id: authData.user.id,
+        id: result.user.id,
         agencia_id: agenciaId,
         nome: addForm.nome,
         email: addForm.email,
@@ -102,7 +116,7 @@ export default function ConfigUsuarios() {
         window.open(`https://wa.me/55${addForm.telefone.replace(/\D/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
       }
 
-      toast({ title: "Usuário adicionado com sucesso!" });
+      toast({ title: "Usuário criado com sucesso!", description: "O acesso está ativo imediatamente. Envie as credenciais ao usuário." });
       queryClient.invalidateQueries({ queryKey: ["agencia-usuarios-config"] });
       setAddOpen(false);
       setAddForm({ nome: "", email: "", cargo: "agente", senha: "", whatsapp: false, telefone: "" });
@@ -213,6 +227,7 @@ export default function ConfigUsuarios() {
             <div className="space-y-2">
               <Label>Email</Label>
               <Input type="email" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} required />
+              <p className="text-xs text-muted-foreground">O usuário poderá fazer login imediatamente com as credenciais criadas.</p>
             </div>
             <div className="space-y-2">
               <Label>Cargo</Label>
