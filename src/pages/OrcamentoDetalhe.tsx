@@ -3,13 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, RefreshCw } from "lucide-react";
+import { ArrowLeft, Copy, Download, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
+import useAgenciaId from "@/hooks/useAgenciaId";
+import { pdf } from "@react-pdf/renderer";
+import OrcamentoPDF, { type OrcamentoPDFData } from "@/components/pdf/OrcamentoPDF";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
+const PDFViewer = lazy(() =>
+  import("@react-pdf/renderer").then((m) => ({ default: m.PDFViewer }))
+);
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -24,8 +32,11 @@ export default function OrcamentoDetalhe() {
   const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const agenciaId = useAgenciaId();
   const [changingStatus, setChangingStatus] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const { data: orc, isLoading } = useQuery({
     queryKey: ["orcamento", id],
@@ -33,7 +44,7 @@ export default function OrcamentoDetalhe() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
-        .select("*, clientes(nome, email)")
+        .select("*, clientes(nome, email, telefone)")
         .eq("id", id!)
         .maybeSingle();
       if (error) throw error;
@@ -54,6 +65,58 @@ export default function OrcamentoDetalhe() {
     },
   });
 
+  const { data: agencia } = useQuery({
+    queryKey: ["agencia", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("nome_fantasia, email, telefone")
+        .eq("id", agenciaId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const buildPdfData = (): OrcamentoPDFData | null => {
+    if (!orc || !agencia) return null;
+    return {
+      orcamento: orc,
+      cliente: (orc.clientes as any) ?? null,
+      itens: (itens ?? []).map((i) => ({
+        tipo: i.tipo,
+        descricao: i.descricao,
+        valor_final: i.valor_final,
+        quantidade: i.quantidade,
+      })),
+      agencia,
+    };
+  };
+
+  const handleDownloadPdf = async () => {
+    const pdfData = buildPdfData();
+    if (!pdfData) { toast({ title: "Dados incompletos para gerar PDF", variant: "destructive" }); return; }
+    setGeneratingPdf(true);
+    try {
+      const blob = await pdf(<OrcamentoPDF data={pdfData} />).toBlob();
+      const clienteName = (orc?.clientes as any)?.nome?.replace(/\s+/g, "_") || "Cliente";
+      const date = new Date().toISOString().slice(0, 10);
+      const filename = `ViaHub_Orcamento_${clienteName}_${date}.pdf`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: "PDF gerado com sucesso!" });
+    } catch (e) {
+      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   const handleStatusChange = async (newStatus: string) => {
     if (!id) return;
     setChangingStatus(true);
@@ -67,14 +130,14 @@ export default function OrcamentoDetalhe() {
   };
 
   const handleDuplicate = async () => {
-    if (!orc || !user?.agencia_id) return;
+    if (!orc || !agenciaId) return;
     setDuplicating(true);
     const { data: newOrc, error } = await supabase
       .from("orcamentos")
       .insert({
-        agencia_id: user.agencia_id,
+        agencia_id: agenciaId,
         cliente_id: orc.cliente_id,
-        usuario_id: user.id,
+        usuario_id: user?.id,
         titulo: `${orc.titulo} (cópia)`,
         status: "rascunho",
         valor_custo: orc.valor_custo,
@@ -125,12 +188,18 @@ export default function OrcamentoDetalhe() {
 
   const custoTotal = itens?.reduce((s, i) => s + (Number(i.valor_custo) || 0) * (i.quantidade || 1), 0) ?? 0;
   const valorFinal = itens?.reduce((s, i) => s + (Number(i.valor_final) || 0), 0) ?? 0;
+  const pdfData = buildPdfData();
 
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" asChild><Link to="/orcamentos"><ArrowLeft className="h-4 w-4" /></Link></Button>
-        <h2 className="text-2xl font-bold flex-1">{orc.titulo || "Sem título"}</h2>
+        <div className="flex-1">
+          <h2 className="text-2xl font-bold">{orc.titulo || "Sem título"}</h2>
+          {(orc as any).numero_orcamento && (
+            <p className="text-xs text-muted-foreground">{(orc as any).numero_orcamento}</p>
+          )}
+        </div>
         <Badge variant={statusVariant[orc.status || "rascunho"]} className="text-sm px-3 py-1">{orc.status}</Badge>
       </div>
 
@@ -180,6 +249,35 @@ export default function OrcamentoDetalhe() {
               </div>
             </CardContent>
           </Card>
+
+          {/* PDF Preview */}
+          <Collapsible open={showPreview} onOpenChange={setShowPreview}>
+            <Card>
+              <CardHeader className="pb-3">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" className="w-full justify-start gap-2 -ml-2">
+                    <Eye className="h-4 w-4" />
+                    <span className="text-base font-semibold">
+                      {showPreview ? "Fechar Preview" : "Visualizar PDF"}
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+              </CardHeader>
+              <CollapsibleContent>
+                <CardContent>
+                  {pdfData ? (
+                    <Suspense fallback={<Skeleton className="h-[600px] w-full" />}>
+                      <PDFViewer width="100%" height={600} style={{ border: "none", borderRadius: 8 }}>
+                        <OrcamentoPDF data={pdfData} />
+                      </PDFViewer>
+                    </Suspense>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">Carregando dados...</p>
+                  )}
+                </CardContent>
+              </CollapsibleContent>
+            </Card>
+          </Collapsible>
         </div>
 
         <div className="space-y-6">
@@ -195,6 +293,9 @@ export default function OrcamentoDetalhe() {
                   </SelectContent>
                 </Select>
               </div>
+              <Button variant="outline" className="w-full justify-start" onClick={handleDownloadPdf} disabled={generatingPdf}>
+                <Download className="h-4 w-4 mr-2" /> {generatingPdf ? "Gerando PDF..." : "Baixar PDF"}
+              </Button>
               <Button variant="outline" className="w-full justify-start" onClick={handleDuplicate} disabled={duplicating}>
                 <Copy className="h-4 w-4 mr-2" /> {duplicating ? "Duplicando..." : "Duplicar"}
               </Button>

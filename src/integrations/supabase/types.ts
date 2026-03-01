@@ -196,6 +196,7 @@ export type Database = {
           lucro_bruto: number | null
           margem_percentual: number | null
           moeda: string | null
+          numero_orcamento: string | null
           observacoes: string | null
           status: string | null
           titulo: string | null
@@ -214,6 +215,7 @@ export type Database = {
           lucro_bruto?: number | null
           margem_percentual?: number | null
           moeda?: string | null
+          numero_orcamento?: string | null
           observacoes?: string | null
           status?: string | null
           titulo?: string | null
@@ -232,6 +234,7 @@ export type Database = {
           lucro_bruto?: number | null
           margem_percentual?: number | null
           moeda?: string | null
+          numero_orcamento?: string | null
           observacoes?: string | null
           status?: string | null
           titulo?: string | null
