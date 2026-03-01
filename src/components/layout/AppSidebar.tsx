@@ -1,12 +1,14 @@
-import { LayoutDashboard, FileText, BarChart3, Users, Settings, LogOut, ChevronDown } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import useUserRole from "@/hooks/useUserRole";
 
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
@@ -26,6 +28,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isSuperadmin } = useUserRole();
 
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
@@ -103,6 +106,36 @@ export function AppSidebar() {
             </CollapsibleContent>
           </Collapsible>
         </SidebarGroup>
+
+        {isSuperadmin && (
+          <SidebarGroup>
+            <div className="px-3 py-2">
+              <Separator className="mb-2" />
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+                <Shield className="h-3 w-3" /> Administração
+              </p>
+            </div>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/agencias"
+                      className={({ isActive }) =>
+                        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                        }`
+                      }
+                    >
+                      <Building2 className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span>Agências</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter>
