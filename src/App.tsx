@@ -41,6 +41,7 @@ function AppRoutes() {
         <Route path="/orcamentos" element={<Orcamentos />} />
         <Route path="/orcamentos/novo" element={<OrcamentoNovo />} />
         <Route path="/orcamentos/:id" element={<OrcamentoDetalhe />} />
+        <Route path="/orcamentos/:id/editar" element={<OrcamentoNovo modo="edicao" />} />
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
