@@ -31,7 +31,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     marginBottom: 0,
   },
-  logo: { width: 80, height: 40 },
+  logo: { height: 50, maxWidth: 150 },
   agencyName: { fontSize: 14, fontWeight: "bold", color: "#1E3A8A" },
   contactRight: { alignItems: "flex-end" },
   contactText: { fontSize: 10, color: "#6B7280" },
