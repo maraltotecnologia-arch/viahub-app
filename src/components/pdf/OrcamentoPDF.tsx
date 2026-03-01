@@ -3,6 +3,7 @@ import {
   Page,
   Text,
   View,
+  Image,
   StyleSheet,
   Font,
 } from "@react-pdf/renderer";
@@ -159,6 +160,7 @@ export interface OrcamentoPDFData {
     nome_fantasia: string;
     email?: string | null;
     telefone?: string | null;
+    logo_url?: string | null;
   };
 }
 
@@ -171,7 +173,10 @@ export default function OrcamentoPDF({ data }: { data: OrcamentoPDFData }) {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            {agencia.logo_url ? (
+              <Image src={agencia.logo_url} style={{ maxWidth: 120, maxHeight: 60, objectFit: "contain" as any }} />
+            ) : null}
             <Text style={styles.agencyName}>{agencia.nome_fantasia}</Text>
           </View>
           <View style={styles.headerRight}>

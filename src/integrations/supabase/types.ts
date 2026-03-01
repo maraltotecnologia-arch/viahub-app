@@ -21,6 +21,7 @@ export type Database = {
           criado_em: string | null
           email: string | null
           id: string
+          logo_url: string | null
           nome_fantasia: string
           onboarding_completo: boolean | null
           plano: string | null
@@ -32,6 +33,7 @@ export type Database = {
           criado_em?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           nome_fantasia: string
           onboarding_completo?: boolean | null
           plano?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           criado_em?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           nome_fantasia?: string
           onboarding_completo?: boolean | null
           plano?: string | null

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,9 @@ export default function ConfigAgencia() {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ nome_fantasia: "", cnpj: "", email: "", telefone: "" });
+  const [uploading, setUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: agencia, isLoading } = useQuery({
     queryKey: ["agencia", user?.agencia_id],
@@ -49,6 +53,9 @@ export default function ConfigAgencia() {
         email: agencia.email || "",
         telefone: agencia.telefone || "",
       });
+      if ((agencia as any).logo_url) {
+        setLogoPreview((agencia as any).logo_url);
+      }
     }
   }, [agencia]);
 
@@ -69,6 +76,55 @@ export default function ConfigAgencia() {
     setSaving(false);
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.agencia_id) return;
+
+    const validTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Aceitos: JPG, PNG, WEBP", variant: "destructive" });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "Tamanho máximo: 2MB", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `${user.agencia_id}/logo.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("logos-agencias")
+      .upload(path, file, { upsert: true });
+
+    if (uploadError) {
+      toast({ title: "Erro no upload", description: uploadError.message, variant: "destructive" });
+      setUploading(false);
+      return;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("logos-agencias")
+      .getPublicUrl(path);
+
+    const logoUrl = `${publicUrlData.publicUrl}?t=${Date.now()}`;
+
+    const { error: updateError } = await supabase
+      .from("agencias")
+      .update({ logo_url: logoUrl } as any)
+      .eq("id", user.agencia_id);
+
+    if (updateError) {
+      toast({ title: "Erro ao salvar URL", description: updateError.message, variant: "destructive" });
+    } else {
+      setLogoPreview(logoUrl);
+      queryClient.invalidateQueries({ queryKey: ["agencia"] });
+      toast({ title: "Logo atualizado com sucesso!" });
+    }
+    setUploading(false);
+  };
+
   const toggleUsuario = async (userId: string, ativo: boolean) => {
     const { error } = await supabase.from("usuarios").update({ ativo: !ativo }).eq("id", userId);
     if (error) { toast({ title: "Erro ao atualizar", variant: "destructive" }); } else {
@@ -82,6 +138,49 @@ export default function ConfigAgencia() {
   return (
     <div className="space-y-6 max-w-3xl animate-fade-in">
       <h2 className="text-2xl font-bold">Configurações da Agência</h2>
+
+      {/* Logo */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Logo da Agência</CardTitle></CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-6">
+            {logoPreview ? (
+              <div className="relative">
+                <img src={logoPreview} alt="Logo da agência" className="max-w-[120px] max-h-[60px] object-contain rounded border" />
+                <button
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5"
+                  onClick={() => { setLogoPreview(null); }}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="w-[120px] h-[60px] border-2 border-dashed rounded flex items-center justify-center text-muted-foreground text-xs">
+                Sem logo
+              </div>
+            )}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                className="hidden"
+                onChange={handleLogoUpload}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Upload className="h-4 w-4 mr-1" />
+                {uploading ? "Enviando..." : logoPreview ? "Trocar Logo" : "Enviar Logo"}
+              </Button>
+              <p className="text-xs text-muted-foreground mt-1">JPG, PNG ou WEBP. Máx 2MB.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Dados da Agência</CardTitle></CardHeader>
