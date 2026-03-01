@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Save, Send, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Save, Send, ArrowLeft, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useAuth } from "@/contexts/AuthContext";
@@ -77,6 +77,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [showZeroConfirm, setShowZeroConfirm] = useState(false);
   const [pendingEnviar, setPendingEnviar] = useState(false);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [itens, setItens] = useState<Item[]>([
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
@@ -90,6 +91,20 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         .from("configuracoes_markup")
         .select("*")
         .eq("agencia_id", agenciaId!);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: templates } = useQuery({
+    queryKey: ["templates", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("templates_orcamento")
+        .select("*, itens_template(*)")
+        .eq("agencia_id", agenciaId!)
+        .order("criado_em", { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -251,6 +266,23 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       }
       return updated;
     }));
+  };
+
+  const applyTemplate = (tpl: any) => {
+    const tplItens = (tpl.itens_template || []).map((i: any) => ({
+      id: Date.now().toString() + Math.random(),
+      tipo: i.tipo,
+      descricao: i.descricao || "",
+      valor_custo: Number(i.valor_custo) || 0,
+      markup_percentual: Number(i.markup_percentual) || 0,
+      taxa_fixa: Number(i.taxa_fixa) || 0,
+      quantidade: i.quantidade || 1,
+    }));
+    if (tplItens.length > 0) setItens(tplItens);
+    if (tpl.forma_pagamento) setFormaPagamento(tpl.forma_pagamento);
+    if (tpl.observacoes) setObservacoes(tpl.observacoes);
+    setShowTemplateModal(false);
+    toast({ title: "Template aplicado! Revise os valores antes de salvar." });
   };
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
@@ -497,7 +529,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Itens do Orçamento</CardTitle>
-          <Button variant="outline" size="sm" onClick={addItem}><Plus className="h-4 w-4 mr-1" /> Adicionar Item</Button>
+          <div className="flex gap-2">
+            {!isEdicao && templates && templates.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setShowTemplateModal(true)}>
+                <FileText className="h-4 w-4 mr-1" /> Usar Template
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={addItem}><Plus className="h-4 w-4 mr-1" /> Adicionar Item</Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {itens.map((item, idx) => (
@@ -600,6 +639,33 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         description="Tem certeza que deseja excluir este item do orçamento? Esta ação não pode ser desfeita."
         onConfirm={confirmRemoveItem}
       />
+
+      {/* Template selection modal */}
+      <Dialog open={showTemplateModal} onOpenChange={setShowTemplateModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader><DialogTitle>Selecionar Template</DialogTitle></DialogHeader>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {templates?.map((tpl: any) => {
+              const tplItens = tpl.itens_template || [];
+              return (
+                <div key={tpl.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-sm">{tpl.nome}</p>
+                      {tpl.descricao && <p className="text-xs text-muted-foreground">{tpl.descricao}</p>}
+                      <p className="text-xs text-muted-foreground mt-1">{tplItens.length} {tplItens.length === 1 ? "item" : "itens"}</p>
+                    </div>
+                    <Button size="sm" variant="outline" onClick={() => applyTemplate(tpl)}>Usar</Button>
+                  </div>
+                </div>
+              );
+            })}
+            {(!templates || templates.length === 0) && (
+              <p className="text-sm text-muted-foreground text-center py-4">Nenhum template disponível</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

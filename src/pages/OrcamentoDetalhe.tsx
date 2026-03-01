@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,6 +20,7 @@ import { useState } from "react";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { type OrcamentoPDFData } from "@/components/pdf/OrcamentoPreview";
 import { useEffect } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const getImageDimensions = (url: string): Promise<{width: number, height: number}> => {
   return new Promise((resolve) => {
@@ -49,10 +54,15 @@ export default function OrcamentoDetalhe() {
   const agenciaId = useAgenciaId();
   const [changingStatus, setChangingStatus] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [showDuplicateConfirm, setShowDuplicateConfirm] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showWhatsApp, setShowWhatsApp] = useState(false);
   const [logoDims, setLogoDims] = useState<{width: number, height: number}>({width: 150, height: 50});
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [templateNome, setTemplateNome] = useState("");
+  const [templateDescricao, setTemplateDescricao] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   const { data: orc, isLoading } = useQuery({
     queryKey: ["orcamento", id],
@@ -163,20 +173,31 @@ export default function OrcamentoDetalhe() {
   const handleDuplicate = async () => {
     if (!orc || !agenciaId) return;
     setDuplicating(true);
+
+    // Generate sequential number
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from("orcamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("agencia_id", agenciaId!);
+    const seq = String((count ?? 0) + 1).padStart(4, "0");
+    const numero_orcamento = `ORC-${year}-${seq}`;
+
     const { data: newOrc, error } = await supabase
       .from("orcamentos")
       .insert({
         agencia_id: agenciaId,
         cliente_id: orc.cliente_id,
         usuario_id: user?.id,
-        titulo: `${orc.titulo} (cópia)`,
+        titulo: `${orc.titulo || "Orçamento"} (cópia)`,
+        numero_orcamento,
         status: "rascunho",
         valor_custo: orc.valor_custo,
         valor_final: orc.valor_final,
         lucro_bruto: orc.lucro_bruto,
         margem_percentual: orc.margem_percentual,
         moeda: orc.moeda,
-        validade: orc.validade,
+        validade: null,
         observacoes: orc.observacoes,
         forma_pagamento: orc.forma_pagamento,
       })
@@ -201,9 +222,56 @@ export default function OrcamentoDetalhe() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
-    toast({ title: "Orçamento duplicado!" });
+    toast({ title: "Orçamento duplicado com sucesso!" });
     setDuplicating(false);
-    navigate(`/orcamentos/${newOrc.id}`);
+    setShowDuplicateConfirm(false);
+    navigate(`/orcamentos/${newOrc.id}/editar`);
+  };
+
+  const handleSaveTemplate = async () => {
+    if (!templateNome.trim()) {
+      toast({ title: "Informe o nome do template", variant: "destructive" });
+      return;
+    }
+    if (!agenciaId || !itens || itens.length === 0) return;
+    setSavingTemplate(true);
+
+    const { data: tpl, error } = await supabase
+      .from("templates_orcamento")
+      .insert({
+        agencia_id: agenciaId,
+        nome: templateNome.trim(),
+        descricao: templateDescricao.trim() || null,
+        forma_pagamento: orc?.forma_pagamento || null,
+        observacoes: orc?.observacoes || null,
+      })
+      .select("id")
+      .single();
+
+    if (error || !tpl) {
+      toast({ title: "Erro ao salvar template", variant: "destructive" });
+      setSavingTemplate(false);
+      return;
+    }
+
+    const tplItens = itens.map((i) => ({
+      template_id: tpl.id,
+      tipo: i.tipo,
+      descricao: i.descricao,
+      valor_custo: i.valor_custo,
+      markup_percentual: i.markup_percentual,
+      taxa_fixa: i.taxa_fixa,
+      valor_final: i.valor_final,
+      quantidade: i.quantidade,
+    }));
+    await supabase.from("itens_template").insert(tplItens);
+
+    queryClient.invalidateQueries({ queryKey: ["templates"] });
+    toast({ title: "Template salvo com sucesso!" });
+    setSavingTemplate(false);
+    setShowSaveTemplate(false);
+    setTemplateNome("");
+    setTemplateDescricao("");
   };
 
   const handleWhatsAppSend = async (telefone: string, mensagem: string, gerarPdf: boolean) => {
@@ -388,8 +456,11 @@ export default function OrcamentoDetalhe() {
               >
                 <Smartphone className="h-4 w-4 mr-2" /> Enviar via WhatsApp
               </Button>
-              <Button variant="outline" className="w-full justify-start" onClick={handleDuplicate} disabled={duplicating}>
+              <Button variant="outline" className="w-full justify-start" onClick={() => setShowDuplicateConfirm(true)} disabled={duplicating}>
                 <Copy className="h-4 w-4 mr-2" /> {duplicating ? "Duplicando..." : "Duplicar"}
+              </Button>
+              <Button variant="outline" className="w-full justify-start" onClick={() => setShowSaveTemplate(true)}>
+                <BookmarkPlus className="h-4 w-4 mr-2" /> Salvar como Template
               </Button>
             </CardContent>
           </Card>
@@ -423,6 +494,43 @@ export default function OrcamentoDetalhe() {
         agenciaNome={agencia?.nome_fantasia || ""}
         onSend={handleWhatsAppSend}
       />
+
+      <ConfirmDialog
+        open={showDuplicateConfirm}
+        onOpenChange={setShowDuplicateConfirm}
+        title="Duplicar orçamento"
+        description={`Deseja duplicar o orçamento ${(orc as any).numero_orcamento || orc.titulo || ""}? Um novo orçamento será criado como rascunho com os mesmos itens e cliente.`}
+        confirmLabel="Duplicar"
+        variant="default"
+        onConfirm={handleDuplicate}
+      />
+
+      <Dialog open={showSaveTemplate} onOpenChange={setShowSaveTemplate}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Salvar como Template</DialogTitle></DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label>Nome do template *</Label>
+              <Input
+                value={templateNome}
+                onChange={(e) => setTemplateNome(e.target.value)}
+                placeholder="Ex: Pacote Lua de Mel, Viagem Corporativa SP-RJ"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Textarea
+                value={templateDescricao}
+                onChange={(e) => setTemplateDescricao(e.target.value)}
+                placeholder="Descrição do template..."
+              />
+            </div>
+            <Button variant="gradient" className="w-full" onClick={handleSaveTemplate} disabled={savingTemplate}>
+              {savingTemplate ? "Salvando..." : "Salvar Template"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

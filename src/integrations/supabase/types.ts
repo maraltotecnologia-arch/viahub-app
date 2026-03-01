@@ -188,6 +188,50 @@ export type Database = {
           },
         ]
       }
+      itens_template: {
+        Row: {
+          descricao: string | null
+          id: string
+          markup_percentual: number | null
+          quantidade: number | null
+          taxa_fixa: number | null
+          template_id: string
+          tipo: string
+          valor_custo: number | null
+          valor_final: number | null
+        }
+        Insert: {
+          descricao?: string | null
+          id?: string
+          markup_percentual?: number | null
+          quantidade?: number | null
+          taxa_fixa?: number | null
+          template_id: string
+          tipo: string
+          valor_custo?: number | null
+          valor_final?: number | null
+        }
+        Update: {
+          descricao?: string | null
+          id?: string
+          markup_percentual?: number | null
+          quantidade?: number | null
+          taxa_fixa?: number | null
+          template_id?: string
+          tipo?: string
+          valor_custo?: number | null
+          valor_final?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_template_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates_orcamento"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orcamentos: {
         Row: {
           agencia_id: string
@@ -272,6 +316,44 @@ export type Database = {
             columns: ["usuario_id"]
             isOneToOne: false
             referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      templates_orcamento: {
+        Row: {
+          agencia_id: string
+          criado_em: string | null
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string
+          nome: string
+          observacoes: string | null
+        }
+        Insert: {
+          agencia_id: string
+          criado_em?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome: string
+          observacoes?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          criado_em?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome?: string
+          observacoes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "templates_orcamento_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
             referencedColumns: ["id"]
           },
         ]
