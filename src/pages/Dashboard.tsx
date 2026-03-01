@@ -182,8 +182,8 @@ function SuperadminDashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold text-white">Painel Administrativo</h2>
-        <p className="text-sm text-white/70">Visão consolidada de todas as agências</p>
+        <h2 className="text-2xl font-bold text-[#0F172A]">Painel Administrativo</h2>
+        <p className="text-sm text-[#64748B]">Visão consolidada de todas as agências</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -294,7 +294,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-white">Dashboard</h2>
+      <h2 className="text-2xl font-bold text-[#0F172A]">Dashboard</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
