@@ -218,7 +218,7 @@ export default function Relatorios() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={customStart} onSelect={setCustomStart} initialFocus className="p-3 pointer-events-auto" />
+                      <Calendar mode="single" selected={customStart} onSelect={setCustomStart} initialFocus className="p-3 pointer-events-auto" fromYear={2020} toYear={2099} disabled={(date) => date.getFullYear() < 2020 || date.getFullYear() > 2099} />
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -232,7 +232,7 @@ export default function Relatorios() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={customEnd} onSelect={setCustomEnd} initialFocus className="p-3 pointer-events-auto" />
+                      <Calendar mode="single" selected={customEnd} onSelect={setCustomEnd} initialFocus className="p-3 pointer-events-auto" fromYear={2020} toYear={2099} disabled={(date) => date.getFullYear() < 2020 || date.getFullYear() > 2099} />
                     </PopoverContent>
                   </Popover>
                 </div>

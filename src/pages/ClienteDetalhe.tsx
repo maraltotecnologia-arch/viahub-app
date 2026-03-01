@@ -114,7 +114,23 @@ export default function ClienteDetalhe() {
             <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
             <div className="space-y-2"><Label>CPF</Label><Input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} /></div>
             <div className="space-y-2"><Label>Passaporte</Label><Input value={form.passaporte} onChange={(e) => setForm({ ...form, passaporte: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Data de Nascimento</Label><Input type="date" value={form.data_nascimento} onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })} /></div>
+            <div className="space-y-2">
+              <Label>Data de Nascimento</Label>
+              <Input
+                type="date"
+                value={form.data_nascimento}
+                min="1900-01-01"
+                max={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })}
+                onKeyDown={(e) => {
+                  const input = e.currentTarget;
+                  const pos = input.selectionStart || 0;
+                  if (input.value.length >= 10 && pos <= 4 && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+                    e.preventDefault();
+                  }
+                }}
+              />
+            </div>
           </div>
           <div className="mt-4 space-y-2">
             <Label>Observações <span className="text-xs text-muted-foreground">(salva automaticamente)</span></Label>
