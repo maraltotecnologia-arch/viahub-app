@@ -12,9 +12,11 @@ import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Clientes() {
   const agenciaId = useAgenciaId();
+  const isMobile = useIsMobile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -67,7 +69,7 @@ export default function Clientes() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Clientes</h2>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -96,6 +98,24 @@ export default function Clientes() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : isMobile ? (
+            <div className="space-y-3">
+              {clientes?.map((c) => (
+                <Link key={c.id} to={`/clientes/${c.id}`} className="block">
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4 space-y-1">
+                      <p className="font-medium text-sm">{c.nome}</p>
+                      {c.email && <p className="text-xs text-muted-foreground">{c.email}</p>}
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{c.telefone || "-"}</span>
+                        <span>{(c.orcamentos as any)?.[0]?.count ?? 0} orçamentos</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+              {clientes?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</p>}
+            </div>
           ) : (
             <Table>
               <TableHeader>

@@ -38,7 +38,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="md:flex">
       <SidebarContent>
         <div className="p-4 pb-6">
           <h1 className="text-xl font-extrabold tracking-tight">

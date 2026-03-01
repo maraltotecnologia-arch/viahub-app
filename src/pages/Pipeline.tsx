@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted" },
@@ -23,6 +23,8 @@ export default function Pipeline() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dragId, setDragId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [justDropped, setJustDropped] = useState<string | null>(null);
 
   const { data: orcamentos, isLoading } = useQuery({
     queryKey: ["pipeline", agenciaId],
@@ -38,7 +40,11 @@ export default function Pipeline() {
   });
 
   const handleDrop = async (newStatus: string) => {
+    setDropTarget(null);
     if (!dragId) return;
+    setJustDropped(dragId);
+    setTimeout(() => setJustDropped(null), 300);
+
     const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", dragId);
     if (error) { toast({ title: "Erro ao mover", variant: "destructive" }); } else {
       queryClient.invalidateQueries({ queryKey: ["pipeline"] });
@@ -60,12 +66,18 @@ export default function Pipeline() {
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
+          const isDropActive = dropTarget === col.id;
 
           return (
             <div
               key={col.id}
-              className="min-w-[280px] flex-1 flex flex-col"
-              onDragOver={(e) => e.preventDefault()}
+              className="min-w-[280px] flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
+              style={{
+                background: isDropActive ? "#EFF6FF" : "transparent",
+                border: isDropActive ? "2px dashed #2563EB" : "2px dashed transparent",
+              }}
+              onDragOver={(e) => { e.preventDefault(); setDropTarget(col.id); }}
+              onDragLeave={() => setDropTarget(null)}
               onDrop={() => handleDrop(col.id)}
             >
               <div className="flex items-center justify-between mb-3 px-1">
@@ -80,18 +92,32 @@ export default function Pipeline() {
                 {cards.map((card) => {
                   const validade = card.validade ? new Date(card.validade) : null;
                   const diasParaVencer = validade ? Math.ceil((validade.getTime() - now.getTime()) / 86400000) : 999;
+                  const isDragging = dragId === card.id;
+                  const isJustDropped = justDropped === card.id;
 
                   return (
                     <div
                       key={card.id}
                       draggable
                       onDragStart={() => setDragId(card.id)}
+                      onDragEnd={() => { setDragId(null); setDropTarget(null); }}
+                      style={{
+                        opacity: isDragging ? 0.5 : 1,
+                        transform: isDragging
+                          ? "rotate(2deg) scale(1.02)"
+                          : isJustDropped
+                          ? "scale(1)"
+                          : undefined,
+                        transition: "all 200ms ease",
+                        animation: isJustDropped ? "pipeline-snap 200ms ease" : undefined,
+                      }}
                       className="cursor-grab active:cursor-grabbing"
                     >
                       <Link to={`/orcamentos/${card.id}`}>
                         <Card
-                          className={`hover:shadow-md transition-shadow ${
-                            diasParaVencer <= 3 && diasParaVencer >= 0 ? "border-accent border-2" : ""
+                          className={`transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                            isDragging ? "shadow-lg" : ""
+                          } ${diasParaVencer <= 3 && diasParaVencer >= 0 ? "border-accent border-2" : ""
                           } ${diasParaVencer < 0 ? "opacity-60" : ""}`}
                         >
                           <CardContent className="p-4">
@@ -114,6 +140,13 @@ export default function Pipeline() {
           );
         })}
       </div>
+
+      <style>{`
+        @keyframes pipeline-snap {
+          0% { transform: scale(0.95); }
+          100% { transform: scale(1); }
+        }
+      `}</style>
     </div>
   );
 }
