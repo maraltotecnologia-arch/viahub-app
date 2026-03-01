@@ -27,6 +27,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             Via<span className="font-extrabold">Hub</span>
           </h1>
           <p className="text-white/70 text-base mt-2">O ecossistema da sua agência</p>
+          <p className="text-white/40 text-xs mt-2">powered by <span className="font-semibold">Maralto</span></p>
 
           <div className="mt-10 space-y-4">
             {benefits.map((b) => (
@@ -37,7 +38,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             ))}
           </div>
 
-          <p className="absolute bottom-8 left-8 text-white/40 text-xs">powered by <span className="font-semibold">Maralto</span></p>
+          
         </div>
       </div>
 
