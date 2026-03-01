@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -21,6 +22,7 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function Orcamentos() {
   const agenciaId = useAgenciaId();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
@@ -49,7 +51,7 @@ export default function Orcamentos() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Orçamentos</h2>
         <Button variant="gradient" asChild>
           <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
@@ -64,7 +66,7 @@ export default function Orcamentos() {
               <Input placeholder="Buscar por título..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
             </div>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos</SelectItem>
                 <SelectItem value="rascunho">Rascunho</SelectItem>
@@ -79,7 +81,30 @@ export default function Orcamentos() {
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : isMobile ? (
+            /* Mobile: stacked cards */
+            <div className="space-y-3">
+              {data?.rows?.map((o) => (
+                <Link key={o.id} to={`/orcamentos/${o.id}`} className="block">
+                  <Card className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">{(o.clientes as any)?.nome || "Sem cliente"}</span>
+                        <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{o.titulo || "Sem título"}</p>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-semibold">{fmt(Number(o.valor_final) || 0)}</span>
+                        <span className="text-muted-foreground text-xs">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+              {data?.rows?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum orçamento encontrado</p>}
+            </div>
           ) : (
+            /* Desktop: table */
             <>
               <Table>
                 <TableHeader>

@@ -199,15 +199,15 @@ function SuperadminDashboard() {
         <p className="text-sm text-muted-foreground">Visão consolidada de todas as agências</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
           <Card key={m.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
-              <m.icon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
+              <m.icon className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </CardHeader>
             <CardContent>
-              {metricsLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{m.value}</div>}
+              {metricsLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-lg sm:text-2xl font-bold">{m.value}</div>}
             </CardContent>
           </Card>
         ))}
@@ -241,7 +241,7 @@ function SuperadminDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentes?.map((o: any) => (
-                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors">
+                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors gap-1">
                     <div>
                       <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
                       <p className="text-xs text-muted-foreground">
@@ -337,15 +337,15 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold">Dashboard</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
           <Card key={m.title}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
-              <m.icon className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{m.title}</CardTitle>
+              <m.icon className="h-4 w-4 text-muted-foreground hidden sm:block" />
             </CardHeader>
             <CardContent>
-              {metricsLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-2xl font-bold">{m.value}</div>}
+              {metricsLoading ? <Skeleton className="h-8 w-24" /> : <div className="text-lg sm:text-2xl font-bold">{m.value}</div>}
             </CardContent>
           </Card>
         ))}
@@ -379,7 +379,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
             ) : (
               <div className="space-y-3">
                 {recentes?.map((o) => (
-                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors">
+                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors gap-1">
                     <div>
                       <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
                       <p className="text-xs text-muted-foreground">
