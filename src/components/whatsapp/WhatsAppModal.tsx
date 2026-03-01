@@ -43,7 +43,7 @@ export default function WhatsAppModal({
     ? new Date(validade).toLocaleDateString("pt-BR")
     : "Não informada";
 
-  const mensagemPadrao = `Olá, ${clienteNome}!\nSegue o orçamento ${numeroOrcamento} preparado especialmente para você.\n\n🗓️ Válido até: ${validadeFormatada}\n💰 Valor total: ${fmt(valorTotal)}\n\nQualquer dúvida, estou à disposição!\n\n${agenciaNome}`;
+  const mensagemPadrao = `Olá, ${clienteNome}!\nSegue o orçamento ${numeroOrcamento} preparado especialmente para você.\n\nVálido até: ${validadeFormatada}\nValor total: ${fmt(valorTotal)}\n\nQualquer dúvida, estou à disposição!\n\n${agenciaNome}`;
 
   const [telefone, setTelefone] = useState(clienteTelefone.replace(/\D/g, ""));
   const [mensagem, setMensagem] = useState(mensagemPadrao);
