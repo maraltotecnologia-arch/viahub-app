@@ -16,6 +16,9 @@ import Clientes from "./pages/Clientes";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import ConfigMarkup from "./pages/ConfigMarkup";
 import ConfigAgencia from "./pages/ConfigAgencia";
+import AdminAgencias from "./pages/admin/AdminAgencias";
+import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
+import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +50,9 @@ function AppRoutes() {
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
         <Route path="/configuracoes/agencia" element={<ConfigAgencia />} />
+        <Route path="/admin/agencias" element={<AdminAgencias />} />
+        <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
+        <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

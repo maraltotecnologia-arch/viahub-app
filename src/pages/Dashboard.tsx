@@ -37,11 +37,23 @@ export default function Dashboard() {
       try {
         const { data: perfil, error: perfilError } = await supabase
           .from("usuarios")
-          .select("agencia_id")
+          .select("agencia_id, cargo")
           .eq("id", user.id)
           .maybeSingle();
 
-        if (perfilError || !perfil?.agencia_id) {
+        if (perfilError || !perfil) {
+          await supabase.auth.signOut();
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        // Superadmin without agencia_id goes to admin panel
+        if (perfil.cargo === "superadmin" && !perfil.agencia_id) {
+          navigate("/admin/agencias", { replace: true });
+          return;
+        }
+
+        if (!perfil.agencia_id) {
           await supabase.auth.signOut();
           navigate("/login", { replace: true });
           return;

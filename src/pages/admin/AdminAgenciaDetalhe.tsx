@@ -1,0 +1,305 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { FileText, Users, Calendar, DollarSign, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import useUserRole from "@/hooks/useUserRole";
+
+const planoConfig: Record<string, { label: string; color: string }> = {
+  starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
+  starter_b: { label: "Starter + Comissão", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
+  pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
+  pro_b: { label: "Pro + Comissão", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
+  agency_c: { label: "White Label", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+};
+
+const planos = [
+  { value: "starter_a", label: "Starter" },
+  { value: "starter_b", label: "Starter + Comissão" },
+  { value: "pro_a", label: "Pro" },
+  { value: "pro_b", label: "Pro + Comissão" },
+  { value: "agency_c", label: "White Label" },
+];
+
+const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export default function AdminAgenciaDetalhe() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { isSuperadmin, loading: roleLoading } = useUserRole();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<any>({});
+
+  useEffect(() => {
+    if (!roleLoading && !isSuperadmin) {
+      toast.error("Acesso não autorizado");
+      navigate("/dashboard", { replace: true });
+    }
+  }, [roleLoading, isSuperadmin, navigate]);
+
+  const { data: agencia, isLoading } = useQuery({
+    queryKey: ["admin-agencia", id],
+    enabled: !!id && isSuperadmin,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("*")
+        .eq("id", id!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  useEffect(() => {
+    if (agencia) setForm(agencia);
+  }, [agencia]);
+
+  const { data: usuarios } = useQuery({
+    queryKey: ["admin-agencia-usuarios", id],
+    enabled: !!id && isSuperadmin,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("usuarios")
+        .select("*")
+        .eq("agencia_id", id!);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: metrics } = useQuery({
+    queryKey: ["admin-agencia-metrics", id],
+    enabled: !!id && isSuperadmin,
+    queryFn: async () => {
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+      const { data: orcamentos } = await supabase
+        .from("orcamentos")
+        .select("id, valor_final, criado_em")
+        .eq("agencia_id", id!);
+
+      const { count: clienteCount } = await supabase
+        .from("clientes")
+        .select("id", { count: "exact", head: true })
+        .eq("agencia_id", id!);
+
+      const totalOrcamentos = orcamentos?.length ?? 0;
+      const orcamentosMes = orcamentos?.filter((o) => o.criado_em && o.criado_em >= startOfMonth).length ?? 0;
+      const valorMes = orcamentos
+        ?.filter((o) => o.criado_em && o.criado_em >= startOfMonth)
+        .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
+
+      return {
+        totalOrcamentos,
+        totalClientes: clienteCount ?? 0,
+        orcamentosMes,
+        valorMes,
+      };
+    },
+  });
+
+  const handleSave = async () => {
+    const { error } = await supabase
+      .from("agencias")
+      .update({
+        nome_fantasia: form.nome_fantasia,
+        cnpj: form.cnpj,
+        email: form.email,
+        telefone: form.telefone,
+        plano: form.plano,
+      })
+      .eq("id", id!);
+
+    if (error) {
+      toast.error("Erro ao salvar");
+      return;
+    }
+    toast.success("Agência atualizada");
+    setEditing(false);
+    queryClient.invalidateQueries({ queryKey: ["admin-agencia", id] });
+  };
+
+  const toggleAtivo = async () => {
+    const newVal = agencia?.ativo === false ? true : false;
+    const { error } = await supabase.from("agencias").update({ ativo: newVal }).eq("id", id!);
+    if (error) {
+      toast.error("Erro ao alterar status");
+      return;
+    }
+    toast.success(newVal ? "Agência ativada" : "Agência desativada");
+    queryClient.invalidateQueries({ queryKey: ["admin-agencia", id] });
+  };
+
+  if (roleLoading || isLoading) {
+    return <div className="space-y-4 p-6">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div>;
+  }
+
+  if (!agencia) {
+    return <div className="p-6 text-muted-foreground">Agência não encontrada</div>;
+  }
+
+  const planoInfo = planoConfig[agencia.plano || "starter_a"] || planoConfig.starter_a;
+  const tempoCliente = agencia.criado_em
+    ? Math.floor((Date.now() - new Date(agencia.criado_em).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <Button variant="ghost" size="sm" onClick={() => navigate("/admin/agencias")}>
+        <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
+      </Button>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold">{agencia.nome_fantasia}</h2>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${planoInfo.color}`}>
+            {planoInfo.label}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <Button onClick={handleSave}>Salvar</Button>
+              <Button variant="outline" onClick={() => { setEditing(false); setForm(agencia); }}>Cancelar</Button>
+            </>
+          ) : (
+            <Button variant="outline" onClick={() => setEditing(true)}>Editar</Button>
+          )}
+          <Button variant={agencia.ativo === false ? "default" : "destructive"} onClick={toggleAtivo}>
+            {agencia.ativo === false ? "Ativar" : "Desativar"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Orçamentos</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{metrics?.totalOrcamentos ?? 0}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Clientes</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{metrics?.totalClientes ?? 0}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Orçam. este mês</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{metrics?.orcamentosMes ?? 0}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Valor orçado (mês)</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{fmt(metrics?.valorMes ?? 0)}</div></CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Dados Cadastrais</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Nome Fantasia</Label>
+              <Input value={form.nome_fantasia || ""} disabled={!editing} onChange={(e) => setForm({ ...form, nome_fantasia: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>CNPJ</Label>
+              <Input value={form.cnpj || ""} disabled={!editing} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input value={form.email || ""} disabled={!editing} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input value={form.telefone || ""} disabled={!editing} onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Plano</Label>
+              {editing ? (
+                <Select value={form.plano || "starter_a"} onValueChange={(v) => setForm({ ...form, plano: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {planos.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input value={planoInfo.label} disabled />
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Usuários da Agência</CardTitle></CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Cargo</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {usuarios?.map((u) => (
+                <TableRow key={u.id}>
+                  <TableCell className="font-medium">{u.nome || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{u.email || "—"}</TableCell>
+                  <TableCell>{u.cargo || "agente"}</TableCell>
+                  <TableCell>
+                    <Badge variant={u.ativo !== false ? "success" : "destructive"}>
+                      {u.ativo !== false ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!usuarios || usuarios.length === 0) && (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                    Nenhum usuário vinculado
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-lg">Histórico</CardTitle></CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <p>
+            <span className="text-muted-foreground">Data de cadastro:</span>{" "}
+            {agencia.criado_em ? new Date(agencia.criado_em).toLocaleDateString("pt-BR") : "—"}
+          </p>
+          <p>
+            <span className="text-muted-foreground">Tempo como cliente:</span>{" "}
+            {tempoCliente} dias
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
