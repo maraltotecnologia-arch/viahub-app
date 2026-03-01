@@ -12,6 +12,7 @@ import Orcamentos from "./pages/Orcamentos";
 import OrcamentoNovo from "./pages/OrcamentoNovo";
 import OrcamentoDetalhe from "./pages/OrcamentoDetalhe";
 import Pipeline from "./pages/Pipeline";
+import Relatorios from "./pages/Relatorios";
 import Clientes from "./pages/Clientes";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import ConfigMarkup from "./pages/ConfigMarkup";
@@ -46,6 +47,7 @@ function AppRoutes() {
         <Route path="/orcamentos/:id" element={<OrcamentoDetalhe />} />
         <Route path="/orcamentos/:id/editar" element={<OrcamentoNovo modo="edicao" />} />
         <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />

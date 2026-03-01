@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -14,6 +14,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
   { title: "Pipeline", url: "/pipeline", icon: BarChart3 },
+  { title: "Relatórios", url: "/relatorios", icon: TrendingUp },
   { title: "Clientes", url: "/clientes", icon: Users },
 ];
 
