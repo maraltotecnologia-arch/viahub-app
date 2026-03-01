@@ -20,6 +20,7 @@ export type Database = {
           cnpj: string | null
           criado_em: string | null
           email: string | null
+          horario_funcionamento: Json | null
           id: string
           logo_url: string | null
           nome_fantasia: string
@@ -32,6 +33,7 @@ export type Database = {
           cnpj?: string | null
           criado_em?: string | null
           email?: string | null
+          horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
           nome_fantasia: string
@@ -44,6 +46,7 @@ export type Database = {
           cnpj?: string | null
           criado_em?: string | null
           email?: string | null
+          horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
           nome_fantasia?: string
@@ -231,6 +234,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notificacoes_lidas: {
+        Row: {
+          lida_em: string | null
+          notificacao_id: string
+          usuario_id: string
+        }
+        Insert: {
+          lida_em?: string | null
+          notificacao_id: string
+          usuario_id: string
+        }
+        Update: {
+          lida_em?: string | null
+          notificacao_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_lidas_notificacao_id_fkey"
+            columns: ["notificacao_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes_sistema"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacoes_lidas_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes_sistema: {
+        Row: {
+          ativo: boolean | null
+          criado_em: string | null
+          id: string
+          mensagem: string
+          tipo: string | null
+          titulo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          id?: string
+          mensagem: string
+          tipo?: string | null
+          titulo: string
+        }
+        Update: {
+          ativo?: boolean | null
+          criado_em?: string | null
+          id?: string
+          mensagem?: string
+          tipo?: string | null
+          titulo?: string
+        }
+        Relationships: []
       }
       orcamentos: {
         Row: {

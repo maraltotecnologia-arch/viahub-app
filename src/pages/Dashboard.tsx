@@ -132,7 +132,7 @@ function AlertasCard({ agenciaId }: { agenciaId: string }) {
   const items: { emoji: string; text: string; link: string }[] = [];
   if (alertas.vencendoHoje > 0) items.push({ emoji: "🔴", text: `${alertas.vencendoHoje} orçamento(s) vencem HOJE`, link: "/orcamentos?filtro=vencendo_hoje" });
   if (alertas.vencendoEmBreve > 0) items.push({ emoji: "🟡", text: `${alertas.vencendoEmBreve} orçamento(s) vencem em até 3 dias`, link: "/orcamentos?filtro=vencendo_em_breve" });
-  if (alertas.aguardandoResposta > 0) items.push({ emoji: "🔵", text: `${alertas.aguardandoResposta} orçamento(s) aguardando resposta há mais de 3 dias`, link: "/orcamentos?filtro=aguardando" });
+  if (alertas.aguardandoResposta > 0) items.push({ emoji: "🔵", text: `${alertas.aguardandoResposta} orçamento(s) aguardando resposta há mais de 1 dia útil`, link: "/orcamentos?filtro=aguardando" });
   if (alertas.pipelineParado > 0) items.push({ emoji: "⚫", text: `${alertas.pipelineParado} orçamento(s) no pipeline sem movimentação há mais de 7 dias`, link: "/pipeline" });
 
   return (

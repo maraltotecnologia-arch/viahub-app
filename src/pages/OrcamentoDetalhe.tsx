@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
-import { differenceInDays } from "date-fns";
+import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,7 +98,7 @@ export default function OrcamentoDetalhe() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agencias")
-        .select("nome_fantasia, email, telefone, logo_url")
+        .select("nome_fantasia, email, telefone, logo_url, horario_funcionamento")
         .eq("id", agenciaId!)
         .maybeSingle();
       if (error) throw error;
@@ -315,8 +315,11 @@ export default function OrcamentoDetalhe() {
     <div className="space-y-6 animate-fade-in">
       {/* Follow-up reminder */}
       {orc.status === "enviado" && orc.enviado_whatsapp_em && (() => {
-        const dias = differenceInDays(new Date(), new Date(orc.enviado_whatsapp_em));
-        if (dias < 3) return null;
+        const horario: HorarioFuncionamento =
+          (agencia?.horario_funcionamento as unknown as HorarioFuncionamento) || DEFAULT_HORARIO;
+        const diasUteis = calcularDiasUteis(new Date(orc.enviado_whatsapp_em), horario);
+        if (diasUteis < 1) return null;
+        const dias = Math.ceil((new Date().getTime() - new Date(orc.enviado_whatsapp_em).getTime()) / 86400000);
         return (
           <Card className="border-l-4" style={{ borderLeftColor: "#F59E0B", backgroundColor: "#FFFBEB" }}>
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
@@ -515,7 +518,7 @@ export default function OrcamentoDetalhe() {
         valorTotal={Number(orc.valor_final) || 0}
         agenciaNome={agencia?.nome_fantasia || ""}
         onSend={handleWhatsAppSend}
-        followUpMode={orc.status === "enviado" && orc.enviado_whatsapp_em ? differenceInDays(new Date(), new Date(orc.enviado_whatsapp_em)) >= 3 : false}
+        followUpMode={orc.status === "enviado" && orc.enviado_whatsapp_em ? calcularDiasUteis(new Date(orc.enviado_whatsapp_em), (agencia?.horario_funcionamento as unknown as HorarioFuncionamento) || DEFAULT_HORARIO) >= 1 : false}
       />
 
       <ConfirmDialog

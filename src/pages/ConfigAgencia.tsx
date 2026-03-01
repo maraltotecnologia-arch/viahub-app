@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { validarCNPJ } from "@/lib/validators";
+import { type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 
 export default function ConfigAgencia() {
   const { user, refreshUser } = useAuth();
@@ -245,6 +247,7 @@ export default function ConfigAgencia() {
           </Table>
         </CardContent>
       </Card>
+      <HorarioFuncionamentoSection agenciaId={agenciaId} horarioInicial={(agencia as any)?.horario_funcionamento} />
       <AlterarSenhaSection />
     </div>
   );
@@ -307,6 +310,104 @@ function AlterarSenhaSection() {
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button variant="gradient" disabled={loading}>{loading ? "Salvando..." : "Alterar Senha"}</Button>
         </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+const DIAS_LABELS: Record<string, string> = {
+  segunda: "Segunda-feira",
+  terca: "Terça-feira",
+  quarta: "Quarta-feira",
+  quinta: "Quinta-feira",
+  sexta: "Sexta-feira",
+  sabado: "Sábado",
+  domingo: "Domingo",
+};
+
+const DIAS_ORDER = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"];
+
+function HorarioFuncionamentoSection({ agenciaId, horarioInicial }: { agenciaId: string | null; horarioInicial?: any }) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState(false);
+  const [horario, setHorario] = useState<HorarioFuncionamento>(
+    (horarioInicial as HorarioFuncionamento) || DEFAULT_HORARIO
+  );
+
+  useEffect(() => {
+    if (horarioInicial) {
+      setHorario(horarioInicial as HorarioFuncionamento);
+    }
+  }, [horarioInicial]);
+
+  const updateDia = (dia: string, field: string, value: any) => {
+    setHorario((prev) => ({
+      ...prev,
+      [dia]: { ...prev[dia], [field]: value },
+    }));
+  };
+
+  const handleSave = async () => {
+    if (!agenciaId) return;
+    setSaving(true);
+    const { error } = await supabase
+      .from("agencias")
+      .update({ horario_funcionamento: horario as any })
+      .eq("id", agenciaId);
+    if (error) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Horário salvo com sucesso!" });
+      queryClient.invalidateQueries({ queryKey: ["agencia"] });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Horário de Funcionamento</CardTitle></CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {DIAS_ORDER.map((dia) => {
+            const d = horario[dia];
+            return (
+              <div key={dia} className="flex items-center gap-4">
+                <div className="flex items-center gap-2 w-40">
+                  <Checkbox
+                    checked={d.ativo}
+                    onCheckedChange={(v) => updateDia(dia, "ativo", !!v)}
+                  />
+                  <span className={`text-sm ${d.ativo ? "font-medium" : "text-muted-foreground"}`}>
+                    {DIAS_LABELS[dia]}
+                  </span>
+                </div>
+                {d.ativo ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="time"
+                      className="w-28"
+                      value={d.inicio}
+                      onChange={(e) => updateDia(dia, "inicio", e.target.value)}
+                    />
+                    <span className="text-muted-foreground text-sm">–</span>
+                    <Input
+                      type="time"
+                      className="w-28"
+                      value={d.fim}
+                      onChange={(e) => updateDia(dia, "fim", e.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <span className="text-sm text-muted-foreground">Fechado</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>
+          {saving ? "Salvando..." : "Salvar Horário"}
+        </Button>
       </CardContent>
     </Card>
   );

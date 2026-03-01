@@ -74,8 +74,9 @@ export default function Orcamentos() {
         const in3days = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
         query = query.in("status", ["rascunho", "enviado"]).gte("validade", tomorrow).lte("validade", in3days);
       } else if (filtroAlerta === "aguardando") {
-        const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
-        query = query.eq("status", "enviado").not("enviado_whatsapp_em", "is", null).lt("enviado_whatsapp_em", threeDaysAgo);
+        // 1 business day — approximate with 1 calendar day for DB filter, further refined in useAlertas
+        const oneDayAgo = new Date(Date.now() - 1 * 86400000).toISOString();
+        query = query.eq("status", "enviado").not("enviado_whatsapp_em", "is", null).lt("enviado_whatsapp_em", oneDayAgo);
       } else {
         // Normal filters only when no alert filter
         if (statusFilter !== "todos") query = query.eq("status", statusFilter);
