@@ -153,6 +153,16 @@ export default function OrcamentoNovo() {
     }
 
     setLoading(true);
+
+    // Generate numero_orcamento
+    const year = new Date().getFullYear();
+    const { count } = await supabase
+      .from("orcamentos")
+      .select("id", { count: "exact", head: true })
+      .eq("agencia_id", agenciaId!);
+    const seq = String((count ?? 0) + 1).padStart(4, "0");
+    const numero_orcamento = `ORC-${year}-${seq}`;
+
     const { data: orc, error } = await supabase
       .from("orcamentos")
       .insert({
@@ -169,6 +179,7 @@ export default function OrcamentoNovo() {
         validade: validade || null,
         observacoes,
         forma_pagamento: formaPagamento,
+        numero_orcamento,
       })
       .select("id")
       .single();

@@ -1,0 +1,1 @@
+ALTER TABLE public.orcamentos ADD COLUMN numero_orcamento TEXT;
