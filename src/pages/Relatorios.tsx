@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import SortableTableHead from "@/components/SortableTableHead";
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -389,7 +390,7 @@ export default function Relatorios() {
                       <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-8">Nenhum orçamento no período</TableCell></TableRow>
                     ) : pagedData.map((o) => (
                       <TableRow key={o.id}>
-                        <TableCell className="text-sm">{o.criado_em ? format(new Date(o.criado_em), "dd/MM/yyyy") : "-"}</TableCell>
+                        <TableCell className="text-sm">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</TableCell>
                         <TableCell className="text-sm font-medium">{o.numero_orcamento || "-"}</TableCell>
                         <TableCell className="text-sm">{o.cliente_nome}</TableCell>
                         <TableCell className="text-sm">{o.tipos_servico.join(", ") || "-"}</TableCell>

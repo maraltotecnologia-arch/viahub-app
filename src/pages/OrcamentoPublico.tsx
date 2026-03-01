@@ -9,8 +9,10 @@ import { Download, MessageCircle } from "lucide-react";
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+
 const fmtDate = (d: string | null | undefined) =>
-  d ? new Date(d).toLocaleDateString("pt-BR") : "-";
+  d ? formatarApenasDatabrasilia(d + "T12:00:00") : "-";
 
 const formatarPagamento = (forma: string | null | undefined) => {
   if (!forma) return "Não informada";

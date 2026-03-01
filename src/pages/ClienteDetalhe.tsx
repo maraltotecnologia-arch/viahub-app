@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-utils";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -59,7 +60,7 @@ export default function ClienteDetalhe() {
         telefone: cliente.telefone || "",
         cpf: cliente.cpf || "",
         passaporte: cliente.passaporte || "",
-        data_nascimento: cliente.data_nascimento || "",
+        data_nascimento: cliente.data_nascimento ? formatarDataSemTimezone(cliente.data_nascimento) : "",
         observacoes: cliente.observacoes || "",
       });
     }
@@ -141,7 +142,7 @@ export default function ClienteDetalhe() {
               <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors">
                 <div>
                   <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
-                  <p className="text-xs text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</p>
+                  <p className="text-xs text-muted-foreground">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-semibold text-sm">{fmt(Number(o.valor_final) || 0)}</span>

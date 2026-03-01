@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Clock, LayoutGrid } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
+import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted" },

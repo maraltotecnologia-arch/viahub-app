@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { validarValidade, validarData, todayStr } from "@/lib/date-utils";
+import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
 
 interface Item {
   id: string;
@@ -151,15 +151,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     if (isEdicao && existingOrc && existingItens && !initialized) {
       setTitulo(existingOrc.titulo || "");
       // Format date properly for input type="date"
-      if (existingOrc.validade) {
-        const d = new Date(existingOrc.validade + "T00:00:00");
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        setValidade(`${yyyy}-${mm}-${dd}`);
-      } else {
-        setValidade("");
-      }
+      setValidade(existingOrc.validade ? formatarDataSemTimezone(existingOrc.validade) : "");
       setMoeda(existingOrc.moeda || "BRL");
       setObservacoes(existingOrc.observacoes || "");
       setFormaPagamento(existingOrc.forma_pagamento || "pix");
