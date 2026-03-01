@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield, UserCog } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -6,7 +6,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
@@ -19,7 +18,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isSuperadmin, isAdmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
+  const { isSuperadmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
   const agenciaId = useAgenciaId();
   const { data: alertas } = useAlertas(isSuperadmin ? null : agenciaId);
 
@@ -34,10 +33,10 @@ export function AppSidebar() {
   ];
 
   const configItems = [
-    { title: "Markup", url: "/configuracoes/markup" },
-    { title: "Agência", url: "/configuracoes/agencia" },
-    { title: "Usuários", url: "/configuracoes/usuarios" },
-    { title: "📋 Templates", url: "/configuracoes/templates" },
+    { title: "Markup", url: "/configuracoes/markup", icon: Settings },
+    { title: "Agência", url: "/configuracoes/agencia", icon: Building2 },
+    { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
+    { title: "Templates", url: "/configuracoes/templates", icon: FileText },
   ];
 
   const handleSignOut = async () => {
@@ -48,7 +47,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="md:flex">
       <SidebarContent>
-        <div className="p-4 pb-6">
+        <div className="p-4 pb-5 border-b border-sidebar-border">
           <h1 className="text-xl font-extrabold tracking-tight">
             <span className="text-sidebar-primary">Via</span>
             <span className="text-sidebar-accent-foreground">Hub</span>
@@ -69,8 +68,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                        `flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
+                          isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-[0_4px_12px_hsl(var(--sidebar-primary)/0.3)]" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         }`
                       }
                     >
@@ -92,7 +91,7 @@ export function AppSidebar() {
         {canAccessConfig && (
           <SidebarGroup>
             <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
-              <CollapsibleTrigger className="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-accent-foreground w-full rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+              <CollapsibleTrigger className="flex items-center gap-3 px-3 py-2.5 text-sm text-sidebar-foreground/70 hover:text-sidebar-accent-foreground w-full rounded-[10px] hover:bg-sidebar-accent transition-all duration-150">
                 <Settings className="h-4 w-4 shrink-0" />
                 {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
               </CollapsibleTrigger>
@@ -105,11 +104,12 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             className={({ isActive }) =>
-                              `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-colors ${
+                              `flex items-center gap-3 pl-10 pr-3 py-2 rounded-[10px] text-sm transition-all duration-150 ${
                                 isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                               }`
                             }
                           >
+                            <item.icon className="h-3.5 w-3.5 shrink-0" />
                             {!collapsed && <span>{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
@@ -126,7 +126,7 @@ export function AppSidebar() {
           <SidebarGroup>
             <div className="px-3 py-2">
               <Separator className="mb-2" />
-              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider font-semibold flex items-center gap-1.5">
+              <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-[1px] font-semibold flex items-center gap-1.5 mt-4 mb-1">
                 <Shield className="h-3 w-3" /> Administração
               </p>
             </div>
@@ -137,8 +137,8 @@ export function AppSidebar() {
                     <NavLink
                       to="/admin/agencias"
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+                        `flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
+                          isActive ? "bg-sidebar-primary text-sidebar-primary-foreground font-semibold shadow-[0_4px_12px_hsl(var(--sidebar-primary)/0.3)]" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         }`
                       }
                     >
@@ -155,7 +155,7 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <div className="flex items-center gap-3 px-3 py-3 border-t border-sidebar-border">
-          <div className="h-8 w-8 rounded-full bg-sidebar-primary/20 flex items-center justify-center text-sidebar-primary text-xs font-bold shrink-0">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
             {initials}
           </div>
           {!collapsed && (

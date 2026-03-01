@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -15,6 +14,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import SortableTableHead from "@/components/SortableTableHead";
+import StatusBadge from "@/components/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -28,15 +29,11 @@ function getValidadeIndicator(validade: string | null, status: string | null) {
   today.setHours(0, 0, 0, 0);
   const val = new Date(validade + "T00:00:00");
   const diffDays = Math.ceil((val.getTime() - today.getTime()) / 86400000);
-  if (diffDays < 0) return { className: "text-destructive font-semibold", icon: "⏰", label: "Vencido" };
-  if (diffDays === 0) return { className: "text-orange-500 font-bold", icon: "⚠️", label: "Vence hoje" };
-  if (diffDays <= 3) return { className: "text-yellow-600", icon: "🟡", label: `Vence em ${diffDays}d` };
+  if (diffDays < 0) return { className: "text-destructive font-semibold", icon: Clock, label: "Vencido" };
+  if (diffDays === 0) return { className: "text-warning font-bold", icon: AlertTriangle, label: "Vence hoje" };
+  if (diffDays <= 3) return { className: "text-warning", icon: AlertTriangle, label: `Vence em ${diffDays}d` };
   return null;
 }
-
-const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
-  rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
-};
 
 const PAGE_SIZE = 20;
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -72,7 +69,6 @@ export default function Orcamentos() {
         .eq("agencia_id", agenciaId!)
         .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
-      // URL-based alert filters
       if (filtroAlerta === "vencendo_hoje") {
         const today = new Date().toISOString().slice(0, 10);
         query = query.in("status", ["rascunho", "enviado"]).eq("validade", today);
@@ -81,11 +77,9 @@ export default function Orcamentos() {
         const in3days = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
         query = query.in("status", ["rascunho", "enviado"]).gte("validade", tomorrow).lte("validade", in3days);
       } else if (filtroAlerta === "aguardando") {
-        // 1 business day — approximate with 1 calendar day for DB filter, further refined in useAlertas
         const oneDayAgo = new Date(Date.now() - 1 * 86400000).toISOString();
         query = query.eq("status", "enviado").not("enviado_whatsapp_em", "is", null).lt("enviado_whatsapp_em", oneDayAgo);
       } else {
-        // Normal filters only when no alert filter
         if (statusFilter !== "todos") query = query.eq("status", statusFilter);
         if (search.trim()) query = query.or(`titulo.ilike.%${search}%`);
         query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -98,7 +92,6 @@ export default function Orcamentos() {
   });
 
   const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
-
   const now = new Date();
 
   return (
@@ -118,7 +111,7 @@ export default function Orcamentos() {
         </div>
       )}
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
@@ -142,7 +135,6 @@ export default function Orcamentos() {
           {isLoading ? (
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
           ) : isMobile ? (
-            /* Mobile: stacked cards */
             <div className="space-y-3">
               {data?.rows?.map((o) => (
                 <Link key={o.id} to={`/orcamentos/${o.id}`} className="block">
@@ -151,10 +143,10 @@ export default function Orcamentos() {
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{(o.clientes as any)?.nome || "Sem cliente"}</span>
                         <div className="flex items-center gap-1">
-                          <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                          <StatusBadge status={o.status || "rascunho"} />
                           {o.status === "perdido" && o.validade && new Date(o.validade) < now && (
                             <Tooltip>
-                              <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                              <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
                               <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
                             </Tooltip>
                           )}
@@ -172,7 +164,6 @@ export default function Orcamentos() {
               {data?.rows?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum orçamento encontrado</p>}
             </div>
           ) : (
-            /* Desktop: table */
             <>
               <Table>
                 <TableHeader>
@@ -187,7 +178,7 @@ export default function Orcamentos() {
                 </TableHeader>
                 <TableBody>
                   {data?.rows?.map((o) => (
-                    <TableRow key={o.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableRow key={o.id} className="cursor-pointer">
                       <TableCell>
                         <Link to={`/orcamentos/${o.id}`} className="font-medium hover:text-primary">
                           {(o.clientes as any)?.nome || "Sem cliente"}
@@ -197,11 +188,16 @@ export default function Orcamentos() {
                       <TableCell className="font-semibold">{fmt(Number(o.valor_final) || 0)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
-                          {(o as any).enviado_whatsapp && <span title="Enviado via WhatsApp" className="text-[#25D366]">📱</span>}
+                          <StatusBadge status={o.status || "rascunho"} />
+                          {(o as any).enviado_whatsapp && (
+                            <Tooltip>
+                              <TooltipTrigger asChild><MessageCircle className="h-3.5 w-3.5 text-success cursor-help" /></TooltipTrigger>
+                              <TooltipContent>Enviado via WhatsApp</TooltipContent>
+                            </Tooltip>
+                          )}
                           {o.status === "perdido" && o.validade && new Date(o.validade) < now && (
                             <Tooltip>
-                              <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                              <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
                               <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
                             </Tooltip>
                           )}
@@ -211,7 +207,13 @@ export default function Orcamentos() {
                         {(() => {
                           const ind = getValidadeIndicator(o.validade, o.status);
                           if (!ind) return <span className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</span>;
-                          return <span className={ind.className}>{ind.icon} {o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</span>;
+                          const IndIcon = ind.icon;
+                          return (
+                            <span className={`inline-flex items-center gap-1 ${ind.className}`}>
+                              <IndIcon className="h-3.5 w-3.5" />
+                              {o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}
+                            </span>
+                          );
                         })()}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>

@@ -20,7 +20,7 @@ export default function AppLayout() {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center border-b px-4 bg-background shrink-0">
+          <header className="h-16 flex items-center border-b border-border/60 px-4 bg-background shrink-0 shadow-[0_1px_3px_hsl(0_0%_0%/0.04)]">
             <SidebarTrigger className="shrink-0">
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
@@ -32,7 +32,7 @@ export default function AppLayout() {
                 </>
               )}
               <NotificacoesDropdown />
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm">
                 {initials}
               </div>
             </div>
