@@ -5,68 +5,98 @@ import {
   View,
   Image,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 
+const DARK_BLUE = "#1E3A5F";
 const PRIMARY = "#2563EB";
 const TEXT_COLOR = "#1a1a1a";
 const MUTED = "#6b7280";
+const LIGHT_BG = "#F8F9FA";
 const BORDER = "#e5e7eb";
+const OBS_BG = "#FFFBEB";
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
     color: TEXT_COLOR,
-    paddingTop: 40,
     paddingBottom: 60,
-    paddingHorizontal: 40,
   },
   // Header
-  headerRow: {
+  headerBg: {
+    backgroundColor: DARK_BLUE,
+    paddingVertical: 24,
+    paddingHorizontal: 40,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 4,
+    alignItems: "center",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   agencyName: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: PRIMARY,
+    color: "#ffffff",
   },
   headerRight: {
     alignItems: "flex-end",
   },
-  headerLabel: { fontSize: 8, color: MUTED },
-  headerValue: { fontSize: 10, fontFamily: "Helvetica-Bold" },
-  divider: {
-    height: 3,
-    backgroundColor: PRIMARY,
-    marginTop: 8,
-    marginBottom: 20,
-    borderRadius: 2,
+  headerNumero: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: "#ffffff",
+    marginBottom: 4,
   },
-  // Section
+  headerMeta: {
+    fontSize: 8,
+    color: "#cbd5e1",
+    marginBottom: 1,
+  },
+  headerMetaValue: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#e2e8f0",
+    marginBottom: 4,
+  },
+  // Content area
+  content: {
+    paddingHorizontal: 40,
+    paddingTop: 20,
+  },
+  // Traveler section
+  travelerBox: {
+    backgroundColor: LIGHT_BG,
+    borderRadius: 4,
+    padding: 14,
+    marginBottom: 20,
+  },
   sectionTitle: {
     fontSize: 12,
     fontFamily: "Helvetica-Bold",
-    color: PRIMARY,
-    marginBottom: 8,
-    marginTop: 16,
+    color: DARK_BLUE,
+    marginBottom: 10,
   },
-  row: {
+  travelerGrid: {
     flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  travelerItem: {
+    width: "50%",
     marginBottom: 4,
   },
-  label: { fontSize: 9, color: MUTED, width: 80 },
-  value: { fontSize: 10 },
+  travelerLabel: { fontSize: 8, color: MUTED },
+  travelerValue: { fontSize: 10 },
   // Table
   tableHeader: {
     flexDirection: "row",
     backgroundColor: PRIMARY,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    borderRadius: 2,
-    marginTop: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   tableHeaderText: {
     color: "#ffffff",
@@ -75,57 +105,84 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingVertical: 7,
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
   },
+  tableRowAlt: {
+    backgroundColor: LIGHT_BG,
+  },
   colService: { flex: 3 },
   colValue: { flex: 1, textAlign: "right" as const },
+  itemType: { fontSize: 9, fontFamily: "Helvetica-Bold" },
+  itemDesc: { fontSize: 8, color: MUTED, marginTop: 1 },
   totalRow: {
     flexDirection: "row",
-    paddingVertical: 8,
-    paddingHorizontal: 8,
-    backgroundColor: "#f0f4ff",
-    borderRadius: 2,
-    marginTop: 2,
+    backgroundColor: DARK_BLUE,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+    marginBottom: 20,
   },
   totalLabel: {
     flex: 3,
     fontFamily: "Helvetica-Bold",
-    fontSize: 11,
+    fontSize: 12,
+    color: "#ffffff",
     textAlign: "right" as const,
     paddingRight: 12,
   },
   totalValue: {
     flex: 1,
     fontFamily: "Helvetica-Bold",
-    fontSize: 11,
+    fontSize: 12,
     textAlign: "right" as const,
-    color: PRIMARY,
+    color: "#ffffff",
   },
   // Conditions
-  conditionText: { fontSize: 9, color: MUTED, marginBottom: 3 },
-  obsBlock: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: "#f9fafb",
-    borderRadius: 2,
+  conditionsBox: {
+    borderLeftWidth: 3,
+    borderLeftColor: PRIMARY,
+    paddingLeft: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
   },
+  conditionsGrid: {
+    flexDirection: "row",
+    gap: 24,
+  },
+  condLabel: { fontSize: 8, color: MUTED },
+  condValue: { fontSize: 10, fontFamily: "Helvetica-Bold" },
+  obsBox: {
+    backgroundColor: OBS_BG,
+    borderRadius: 4,
+    padding: 10,
+    marginTop: 8,
+  },
+  obsTitle: { fontSize: 9, fontFamily: "Helvetica-Bold", marginBottom: 3, color: "#92400e" },
+  obsText: { fontSize: 9, color: "#78350f" },
   // Footer
   footer: {
     position: "absolute" as const,
-    bottom: 24,
+    bottom: 20,
     left: 40,
     right: 40,
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
+    borderTopWidth: 2,
+    borderTopColor: PRIMARY,
     paddingTop: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    alignItems: "center" as const,
   },
-  footerText: { fontSize: 7, color: MUTED },
-  pageNumber: { fontSize: 7, color: MUTED },
+  footerAgency: { fontSize: 8, color: MUTED, marginBottom: 2 },
+  footerPowered: { fontSize: 7, color: "#9ca3af" },
+  pageNumber: {
+    position: "absolute" as const,
+    bottom: 0,
+    right: 0,
+    fontSize: 7,
+    color: MUTED,
+  },
 });
 
 const fmt = (v: number) =>
@@ -133,6 +190,20 @@ const fmt = (v: number) =>
 
 const fmtDate = (d: string | null) =>
   d ? new Date(d).toLocaleDateString("pt-BR") : "-";
+
+const formatarFormaPagamento = (forma: string | null | undefined): string => {
+  if (!forma) return "Não informada";
+  const mapa: Record<string, string> = {
+    avista: "À Vista",
+    a_vista: "À Vista",
+    credito: "Crédito",
+    credit: "Crédito",
+    debito: "Débito",
+    debit: "Débito",
+    pix: "PIX",
+  };
+  return mapa[forma.toLowerCase()] ?? forma;
+};
 
 export interface OrcamentoPDFData {
   orcamento: {
@@ -172,97 +243,116 @@ export default function OrcamentoPDF({ data }: { data: OrcamentoPDFData }) {
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
-        <View style={styles.headerRow}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={styles.headerBg}>
+          <View style={styles.headerLeft}>
             {agencia.logo_url ? (
-              <Image src={agencia.logo_url} style={{ maxWidth: 120, maxHeight: 60, objectFit: "contain" as any }} />
+              <Image
+                src={agencia.logo_url}
+                style={{ maxWidth: 100, maxHeight: 50, objectFit: "contain" as any }}
+              />
             ) : null}
             <Text style={styles.agencyName}>{agencia.nome_fantasia}</Text>
           </View>
           <View style={styles.headerRight}>
             {orcamento.numero_orcamento && (
-              <View style={{ marginBottom: 2 }}>
-                <Text style={styles.headerLabel}>Nº do Orçamento</Text>
-                <Text style={styles.headerValue}>{orcamento.numero_orcamento}</Text>
-              </View>
+              <Text style={styles.headerNumero}>{orcamento.numero_orcamento}</Text>
             )}
-            <View style={{ marginBottom: 2 }}>
-              <Text style={styles.headerLabel}>Data de Emissão</Text>
-              <Text style={styles.headerValue}>{fmtDate(orcamento.criado_em ?? null)}</Text>
+            <Text style={styles.headerMeta}>Data de Emissão</Text>
+            <Text style={styles.headerMetaValue}>{fmtDate(orcamento.criado_em ?? null)}</Text>
+            <Text style={styles.headerMeta}>Validade</Text>
+            <Text style={styles.headerMetaValue}>{fmtDate(orcamento.validade ?? null)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.content}>
+          {/* Traveler */}
+          <View style={styles.travelerBox}>
+            <Text style={styles.sectionTitle}>Dados do Viajante</Text>
+            <View style={styles.travelerGrid}>
+              <View style={styles.travelerItem}>
+                <Text style={styles.travelerLabel}>Nome</Text>
+                <Text style={styles.travelerValue}>{cliente?.nome || "-"}</Text>
+              </View>
+              <View style={styles.travelerItem}>
+                <Text style={styles.travelerLabel}>Email</Text>
+                <Text style={styles.travelerValue}>{cliente?.email || "-"}</Text>
+              </View>
+              <View style={styles.travelerItem}>
+                <Text style={styles.travelerLabel}>Telefone</Text>
+                <Text style={styles.travelerValue}>{cliente?.telefone || "-"}</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.headerLabel}>Validade</Text>
-              <Text style={styles.headerValue}>{fmtDate(orcamento.validade ?? null)}</Text>
+          </View>
+
+          {/* Services Table */}
+          <Text style={styles.sectionTitle}>Serviços</Text>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, styles.colService]}>Serviço</Text>
+            <Text style={[styles.tableHeaderText, styles.colValue]}>Valor</Text>
+          </View>
+          {itens.map((item, idx) => (
+            <View
+              key={idx}
+              style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowAlt : {}]}
+            >
+              <View style={styles.colService}>
+                <Text style={styles.itemType}>
+                  {item.tipo}
+                  {(item.quantidade ?? 1) > 1 ? ` (x${item.quantidade})` : ""}
+                </Text>
+                {item.descricao ? (
+                  <Text style={styles.itemDesc}>{item.descricao}</Text>
+                ) : null}
+              </View>
+              <Text style={[{ fontSize: 9 }, styles.colValue]}>
+                {fmt(Number(item.valor_final) || 0)}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>TOTAL</Text>
+            <Text style={styles.totalValue}>
+              {fmt(Number(orcamento.valor_final) || total)}
+            </Text>
+          </View>
+
+          {/* Conditions */}
+          <View style={styles.conditionsBox}>
+            <Text style={{ ...styles.sectionTitle, marginBottom: 6, marginTop: 0 }}>
+              Condições
+            </Text>
+            <View style={styles.conditionsGrid}>
+              <View>
+                <Text style={styles.condLabel}>Forma de Pagamento</Text>
+                <Text style={styles.condValue}>
+                  {formatarFormaPagamento(orcamento.forma_pagamento)}
+                </Text>
+              </View>
+              {orcamento.validade && (
+                <View>
+                  <Text style={styles.condLabel}>Válido até</Text>
+                  <Text style={styles.condValue}>{fmtDate(orcamento.validade)}</Text>
+                </View>
+              )}
             </View>
           </View>
-        </View>
-        <View style={styles.divider} />
 
-        {/* Client */}
-        <Text style={styles.sectionTitle}>Dados do Viajante</Text>
-        <View style={styles.row}>
-          <Text style={styles.label}>Nome:</Text>
-          <Text style={styles.value}>{cliente?.nome || "-"}</Text>
+          {orcamento.observacoes && (
+            <View style={styles.obsBox}>
+              <Text style={styles.obsTitle}>Observações</Text>
+              <Text style={styles.obsText}>{orcamento.observacoes}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Email:</Text>
-          <Text style={styles.value}>{cliente?.email || "-"}</Text>
-        </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Telefone:</Text>
-          <Text style={styles.value}>{cliente?.telefone || "-"}</Text>
-        </View>
-
-        {/* Items table */}
-        <Text style={styles.sectionTitle}>Serviços</Text>
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.colService]}>Serviço</Text>
-          <Text style={[styles.tableHeaderText, styles.colValue]}>Valor</Text>
-        </View>
-        {itens.map((item, idx) => (
-          <View key={idx} style={styles.tableRow}>
-            <Text style={[{ fontSize: 9 }, styles.colService]}>
-              {item.tipo}
-              {item.descricao ? ` — ${item.descricao}` : ""}
-              {(item.quantidade ?? 1) > 1 ? ` (x${item.quantidade})` : ""}
-            </Text>
-            <Text style={[{ fontSize: 9 }, styles.colValue]}>
-              {fmt(Number(item.valor_final) || 0)}
-            </Text>
-          </View>
-        ))}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>Total</Text>
-          <Text style={styles.totalValue}>{fmt(Number(orcamento.valor_final) || total)}</Text>
-        </View>
-
-        {/* Conditions */}
-        <Text style={styles.sectionTitle}>Condições</Text>
-        <Text style={styles.conditionText}>
-          Forma de pagamento: {orcamento.forma_pagamento || "Não informada"}
-        </Text>
-        {orcamento.validade && (
-          <Text style={styles.conditionText}>
-            Este orçamento é válido até {fmtDate(orcamento.validade)}.
-          </Text>
-        )}
-        {orcamento.observacoes && (
-          <View style={styles.obsBlock}>
-            <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", marginBottom: 3 }}>
-              Observações
-            </Text>
-            <Text style={{ fontSize: 9, color: MUTED }}>{orcamento.observacoes}</Text>
-          </View>
-        )}
 
         {/* Footer */}
         <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>
+          <Text style={styles.footerAgency}>
             {agencia.nome_fantasia}
-            {agencia.email ? ` | ${agencia.email}` : ""}
-            {agencia.telefone ? ` | ${agencia.telefone}` : ""}
+            {agencia.email ? ` · ${agencia.email}` : ""}
+            {agencia.telefone ? ` · ${agencia.telefone}` : ""}
           </Text>
-          <Text style={styles.footerText}>
+          <Text style={styles.footerPowered}>
             Orçamento gerado pelo ViaHub · powered by Maralto
           </Text>
           <Text
