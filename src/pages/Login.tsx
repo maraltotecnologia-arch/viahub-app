@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -63,7 +63,7 @@ export default function Login() {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             <div className="text-center">
-              <a href="#" className="text-sm text-primary hover:underline">Esqueci minha senha</a>
+              <Link to="/recuperar-senha" className="text-sm text-primary hover:underline">Esqueceu sua senha?</Link>
             </div>
           </form>
         </div>
