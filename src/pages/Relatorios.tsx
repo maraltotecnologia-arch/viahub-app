@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
+import SortableTableHead from "@/components/SortableTableHead";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -52,6 +53,12 @@ export default function Relatorios() {
   const [customStart, setCustomStart] = useState<Date | undefined>();
   const [customEnd, setCustomEnd] = useState<Date | undefined>();
   const [page, setPage] = useState(0);
+  const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+
+  const handleSort = (campo: string, direcao: "asc" | "desc") => {
+    setOrdenacao({ campo, direcao });
+    setPage(0);
+  };
 
   const [appliedFilters, setAppliedFilters] = useState({
     periodo: "este_mes",
@@ -98,12 +105,28 @@ export default function Relatorios() {
 
   const filteredData = useMemo(() => {
     if (!rawData) return [];
-    return rawData.filter((o) => {
+    let result = rawData.filter((o) => {
       if (appliedFilters.status !== "Todos" && o.status !== appliedFilters.status) return false;
       if (appliedFilters.tipos.length > 0 && !o.tipos_servico.some((t) => appliedFilters.tipos.includes(t))) return false;
       return true;
     });
-  }, [rawData, appliedFilters]);
+    // Client-side sort
+    const { campo, direcao } = ordenacao;
+    result.sort((a, b) => {
+      let va: any = (a as any)[campo];
+      let vb: any = (b as any)[campo];
+      if (campo === "valor_final" || campo === "lucro_bruto" || campo === "margem_percentual") {
+        va = Number(va) || 0;
+        vb = Number(vb) || 0;
+      }
+      if (va == null) va = "";
+      if (vb == null) vb = "";
+      if (va < vb) return direcao === "asc" ? -1 : 1;
+      if (va > vb) return direcao === "asc" ? 1 : -1;
+      return 0;
+    });
+    return result;
+  }, [rawData, appliedFilters, ordenacao]);
 
   const applyFilters = () => {
     setAppliedFilters({ periodo, tipos: tiposFiltro, status: statusFiltro, customStart, customEnd });
@@ -349,13 +372,13 @@ export default function Relatorios() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data</TableHead>
+                      <SortableTableHead label="Data" field="criado_em" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                       <TableHead>Nº Orçamento</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Tipo</TableHead>
-                      <TableHead className="text-right">Valor Final</TableHead>
-                      <TableHead className="text-right">Comissão</TableHead>
-                      <TableHead className="text-right">Margem %</TableHead>
+                      <SortableTableHead label="Valor Final" field="valor_final" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
+                      <SortableTableHead label="Comissão" field="lucro_bruto" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
+                      <SortableTableHead label="Margem %" field="margem_percentual" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
                       <TableHead>Status</TableHead>
                     </TableRow>
                   </TableHeader>
