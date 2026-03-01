@@ -17,15 +17,6 @@ export const validarValidade = (valor: string): boolean => {
 
 export const todayStr = () => format(new Date(), "yyyy-MM-dd");
 
-export const limitarAnoInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-  const input = e.currentTarget;
-  const valor = input.value;
-  const pos = input.selectionStart || 0;
-  // Date inputs are yyyy-MM-dd; block extra digits in year portion
-  if (valor.length >= 10 && pos <= 4 && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
-    e.preventDefault();
-  }
-};
 
 /** Clamp Calendar date selection to 2020–2099 range */
 export const isDateOutOfRange = (date: Date) => {

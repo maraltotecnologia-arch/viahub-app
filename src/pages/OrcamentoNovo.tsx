@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { validarValidade, validarData, todayStr, limitarAnoInput } from "@/lib/date-utils";
+import { validarValidade, validarData, todayStr } from "@/lib/date-utils";
 
 interface Item {
   id: string;
@@ -468,7 +468,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 min={todayStr()}
                 max="2099-12-31"
                 onChange={(e) => setValidade(e.target.value)}
-                onKeyDown={limitarAnoInput}
+                
                 className={validade && !validarValidade(validade) ? "border-destructive" : ""}
               />
               {validade && !validarValidade(validade) && (
