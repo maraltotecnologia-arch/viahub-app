@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
 
@@ -60,33 +61,78 @@ export default function AdminAgenciaNova() {
     setSaving(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("admin-create-agency", {
-        body: {
-          nome_fantasia: nomeFantasia,
-          cnpj,
-          email_agencia: emailAgencia,
-          telefone,
-          plano,
-          email_admin: emailAdmin,
-          senha,
+      // Etapa 1: Criar usuário Auth com instância separada (não faz logout do superadmin)
+      const supabaseSignup = createClient(
+        import.meta.env.VITE_SUPABASE_URL,
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+      );
+
+      const { data: authData, error: authError } = await supabaseSignup.auth.signUp({
+        email: emailAdmin,
+        password: senha,
+        options: {
+          emailRedirectTo: window.location.origin,
         },
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (authError) {
+        if (authError.message?.includes("already registered")) {
+          throw new Error("Este email já está em uso");
+        }
+        throw authError;
+      }
 
-      toast.success("Agência criada com sucesso!");
+      const novoUserId = authData.user?.id;
+      if (!novoUserId) throw new Error("Erro ao criar usuário de acesso");
+
+      // Etapa 2: Criar agência usando o cliente do superadmin logado (RLS permite)
+      const { data: agencia, error: agError } = await supabase
+        .from("agencias")
+        .insert({
+          nome_fantasia: nomeFantasia,
+          cnpj: cnpj || null,
+          email: emailAgencia,
+          telefone: telefone || null,
+          plano: plano || "starter_a",
+          onboarding_completo: false,
+          ativo: true,
+        })
+        .select()
+        .single();
+
+      if (agError) {
+        throw new Error("Erro ao cadastrar agência");
+      }
+
+      // Etapa 3: Criar registro de usuário vinculado à agência
+      const { error: userError } = await supabase
+        .from("usuarios")
+        .insert({
+          id: novoUserId,
+          agencia_id: agencia.id,
+          nome: nomeFantasia,
+          email: emailAdmin,
+          cargo: "admin",
+        });
+
+      if (userError) {
+        // Rollback: remover agência criada
+        await supabase.from("agencias").delete().eq("id", agencia.id);
+        throw new Error("Erro ao vincular usuário à agência");
+      }
+
+      toast.success("Agência cadastrada com sucesso!");
 
       if (enviarWhatsapp && telefone) {
         const tel = telefone.replace(/\D/g, "");
         const telFormatado = tel.startsWith("55") ? tel : `55${tel}`;
         const msg = encodeURIComponent(
-          `Olá! Suas credenciais de acesso ao ViaHub:\n\nLink: ${window.location.origin}\nEmail: ${emailAdmin}\nSenha: ${senha}\n\nAcesse e configure sua agência!`
+          `Olá! Seu acesso ao ViaHub foi criado.\nEmail: ${emailAdmin}\nSenha: ${senha}\nAcesse: ${window.location.origin}`
         );
         window.open(`https://wa.me/${telFormatado}?text=${msg}`, "_blank");
       }
 
-      navigate(`/admin/agencias/${data.agencia_id}`);
+      navigate(`/admin/agencias/${agencia.id}`);
     } catch (err: any) {
       toast.error(err.message || "Erro ao criar agência");
     } finally {
