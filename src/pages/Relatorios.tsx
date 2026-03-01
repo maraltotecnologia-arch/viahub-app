@@ -64,37 +64,35 @@ export default function Relatorios() {
   const dateRange = useMemo(() => getDateRange(appliedFilters.periodo, appliedFilters.customStart, appliedFilters.customEnd), [appliedFilters]);
 
   const { data: rawData, isLoading } = useQuery({
-    queryKey: ["relatorios", agenciaId, dateRange.start.toISOString(), dateRange.end.toISOString()],
+    queryKey: ["relatorios", agenciaId, dateRange.start.toISOString(), dateRange.end.toISOString(), appliedFilters.status],
     enabled: !!agenciaId,
     queryFn: async () => {
-      const { data: orcamentos, error: orcError } = await supabase
+      let query = supabase
         .from("orcamentos")
-        .select("id, numero_orcamento, criado_em, valor_final, lucro_bruto, margem_percentual, status, cliente_id, clientes(nome)")
+        .select("id, numero_orcamento, criado_em, valor_final, lucro_bruto, margem_percentual, status, cliente_id, clientes(nome), itens_orcamento(tipo)")
         .eq("agencia_id", agenciaId!)
         .gte("criado_em", dateRange.start.toISOString())
         .lte("criado_em", dateRange.end.toISOString())
-        .in("status", ["aprovado", "emitido"])
         .order("criado_em", { ascending: false });
-      if (orcError) throw orcError;
 
-      const orcIds = (orcamentos || []).map((o) => o.id);
-      let itensMap: Record<string, string[]> = {};
-      if (orcIds.length > 0) {
-        const { data: itens } = await supabase
-          .from("itens_orcamento")
-          .select("orcamento_id, tipo")
-          .in("orcamento_id", orcIds);
-        (itens || []).forEach((i) => {
-          if (!itensMap[i.orcamento_id]) itensMap[i.orcamento_id] = [];
-          if (!itensMap[i.orcamento_id].includes(i.tipo)) itensMap[i.orcamento_id].push(i.tipo);
-        });
+      if (appliedFilters.status !== "Todos") {
+        query = query.eq("status", appliedFilters.status);
+      } else {
+        query = query.in("status", ["aprovado", "emitido"]);
       }
 
-      return (orcamentos || []).map((o) => ({
-        ...o,
-        cliente_nome: (o.clientes as any)?.nome || "Sem cliente",
-        tipos_servico: itensMap[o.id] || [],
-      }));
+      const { data: orcamentos, error } = await query;
+      if (error) throw error;
+
+      return (orcamentos || []).map((o) => {
+        const tipos = (o.itens_orcamento as any[] || []).map((i: any) => i.tipo as string);
+        const uniqueTipos = [...new Set(tipos)];
+        return {
+          ...o,
+          cliente_nome: (o.clientes as any)?.nome || "Sem cliente",
+          tipos_servico: uniqueTipos,
+        };
+      });
     },
   });
 
