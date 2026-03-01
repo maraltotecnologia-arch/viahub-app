@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield, UserCog } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -6,22 +6,10 @@ import {
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
-
-const mainItems = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Orçamentos", url: "/orcamentos", icon: FileText },
-  { title: "Pipeline", url: "/pipeline", icon: BarChart3 },
-  { title: "Relatórios", url: "/relatorios", icon: TrendingUp },
-  { title: "Clientes", url: "/clientes", icon: Users },
-];
-
-const configItems = [
-  { title: "Markup", url: "/configuracoes/markup" },
-  { title: "Agência", url: "/configuracoes/agencia" },
-];
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -29,9 +17,23 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isSuperadmin } = useUserRole();
+  const { isSuperadmin, isAdmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
 
-  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
+  const initials = nome ? nome.slice(0, 2).toUpperCase() : user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
+
+  const mainItems = [
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, show: true },
+    { title: "Orçamentos", url: "/orcamentos", icon: FileText, show: true },
+    { title: "Pipeline", url: "/pipeline", icon: BarChart3, show: !isFinanceiro },
+    { title: "Relatórios", url: "/relatorios", icon: TrendingUp, show: canAccessRelatorios },
+    { title: "Clientes", url: "/clientes", icon: Users, show: !isFinanceiro },
+  ];
+
+  const configItems = [
+    { title: "Markup", url: "/configuracoes/markup" },
+    { title: "Agência", url: "/configuracoes/agencia" },
+    { title: "Usuários", url: "/configuracoes/usuarios" },
+  ];
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -56,7 +58,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainItems.map((item) => (
+              {mainItems.filter(i => i.show).map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink
@@ -77,36 +79,38 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
-            <CollapsibleTrigger className="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-accent-foreground w-full rounded-lg hover:bg-sidebar-accent/50 transition-colors">
-              <Settings className="h-4 w-4 shrink-0" />
-              {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {configItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to={item.url}
-                          className={({ isActive }) =>
-                            `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-colors ${
-                              isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-                            }`
-                          }
-                        >
-                          {!collapsed && <span>{item.title}</span>}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarGroup>
+        {canAccessConfig && (
+          <SidebarGroup>
+            <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
+              <CollapsibleTrigger className="flex items-center gap-3 px-3 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-accent-foreground w-full rounded-lg hover:bg-sidebar-accent/50 transition-colors">
+                <Settings className="h-4 w-4 shrink-0" />
+                {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {configItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild>
+                          <NavLink
+                            to={item.url}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-colors ${
+                                isActive ? "bg-sidebar-accent text-sidebar-primary font-semibold" : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+                              }`
+                            }
+                          >
+                            {!collapsed && <span>{item.title}</span>}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarGroup>
+        )}
 
         {isSuperadmin && (
           <SidebarGroup>
@@ -146,8 +150,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{user?.email || "Usuário"}</p>
-              <p className="text-xs text-sidebar-foreground/50">Agente</p>
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">{nome || user?.email || "Usuário"}</p>
+              <p className="text-xs text-sidebar-foreground/50">{cargoLabel}</p>
             </div>
           )}
           <button onClick={handleSignOut} className="text-sidebar-foreground/50 hover:text-sidebar-accent-foreground transition-colors shrink-0" title="Sair">
