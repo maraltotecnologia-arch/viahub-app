@@ -9,8 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Clock } from "lucide-react";
+import { Clock, LayoutGrid } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
+import EmptyState from "@/components/EmptyState";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted" },
@@ -68,6 +69,13 @@ export default function Pipeline() {
     <TooltipProvider>
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold">Pipeline</h2>
+      {(!orcamentos || orcamentos.length === 0) ? (
+        <EmptyState
+          icon={<LayoutGrid className="h-9 w-9" />}
+          title="Pipeline vazio"
+          description="Seus orçamentos aparecerão aqui conforme forem criados"
+        />
+      ) : (
       <div className="flex flex-col md:flex-row gap-4 md:overflow-x-auto pb-4">
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
@@ -155,6 +163,7 @@ export default function Pipeline() {
           );
         })}
       </div>
+      )}
 
       <style>{`
         @keyframes pipeline-snap {

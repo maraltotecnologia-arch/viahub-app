@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle, FileText } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SortableTableHead from "@/components/SortableTableHead";
 import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import EmptyState from "@/components/EmptyState";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -161,7 +162,15 @@ export default function Orcamentos() {
                   </Card>
                 </Link>
               ))}
-              {data?.rows?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum orçamento encontrado</p>}
+              {data?.rows?.length === 0 && (
+                <EmptyState
+                  icon={<FileText className="h-9 w-9" />}
+                  title="Nenhum orçamento ainda"
+                  description="Crie seu primeiro orçamento e comece a fechar negócios"
+                  actionLabel="Criar primeiro orçamento"
+                  onAction={() => window.location.href = "/orcamentos/novo"}
+                />
+              )}
             </div>
           ) : (
             <>
@@ -220,7 +229,15 @@ export default function Orcamentos() {
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhum orçamento encontrado</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6}>
+                      <EmptyState
+                        icon={<FileText className="h-9 w-9" />}
+                        title="Nenhum orçamento ainda"
+                        description="Crie seu primeiro orçamento e comece a fechar negócios"
+                        actionLabel="Criar primeiro orçamento"
+                        onAction={() => window.location.href = "/orcamentos/novo"}
+                      />
+                    </TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>

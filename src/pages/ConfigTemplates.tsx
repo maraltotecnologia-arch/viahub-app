@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import EmptyState from "@/components/EmptyState";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -52,13 +53,11 @@ export default function ConfigTemplates() {
       <h2 className="text-2xl font-bold">Templates de Orçamento</h2>
 
       {(!templates || templates.length === 0) ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-            <p className="text-muted-foreground">Nenhum template salvo</p>
-            <p className="text-xs text-muted-foreground mt-1">Salve templates a partir da página de detalhes de um orçamento.</p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={<FileText className="h-9 w-9" />}
+          title="Nenhum template salvo"
+          description="Salve um orçamento como template para reutilizá-lo rapidamente"
+        />
       ) : (
         <div className="space-y-3">
           {templates.map((t: any) => {

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SortableTableHead from "@/components/SortableTableHead";
+import EmptyState from "@/components/EmptyState";
 
 const PAGE_SIZE = 20;
 
@@ -138,7 +139,15 @@ export default function Clientes() {
                   </Card>
                 </Link>
               ))}
-              {data?.rows?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</p>}
+              {data?.rows?.length === 0 && (
+                <EmptyState
+                  icon={<Users className="h-9 w-9" />}
+                  title="Nenhum cliente cadastrado"
+                  description="Adicione seus clientes para começar a criar orçamentos personalizados"
+                  actionLabel="Adicionar primeiro cliente"
+                  onAction={() => setOpen(true)}
+                />
+              )}
             </div>
           ) : (
             <>
@@ -163,7 +172,15 @@ export default function Clientes() {
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={5}>
+                      <EmptyState
+                        icon={<Users className="h-9 w-9" />}
+                        title="Nenhum cliente cadastrado"
+                        description="Adicione seus clientes para começar a criar orçamentos personalizados"
+                        actionLabel="Adicionar primeiro cliente"
+                        onAction={() => setOpen(true)}
+                      />
+                    </TableCell></TableRow>
                   )}
                 </TableBody>
               </Table>
