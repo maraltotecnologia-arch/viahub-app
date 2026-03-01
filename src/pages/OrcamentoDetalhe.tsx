@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Download, Eye, Pencil } from "lucide-react";
+import { ArrowLeft, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,7 @@ import OrcamentoPreview, { type OrcamentoPDFData } from "@/components/pdf/Orcame
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -36,6 +37,7 @@ export default function OrcamentoDetalhe() {
   const [duplicating, setDuplicating] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showWhatsApp, setShowWhatsApp] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const { data: orc, isLoading } = useQuery({
@@ -230,6 +232,23 @@ export default function OrcamentoDetalhe() {
     navigate(`/orcamentos/${newOrc.id}`);
   };
 
+  const handleWhatsAppSend = async (telefone: string, mensagem: string, gerarPdf: boolean) => {
+    const numero = telefone.replace(/\D/g, '');
+    const numeroFormatado = numero.startsWith('55') ? numero : `55${numero}`;
+    if (gerarPdf) {
+      await handleDownloadPdf();
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    window.open(`https://wa.me/${numeroFormatado}?text=${encodeURIComponent(mensagem)}`, '_blank');
+    const updates: Record<string, any> = { enviado_whatsapp: true, enviado_whatsapp_em: new Date().toISOString() };
+    if (orc?.status === 'rascunho') updates.status = 'enviado';
+    await supabase.from('orcamentos').update(updates).eq('id', id!);
+    queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+    queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+    toast({ title: updates.status === 'enviado' ? "Enviado via WhatsApp! Status atualizado para Enviado." : "Enviado via WhatsApp!" });
+    setShowWhatsApp(false);
+  };
+
   if (isLoading) return (
     <div className="space-y-6"><Skeleton className="h-8 w-64" /><Skeleton className="h-64 w-full" /></div>
   );
@@ -372,6 +391,13 @@ export default function OrcamentoDetalhe() {
               <Button variant="outline" className="w-full justify-start" onClick={handleDownloadPdf} disabled={generatingPdf}>
                 <Download className="h-4 w-4 mr-2" /> {generatingPdf ? "Gerando PDF..." : "Baixar PDF"}
               </Button>
+              <Button
+                className="w-full justify-start text-white"
+                style={{ backgroundColor: "#25D366" }}
+                onClick={() => setShowWhatsApp(true)}
+              >
+                <Smartphone className="h-4 w-4 mr-2" /> Enviar via WhatsApp
+              </Button>
               <Button variant="outline" className="w-full justify-start" onClick={handleDuplicate} disabled={duplicating}>
                 <Copy className="h-4 w-4 mr-2" /> {duplicating ? "Duplicando..." : "Duplicar"}
               </Button>
@@ -384,11 +410,29 @@ export default function OrcamentoDetalhe() {
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Criado em</span><span>{orc.criado_em ? new Date(orc.criado_em).toLocaleDateString("pt-BR") : "-"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Atualizado em</span><span>{orc.atualizado_em ? new Date(orc.atualizado_em).toLocaleDateString("pt-BR") : "-"}</span></div>
+                {(orc as any).enviado_whatsapp && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">📱 Enviado via WhatsApp</span>
+                    <span>{(orc as any).enviado_whatsapp_em ? new Date((orc as any).enviado_whatsapp_em).toLocaleString("pt-BR") : "Sim"}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+
+      <WhatsAppModal
+        open={showWhatsApp}
+        onOpenChange={setShowWhatsApp}
+        clienteNome={(orc.clientes as any)?.nome || "Cliente"}
+        clienteTelefone={(orc.clientes as any)?.telefone || ""}
+        numeroOrcamento={(orc as any).numero_orcamento || ""}
+        validade={orc.validade}
+        valorTotal={Number(orc.valor_final) || 0}
+        agenciaNome={agencia?.nome_fantasia || ""}
+        onSend={handleWhatsAppSend}
+      />
     </div>
   );
 }

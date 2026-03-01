@@ -31,7 +31,7 @@ export default function Orcamentos() {
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
-        .select("id, titulo, valor_final, status, validade, criado_em, clientes(nome)", { count: "exact" })
+        .select("id, titulo, valor_final, status, validade, criado_em, enviado_whatsapp, clientes(nome)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
         .order("criado_em", { ascending: false })
         .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -102,7 +102,12 @@ export default function Orcamentos() {
                       </TableCell>
                       <TableCell>{o.titulo || "Sem título"}</TableCell>
                       <TableCell className="font-semibold">{fmt(Number(o.valor_final) || 0)}</TableCell>
-                      <TableCell><Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                          {(o as any).enviado_whatsapp && <span title="Enviado via WhatsApp" className="text-[#25D366]">📱</span>}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</TableCell>
                       <TableCell className="text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     </TableRow>
