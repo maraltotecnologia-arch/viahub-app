@@ -13,6 +13,8 @@ import { FileText, Users, Calendar, DollarSign, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { validarCNPJ } from "@/lib/validators";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
@@ -39,6 +41,8 @@ export default function AdminAgenciaDetalhe() {
   const { isSuperadmin, loading: roleLoading } = useUserRole();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
+  const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
+  const [cnpjError, setCnpjError] = useState("");
 
   useEffect(() => {
     if (!roleLoading && !isSuperadmin) {
@@ -132,6 +136,15 @@ export default function AdminAgenciaDetalhe() {
 
   const toggleAtivo = async () => {
     const newVal = agencia?.ativo === false ? true : false;
+    if (!newVal) {
+      setShowDeactivateConfirm(true);
+      return;
+    }
+    await doToggleAtivo();
+  };
+
+  const doToggleAtivo = async () => {
+    const newVal = agencia?.ativo === false ? true : false;
     const { error } = await supabase.from("agencias").update({ ativo: newVal }).eq("id", id!);
     if (error) {
       toast.error("Erro ao alterar status");
@@ -139,6 +152,7 @@ export default function AdminAgenciaDetalhe() {
     }
     toast.success(newVal ? "Agência ativada" : "Agência desativada");
     queryClient.invalidateQueries({ queryKey: ["admin-agencia", id] });
+    setShowDeactivateConfirm(false);
   };
 
   if (roleLoading || isLoading) {
@@ -223,7 +237,20 @@ export default function AdminAgenciaDetalhe() {
             </div>
             <div className="space-y-2">
               <Label>CNPJ</Label>
-              <Input value={form.cnpj || ""} disabled={!editing} onChange={(e) => setForm({ ...form, cnpj: e.target.value })} />
+              <Input
+                value={form.cnpj || ""}
+                disabled={!editing}
+                onChange={(e) => { setForm({ ...form, cnpj: e.target.value }); setCnpjError(""); }}
+                onBlur={() => {
+                  if (!editing) return;
+                  const v = (form.cnpj || "").replace(/\D/g, "");
+                  if (!v) { setCnpjError(""); return; }
+                  if (!validarCNPJ(form.cnpj)) setCnpjError("CNPJ inválido");
+                  else setCnpjError("");
+                }}
+                className={cnpjError ? "border-destructive" : ""}
+              />
+              {cnpjError && <p className="text-xs text-destructive">{cnpjError}</p>}
             </div>
             <div className="space-y-2">
               <Label>Email</Label>
@@ -300,6 +327,15 @@ export default function AdminAgenciaDetalhe() {
           </p>
         </CardContent>
       </Card>
+      <ConfirmDialog
+        open={showDeactivateConfirm}
+        onOpenChange={setShowDeactivateConfirm}
+        title="Desativar agência"
+        description={`Tem certeza que deseja desativar ${agencia.nome_fantasia}? Os usuários não poderão mais acessar o sistema.`}
+        confirmLabel="Desativar"
+        variant="destructive"
+        onConfirm={doToggleAtivo}
+      />
     </div>
   );
 }

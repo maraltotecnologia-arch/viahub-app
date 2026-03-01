@@ -13,6 +13,7 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 interface Item {
   id: string;
@@ -72,6 +73,9 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [observacoes, setObservacoes] = useState("");
   const [formaPagamento, setFormaPagamento] = useState("pix");
   const [acrescimoCartao, setAcrescimoCartao] = useState(3);
+  const [showZeroConfirm, setShowZeroConfirm] = useState(false);
+  const [pendingEnviar, setPendingEnviar] = useState(false);
+  const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [itens, setItens] = useState<Item[]>([
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
@@ -221,7 +225,12 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     }]);
   };
 
-  const removeItem = (id: string) => { if (itens.length > 1) setItens(itens.filter((i) => i.id !== id)); };
+  const confirmRemoveItem = () => {
+    if (removeItemId && itens.length > 1) {
+      setItens(itens.filter((i) => i.id !== removeItemId));
+    }
+    setRemoveItemId(null);
+  };
 
   const updateItem = (id: string, field: keyof Item, value: string | number) => {
     setItens(itens.map((i) => {
@@ -257,12 +266,39 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       toast({ title: "Erro ao identificar agência", variant: "destructive" });
       return;
     }
-    if (enviar && itens.every((i) => i.valor_custo === 0)) {
-      toast({ title: "Adicione pelo menos 1 item com valor", variant: "destructive" });
+
+    // Validações
+    if (!clienteId) {
+      toast({ title: "Selecione um cliente para o orçamento", variant: "destructive" });
+      return;
+    }
+    if (!validade) {
+      toast({ title: "Defina a data de validade do orçamento", variant: "destructive" });
+      return;
+    }
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    if (new Date(validade + "T00:00:00") < hoje) {
+      toast({ title: "A data de validade deve ser uma data futura", variant: "destructive" });
+      return;
+    }
+    if (itens.length === 0) {
+      toast({ title: "Adicione pelo menos um serviço ao orçamento", variant: "destructive" });
+      return;
+    }
+    const itemIncompleto = itens.find((i) => !i.tipo || !i.descricao.trim());
+    if (itemIncompleto) {
+      toast({ title: "Preencha todos os campos dos itens do orçamento", variant: "destructive" });
+      return;
+    }
+    if (valorFinal === 0 && !pendingEnviar) {
+      setPendingEnviar(enviar);
+      setShowZeroConfirm(true);
       return;
     }
 
     setLoading(true);
+    setPendingEnviar(false);
 
     if (isEdicao) {
       // UPDATE existing orcamento
@@ -451,7 +487,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             <div key={item.id} className="border rounded-lg p-4 space-y-3 bg-muted/20">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-muted-foreground">Item {idx + 1}</span>
-                {itens.length > 1 && <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                {itens.length > 1 && <Button variant="ghost" size="icon" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
@@ -527,6 +563,26 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </>
         )}
       </div>
+      <ConfirmDialog
+        open={showZeroConfirm}
+        onOpenChange={setShowZeroConfirm}
+        title="Valor zerado"
+        description="O valor total do orçamento está zerado. Deseja salvar mesmo assim?"
+        confirmLabel="Salvar"
+        cancelLabel="Cancelar"
+        variant="default"
+        onConfirm={() => {
+          setShowZeroConfirm(false);
+          handleSave(pendingEnviar);
+        }}
+      />
+      <ConfirmDialog
+        open={!!removeItemId}
+        onOpenChange={(open) => { if (!open) setRemoveItemId(null); }}
+        title="Excluir item"
+        description="Tem certeza que deseja excluir este item do orçamento? Esta ação não pode ser desfeita."
+        onConfirm={confirmRemoveItem}
+      />
     </div>
   );
 }

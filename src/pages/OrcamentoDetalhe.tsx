@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
+import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,9 @@ const statusVariant: Record<string, "muted" | "default" | "success" | "destructi
 };
 
 const allStatuses = ["rascunho", "enviado", "aprovado", "perdido", "emitido"];
+const statusLabels: Record<string, string> = {
+  rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", perdido: "Perdido", emitido: "Emitido",
+};
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function OrcamentoDetalhe() {
@@ -140,7 +144,12 @@ export default function OrcamentoDetalhe() {
   };
 
   const handleStatusChange = async (newStatus: string) => {
-    if (!id) return;
+    if (!id || !orc) return;
+    const currentStatus = orc.status || "rascunho";
+    if (!isTransicaoPermitida(currentStatus, newStatus)) {
+      toast({ title: `Não é possível alterar o status de ${currentStatus} para ${newStatus}`, variant: "destructive" });
+      return;
+    }
     setChangingStatus(true);
     const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", id);
     if (error) { toast({ title: "Erro ao atualizar status", variant: "destructive" }); } else {
@@ -198,6 +207,10 @@ export default function OrcamentoDetalhe() {
   };
 
   const handleWhatsAppSend = async (telefone: string, mensagem: string, gerarPdf: boolean) => {
+    if (!validarTelefone(telefone)) {
+      toast({ title: "Número de WhatsApp inválido. Digite DDD + número (ex: 54999999999)", variant: "destructive" });
+      return;
+    }
     const numero = telefone.replace(/\D/g, '');
     const numeroFormatado = numero.startsWith('55') ? numero : `55${numero}`;
     if (gerarPdf) {
@@ -331,12 +344,23 @@ export default function OrcamentoDetalhe() {
             <CardContent className="space-y-3">
               <div className="space-y-2">
                 <p className="text-xs text-muted-foreground">Mudar Status</p>
-                <Select value={orc.status || "rascunho"} onValueChange={handleStatusChange} disabled={changingStatus}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {allStatuses.map((s) => <SelectItem key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              {(() => {
+                const currentStatus = orc.status || "rascunho";
+                const permitidas = getTransicoesPermitidas(currentStatus);
+                return (
+                  <Select value={currentStatus} onValueChange={handleStatusChange} disabled={changingStatus}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={currentStatus}>{statusLabels[currentStatus] || currentStatus}</SelectItem>
+                      {allStatuses.filter(s => s !== currentStatus).map((s) => (
+                        <SelectItem key={s} value={s} disabled={!permitidas.includes(s)} className={!permitidas.includes(s) ? "opacity-40 cursor-not-allowed" : ""}>
+                          {statusLabels[s] || s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
               </div>
               {["rascunho", "enviado"].includes(orc.status || "") ? (
                 <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/orcamentos/${id}/editar`)}>
