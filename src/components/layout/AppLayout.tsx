@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import useUserRole from "@/hooks/useUserRole";
+import NotificacoesDropdown from "@/components/NotificacoesDropdown";
 
 export default function AppLayout() {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ export default function AppLayout() {
                   {cargoLabel && <Badge variant="outline" className="text-xs">{cargoLabel}</Badge>}
                 </>
               )}
+              <NotificacoesDropdown />
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
                 {initials}
               </div>

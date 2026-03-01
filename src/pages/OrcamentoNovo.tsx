@@ -146,7 +146,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   useEffect(() => {
     if (isEdicao && existingOrc && existingItens && !initialized) {
       setTitulo(existingOrc.titulo || "");
-      setValidade(existingOrc.validade || "");
+      // Format date properly for input type="date"
+      if (existingOrc.validade) {
+        const d = new Date(existingOrc.validade + "T00:00:00");
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        setValidade(`${yyyy}-${mm}-${dd}`);
+      } else {
+        setValidade("");
+      }
       setMoeda(existingOrc.moeda || "BRL");
       setObservacoes(existingOrc.observacoes || "");
       setFormaPagamento(existingOrc.forma_pagamento || "pix");
