@@ -72,8 +72,11 @@ interface Props {
 }
 
 const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
-  const { orcamento, cliente, itens, agencia } = data;
+  const { orcamento, cliente, itens, agencia, logoDims } = data;
   const total = itens.reduce((sum, i) => sum + (Number(i.valor_final) || 0), 0);
+  const logoStyle = logoDims
+    ? { width: logoDims.width, height: logoDims.height }
+    : { height: 50, maxWidth: 150 };
 
   return (
     <Document>
@@ -82,7 +85,7 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
         <View style={s.header}>
           <View>
             {agencia.logo_url ? (
-              <Image src={agencia.logo_url} style={s.logo} />
+              <Image src={agencia.logo_url} style={logoStyle} />
             ) : (
               <Text style={s.agencyName}>{agencia.nome_fantasia || ""}</Text>
             )}

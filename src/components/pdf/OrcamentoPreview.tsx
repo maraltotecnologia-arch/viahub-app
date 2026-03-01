@@ -28,6 +28,7 @@ export interface OrcamentoPDFData {
     telefone?: string | null;
     logo_url?: string | null;
   };
+  logoDims?: { width: number; height: number };
 }
 
 const fmt = (v: number) =>
