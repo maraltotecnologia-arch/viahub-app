@@ -23,7 +23,7 @@
     --border: 214 32% 91%;
     --input: 214 32% 91%;
     --ring: 217 91% 60%;
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
@@ -50,6 +50,29 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Refined table styles */
+  thead th {
+    @apply bg-muted/60 text-muted-foreground uppercase text-[11px] tracking-wider font-semibold;
+    border-bottom: 2px solid hsl(var(--border));
+  }
+
+  tbody td {
+    @apply py-3.5;
+    border-bottom: 1px solid hsl(var(--muted));
+  }
+
+  tbody tr {
+    @apply transition-colors duration-150;
+  }
+
+  tbody tr:hover {
+    @apply bg-muted/40;
+  }
+
+  tbody td:first-child {
+    @apply font-medium text-foreground;
   }
 }
 

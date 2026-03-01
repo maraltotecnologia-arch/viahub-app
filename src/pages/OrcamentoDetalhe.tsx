@@ -8,10 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -323,7 +324,7 @@ export default function OrcamentoDetalhe() {
         return (
           <Card className="border-l-4" style={{ borderLeftColor: "#F59E0B", backgroundColor: "#FFFBEB" }}>
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
-              <p className="text-sm">⏰ Este orçamento foi enviado há <strong>{dias} dias</strong> sem resposta. Que tal fazer um follow-up?</p>
+              <p className="text-sm flex items-center gap-2"><Clock className="h-4 w-4 text-warning shrink-0" /> Este orçamento foi enviado há <strong>{dias} dias</strong> sem resposta. Que tal fazer um follow-up?</p>
               <Button
                 size="sm"
                 className="text-white shrink-0"
@@ -345,7 +346,7 @@ export default function OrcamentoDetalhe() {
             <p className="text-xs text-muted-foreground">{(orc as any).numero_orcamento}</p>
           )}
         </div>
-        <Badge variant={statusVariant[orc.status || "rascunho"]} className="text-sm px-3 py-1">{orc.status}</Badge>
+        <StatusBadge status={orc.status || "rascunho"} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -498,7 +499,7 @@ export default function OrcamentoDetalhe() {
                 <div className="flex justify-between"><span className="text-muted-foreground">Atualizado em</span><span>{orc.atualizado_em ? new Date(orc.atualizado_em).toLocaleDateString("pt-BR") : "-"}</span></div>
                 {(orc as any).enviado_whatsapp && (
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">📱 Enviado via WhatsApp</span>
+                    <span className="text-muted-foreground flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5 text-success" /> Enviado via WhatsApp</span>
                     <span>{(orc as any).enviado_whatsapp_em ? new Date((orc as any).enviado_whatsapp_em).toLocaleString("pt-BR") : "Sim"}</span>
                   </div>
                 )}

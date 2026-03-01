@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Clock } from "lucide-react";
+import StatusBadge from "@/components/StatusBadge";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted" },
@@ -86,7 +88,7 @@ export default function Pipeline() {
             >
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant={col.variant}>{col.title}</Badge>
+                  <StatusBadge status={col.id} />
                   <span className="text-xs text-muted-foreground">{cards.length}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">{fmt(total)}</span>
@@ -130,7 +132,7 @@ export default function Pipeline() {
                               <p className="font-semibold text-sm">{card.titulo || "Sem título"}</p>
                               {isPerdidoPorVencimento && (
                                 <Tooltip>
-                                  <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                                  <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
                                   <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
                                 </Tooltip>
                               )}

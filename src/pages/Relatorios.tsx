@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
@@ -394,7 +395,7 @@ export default function Relatorios() {
                         <TableCell className="text-sm text-right">{fmt(Number(o.valor_final) || 0)}</TableCell>
                         <TableCell className="text-sm text-right">{fmt(Number(o.lucro_bruto) || 0)}</TableCell>
                         <TableCell className="text-sm text-right">{(Number(o.margem_percentual) || 0).toFixed(1)}%</TableCell>
-                        <TableCell><Badge variant={o.status === "aprovado" ? "success" : "info"} className="text-xs">{o.status}</Badge></TableCell>
+                        <TableCell><StatusBadge status={o.status || "rascunho"} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
