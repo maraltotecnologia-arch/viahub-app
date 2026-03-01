@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
+import useAgenciaId from "@/hooks/useAgenciaId";
+import useAlertas from "@/hooks/useAlertas";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -18,15 +20,17 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isSuperadmin, isAdmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
+  const agenciaId = useAgenciaId();
+  const { data: alertas } = useAlertas(isSuperadmin ? null : agenciaId);
 
   const initials = nome ? nome.slice(0, 2).toUpperCase() : user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
   const mainItems = [
-    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, show: true },
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, show: true, badge: alertas?.total || 0 },
     { title: "Orçamentos", url: "/orcamentos", icon: FileText, show: true },
-    { title: "Pipeline", url: "/pipeline", icon: BarChart3, show: !isFinanceiro },
-    { title: "Relatórios", url: "/relatorios", icon: TrendingUp, show: canAccessRelatorios },
-    { title: "Clientes", url: "/clientes", icon: Users, show: !isFinanceiro },
+    { title: "Pipeline", url: "/pipeline", icon: BarChart3, show: !isFinanceiro, badge: 0 },
+    { title: "Relatórios", url: "/relatorios", icon: TrendingUp, show: canAccessRelatorios, badge: 0 },
+    { title: "Clientes", url: "/clientes", icon: Users, show: !isFinanceiro, badge: 0 },
   ];
 
   const configItems = [
@@ -71,7 +75,12 @@ export function AppSidebar() {
                       }
                     >
                       <item.icon className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!collapsed && <span className="flex-1">{item.title}</span>}
+                      {item.badge > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                          {item.badge}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

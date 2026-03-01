@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
+import { differenceInDays } from "date-fns";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -312,6 +313,27 @@ export default function OrcamentoDetalhe() {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Follow-up reminder */}
+      {orc.status === "enviado" && orc.enviado_whatsapp_em && (() => {
+        const dias = differenceInDays(new Date(), new Date(orc.enviado_whatsapp_em));
+        if (dias < 3) return null;
+        return (
+          <Card className="border-l-4" style={{ borderLeftColor: "#F59E0B", backgroundColor: "#FFFBEB" }}>
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
+              <p className="text-sm">⏰ Este orçamento foi enviado há <strong>{dias} dias</strong> sem resposta. Que tal fazer um follow-up?</p>
+              <Button
+                size="sm"
+                className="text-white shrink-0"
+                style={{ backgroundColor: "#25D366" }}
+                onClick={() => setShowWhatsApp(true)}
+              >
+                Enviar Follow-up WhatsApp
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" asChild><Link to="/orcamentos"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div className="flex-1">
@@ -493,6 +515,7 @@ export default function OrcamentoDetalhe() {
         valorTotal={Number(orc.valor_final) || 0}
         agenciaNome={agencia?.nome_fantasia || ""}
         onSend={handleWhatsAppSend}
+        followUpMode={orc.status === "enviado" && orc.enviado_whatsapp_em ? differenceInDays(new Date(), new Date(orc.enviado_whatsapp_em)) >= 3 : false}
       />
 
       <ConfirmDialog

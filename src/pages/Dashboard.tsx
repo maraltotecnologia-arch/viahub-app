@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, DollarSign, TrendingUp, Percent, Building2, BarChart3 } from "lucide-react";
+import { FileText, DollarSign, TrendingUp, Percent, Building2, BarChart3, AlertTriangle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
+import useAlertas from "@/hooks/useAlertas";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted",
@@ -121,6 +122,36 @@ export default function Dashboard() {
   }
 
   return <AgencyDashboard agenciaId={agenciaId!} />;
+}
+
+/* ===== ALERTS CARD ===== */
+function AlertasCard({ agenciaId }: { agenciaId: string }) {
+  const { data: alertas } = useAlertas(agenciaId);
+  if (!alertas || alertas.total === 0) return null;
+
+  const items: { emoji: string; text: string; link: string }[] = [];
+  if (alertas.vencendoHoje > 0) items.push({ emoji: "🔴", text: `${alertas.vencendoHoje} orçamento(s) vencem HOJE`, link: "/orcamentos?filtro=vencendo_hoje" });
+  if (alertas.vencendoEmBreve > 0) items.push({ emoji: "🟡", text: `${alertas.vencendoEmBreve} orçamento(s) vencem em até 3 dias`, link: "/orcamentos?filtro=vencendo_em_breve" });
+  if (alertas.aguardandoResposta > 0) items.push({ emoji: "🔵", text: `${alertas.aguardandoResposta} orçamento(s) aguardando resposta há mais de 3 dias`, link: "/orcamentos?filtro=aguardando" });
+  if (alertas.pipelineParado > 0) items.push({ emoji: "⚫", text: `${alertas.pipelineParado} orçamento(s) no pipeline sem movimentação há mais de 7 dias`, link: "/pipeline" });
+
+  return (
+    <Card className="border-l-4" style={{ borderLeftColor: "#F59E0B", backgroundColor: "#FFFBEB" }}>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm font-bold flex items-center gap-2" style={{ color: "#F59E0B" }}>
+          <AlertTriangle className="h-4 w-4" /> Requer Atenção
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1.5">
+        {items.map((item, i) => (
+          <Link key={i} to={item.link} className="flex items-center gap-2 text-sm hover:underline">
+            <span>{item.emoji}</span>
+            <span>{item.text}</span>
+          </Link>
+        ))}
+      </CardContent>
+    </Card>
+  );
 }
 
 /* ===== SUPERADMIN DASHBOARD ===== */
@@ -350,6 +381,8 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
           </Card>
         ))}
       </div>
+
+      <AlertasCard agenciaId={agenciaId} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>

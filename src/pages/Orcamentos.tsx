@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +14,24 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { useIsMobile } from "@/hooks/use-mobile";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const filtroLabels: Record<string, string> = {
+  vencendo_hoje: "Vencendo hoje",
+  vencendo_em_breve: "Vencendo em breve",
+  aguardando: "Aguardando resposta",
+};
+
+function getValidadeIndicator(validade: string | null, status: string | null) {
+  if (!validade || !["rascunho", "enviado"].includes(status || "")) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const val = new Date(validade + "T00:00:00");
+  const diffDays = Math.ceil((val.getTime() - today.getTime()) / 86400000);
+  if (diffDays < 0) return { className: "text-destructive font-semibold", icon: "⏰", label: "Vencido" };
+  if (diffDays === 0) return { className: "text-orange-500 font-bold", icon: "⚠️", label: "Vence hoje" };
+  if (diffDays <= 3) return { className: "text-yellow-600", icon: "🟡", label: `Vence em ${diffDays}d` };
+  return null;
+}
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -26,23 +44,44 @@ export default function Orcamentos() {
   const agenciaId = useAgenciaId();
   useVerificarVencidos(agenciaId);
   const isMobile = useIsMobile();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const filtroAlerta = searchParams.get("filtro");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
 
+  const clearFiltro = () => {
+    searchParams.delete("filtro");
+    setSearchParams(searchParams);
+  };
+
   const { data, isLoading } = useQuery({
-    queryKey: ["orcamentos", agenciaId, statusFilter, search, page],
+    queryKey: ["orcamentos", agenciaId, statusFilter, search, page, filtroAlerta],
     enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
-        .select("id, titulo, valor_final, status, validade, criado_em, enviado_whatsapp, clientes(nome)", { count: "exact" })
+        .select("id, titulo, valor_final, status, validade, criado_em, enviado_whatsapp, enviado_whatsapp_em, clientes(nome)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
-        .order("criado_em", { ascending: false })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+        .order("criado_em", { ascending: false });
 
-      if (statusFilter !== "todos") query = query.eq("status", statusFilter);
-      if (search.trim()) query = query.or(`titulo.ilike.%${search}%`);
+      // URL-based alert filters
+      if (filtroAlerta === "vencendo_hoje") {
+        const today = new Date().toISOString().slice(0, 10);
+        query = query.in("status", ["rascunho", "enviado"]).eq("validade", today);
+      } else if (filtroAlerta === "vencendo_em_breve") {
+        const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+        const in3days = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+        query = query.in("status", ["rascunho", "enviado"]).gte("validade", tomorrow).lte("validade", in3days);
+      } else if (filtroAlerta === "aguardando") {
+        const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
+        query = query.eq("status", "enviado").not("enviado_whatsapp_em", "is", null).lt("enviado_whatsapp_em", threeDaysAgo);
+      } else {
+        // Normal filters only when no alert filter
+        if (statusFilter !== "todos") query = query.eq("status", statusFilter);
+        if (search.trim()) query = query.or(`titulo.ilike.%${search}%`);
+        query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+      }
 
       const { data, error, count } = await query;
       if (error) throw error;
@@ -63,6 +102,13 @@ export default function Orcamentos() {
           <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
         </Button>
       </div>
+
+      {filtroAlerta && filtroLabels[filtroAlerta] && (
+        <div className="flex items-center gap-2">
+          <Badge variant="default" className="text-sm px-3 py-1">{filtroLabels[filtroAlerta]}</Badge>
+          <Button variant="ghost" size="sm" onClick={clearFiltro}><X className="h-4 w-4 mr-1" /> Limpar filtro</Button>
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -153,7 +199,13 @@ export default function Orcamentos() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const ind = getValidadeIndicator(o.validade, o.status);
+                          if (!ind) return <span className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</span>;
+                          return <span className={ind.className}>{ind.icon} {o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</span>;
+                        })()}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">{o.criado_em ? new Date(o.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
                     </TableRow>
                   ))}
