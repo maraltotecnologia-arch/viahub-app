@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useIsMobile } from "@/hooks/use-mobile";
+import useVerificarVencidos from "@/hooks/useVerificarVencidos";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -22,6 +24,7 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function Orcamentos() {
   const agenciaId = useAgenciaId();
+  useVerificarVencidos(agenciaId);
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
@@ -49,7 +52,10 @@ export default function Orcamentos() {
 
   const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
 
+  const now = new Date();
+
   return (
+    <TooltipProvider>
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Orçamentos</h2>
@@ -90,7 +96,15 @@ export default function Orcamentos() {
                     <CardContent className="p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-sm">{(o.clientes as any)?.nome || "Sem cliente"}</span>
-                        <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                          {o.status === "perdido" && o.validade && new Date(o.validade) < now && (
+                            <Tooltip>
+                              <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                              <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                       </div>
                       <p className="text-sm text-muted-foreground">{o.titulo || "Sem título"}</p>
                       <div className="flex items-center justify-between text-sm">
@@ -131,6 +145,12 @@ export default function Orcamentos() {
                         <div className="flex items-center gap-1.5">
                           <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
                           {(o as any).enviado_whatsapp && <span title="Enviado via WhatsApp" className="text-[#25D366]">📱</span>}
+                          {o.status === "perdido" && o.validade && new Date(o.validade) < now && (
+                            <Tooltip>
+                              <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                              <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{o.validade ? new Date(o.validade).toLocaleDateString("pt-BR") : "-"}</TableCell>
@@ -156,5 +176,6 @@ export default function Orcamentos() {
         </CardContent>
       </Card>
     </div>
+    </TooltipProvider>
   );
 }

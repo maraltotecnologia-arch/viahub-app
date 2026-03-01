@@ -6,7 +6,9 @@ import { supabase } from "@/integrations/supabase/client";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useRef } from "react";
+import { useState } from "react";
+import useVerificarVencidos from "@/hooks/useVerificarVencidos";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted" },
@@ -22,6 +24,7 @@ export default function Pipeline() {
   const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  useVerificarVencidos(agenciaId);
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [justDropped, setJustDropped] = useState<string | null>(null);
@@ -60,6 +63,7 @@ export default function Pipeline() {
   const now = new Date();
 
   return (
+    <TooltipProvider>
     <div className="space-y-6 animate-fade-in">
       <h2 className="text-2xl font-bold">Pipeline</h2>
       <div className="flex flex-col md:flex-row gap-4 md:overflow-x-auto pb-4">
@@ -94,6 +98,7 @@ export default function Pipeline() {
                   const diasParaVencer = validade ? Math.ceil((validade.getTime() - now.getTime()) / 86400000) : 999;
                   const isDragging = dragId === card.id;
                   const isJustDropped = justDropped === card.id;
+                  const isPerdidoPorVencimento = card.status === "perdido" && validade && validade < now;
 
                   return (
                     <div
@@ -121,7 +126,15 @@ export default function Pipeline() {
                           } ${diasParaVencer < 0 ? "opacity-60" : ""}`}
                         >
                           <CardContent className="p-4">
-                            <p className="font-semibold text-sm">{card.titulo || "Sem título"}</p>
+                            <div className="flex items-center gap-1">
+                              <p className="font-semibold text-sm">{card.titulo || "Sem título"}</p>
+                              {isPerdidoPorVencimento && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild><span className="text-xs cursor-help">⏰</span></TooltipTrigger>
+                                  <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
+                                </Tooltip>
+                              )}
+                            </div>
                             <p className="text-xs text-muted-foreground mt-1">{(card.clientes as any)?.nome || "Sem cliente"}</p>
                             <div className="flex items-center justify-between mt-3">
                               <span className="font-bold text-sm">{fmt(Number(card.valor_final) || 0)}</span>
@@ -148,5 +161,6 @@ export default function Pipeline() {
         }
       `}</style>
     </div>
+    </TooltipProvider>
   );
 }
