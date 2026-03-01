@@ -14,6 +14,7 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { useIsMobile } from "@/hooks/use-mobile";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import SortableTableHead from "@/components/SortableTableHead";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -49,6 +50,12 @@ export default function Orcamentos() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
+  const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+
+  const handleSort = (campo: string, direcao: "asc" | "desc") => {
+    setOrdenacao({ campo, direcao });
+    setPage(0);
+  };
 
   const clearFiltro = () => {
     searchParams.delete("filtro");
@@ -56,14 +63,14 @@ export default function Orcamentos() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["orcamentos", agenciaId, statusFilter, search, page, filtroAlerta],
+    queryKey: ["orcamentos", agenciaId, statusFilter, search, page, filtroAlerta, ordenacao.campo, ordenacao.direcao],
     enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
         .select("id, titulo, valor_final, status, validade, criado_em, enviado_whatsapp, enviado_whatsapp_em, clientes(nome)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
-        .order("criado_em", { ascending: false });
+        .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
       // URL-based alert filters
       if (filtroAlerta === "vencendo_hoje") {
@@ -171,11 +178,11 @@ export default function Orcamentos() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Cliente</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Valor Final</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Validade</TableHead>
-                    <TableHead>Criado em</TableHead>
+                    <SortableTableHead label="Título" field="titulo" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Valor Final" field="valor_final" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Status" field="status" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Validade" field="validade" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Criado em" field="criado_em" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                   </TableRow>
                 </TableHeader>
                 <TableBody>

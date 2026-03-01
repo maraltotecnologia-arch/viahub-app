@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,12 +13,16 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SortableTableHead from "@/components/SortableTableHead";
+
+const PAGE_SIZE = 20;
 
 export default function Clientes() {
   const agenciaId = useAgenciaId();
   const isMobile = useIsMobile();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [nome, setNome] = useState("");
@@ -26,26 +30,46 @@ export default function Clientes() {
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(0);
+  const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
 
-  const { data: clientes, isLoading } = useQuery({
-    queryKey: ["clientes", agenciaId, search],
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(0);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const handleSort = (campo: string, direcao: "asc" | "desc") => {
+    setOrdenacao({ campo, direcao });
+    setPage(0);
+  };
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["clientes", agenciaId, search, page, ordenacao.campo, ordenacao.direcao],
     enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, email, telefone, criado_em, orcamentos(count)")
+        .select("id, nome, email, telefone, criado_em, orcamentos(count)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
-        .order("criado_em", { ascending: false });
+        .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
       if (search.trim()) {
         query = query.or(`nome.ilike.%${search}%,email.ilike.%${search}%`);
       }
 
-      const { data, error } = await query;
+      query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data;
+      return { rows: data, count: count ?? 0 };
     },
   });
+
+  const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
 
   const handleCreate = async () => {
     if (!nome.trim()) return;
@@ -92,7 +116,7 @@ export default function Clientes() {
         <CardHeader>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar por nome ou email..." className="pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Buscar por nome ou email..." className="pl-9" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
           </div>
         </CardHeader>
         <CardContent>
@@ -100,7 +124,7 @@ export default function Clientes() {
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
           ) : isMobile ? (
             <div className="space-y-3">
-              {clientes?.map((c) => (
+              {data?.rows?.map((c) => (
                 <Link key={c.id} to={`/clientes/${c.id}`} className="block">
                   <Card className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4 space-y-1">
@@ -114,34 +138,47 @@ export default function Clientes() {
                   </Card>
                 </Link>
               ))}
-              {clientes?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</p>}
+              {data?.rows?.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</p>}
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Orçamentos</TableHead>
-                  <TableHead>Cadastro</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {clientes?.map((c) => (
-                  <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell><Link to={`/clientes/${c.id}`} className="font-medium hover:text-primary">{c.nome}</Link></TableCell>
-                    <TableCell>{c.email || "-"}</TableCell>
-                    <TableCell>{c.telefone || "-"}</TableCell>
-                    <TableCell className="font-semibold">{(c.orcamentos as any)?.[0]?.count ?? 0}</TableCell>
-                    <TableCell className="text-muted-foreground">{c.criado_em ? new Date(c.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <SortableTableHead label="Nome" field="nome" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Email" field="email" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <SortableTableHead label="Telefone" field="telefone" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <TableHead>Orçamentos</TableHead>
+                    <SortableTableHead label="Cadastro" field="criado_em" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                   </TableRow>
-                ))}
-                {clientes?.length === 0 && (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</TableCell></TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {data?.rows?.map((c) => (
+                    <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
+                      <TableCell><Link to={`/clientes/${c.id}`} className="font-medium hover:text-primary">{c.nome}</Link></TableCell>
+                      <TableCell>{c.email || "-"}</TableCell>
+                      <TableCell>{c.telefone || "-"}</TableCell>
+                      <TableCell className="font-semibold">{(c.orcamentos as any)?.[0]?.count ?? 0}</TableCell>
+                      <TableCell className="text-muted-foreground">{c.criado_em ? new Date(c.criado_em).toLocaleDateString("pt-BR") : "-"}</TableCell>
+                    </TableRow>
+                  ))}
+                  {data?.rows?.length === 0 && (
+                    <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">Nenhum cliente encontrado</TableCell></TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Exibindo {page * PAGE_SIZE + 1}-{Math.min((page + 1) * PAGE_SIZE, data?.count ?? 0)} de {data?.count ?? 0} clientes
+                  </p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}><ChevronLeft className="h-4 w-4 mr-1" />Anterior</Button>
+                    <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Próximo<ChevronRight className="h-4 w-4 ml-1" /></Button>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
