@@ -24,6 +24,7 @@ interface WhatsAppModalProps {
   valorTotal: number;
   agenciaNome: string;
   onSend: (telefone: string, mensagem: string, gerarPdf: boolean) => Promise<void>;
+  followUpMode?: boolean;
 }
 
 const fmt = (v: number) =>
@@ -39,12 +40,15 @@ export default function WhatsAppModal({
   valorTotal,
   agenciaNome,
   onSend,
+  followUpMode,
 }: WhatsAppModalProps) {
   const validadeFormatada = validade
     ? new Date(validade).toLocaleDateString("pt-BR")
     : "Não informada";
 
-  const mensagemPadrao = `Olá, ${clienteNome}!\nSegue o orçamento ${numeroOrcamento} preparado especialmente para você.\n\nVálido até: ${validadeFormatada}\nValor total: ${fmt(valorTotal)}\n\nQualquer dúvida, estou à disposição!\n\n${agenciaNome}`;
+  const mensagemPadrao = followUpMode
+    ? `Olá, ${clienteNome}!\nTudo bem? Passando para verificar se você teve a oportunidade de analisar o orçamento ${numeroOrcamento} que enviamos.\n\nValor: ${fmt(valorTotal)}\nVálido até: ${validadeFormatada}\n\nQualquer dúvida estou à disposição!\n\n${agenciaNome}`
+    : `Olá, ${clienteNome}!\nSegue o orçamento ${numeroOrcamento} preparado especialmente para você.\n\nVálido até: ${validadeFormatada}\nValor total: ${fmt(valorTotal)}\n\nQualquer dúvida, estou à disposição!\n\n${agenciaNome}`;
 
   const [telefone, setTelefone] = useState(clienteTelefone.replace(/\D/g, ""));
   const [mensagem, setMensagem] = useState(mensagemPadrao);
