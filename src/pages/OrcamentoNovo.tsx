@@ -24,16 +24,16 @@ interface Item {
   quantidade: number;
 }
 
-const tiposServico = ["Aéreo", "Hotel", "Pacote", "Seguro", "Transfer", "Outros"];
+const tiposServico = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
 
 // Map UI labels to DB keys
 const tipoToDbKey: Record<string, string> = {
   "Aéreo": "aereo",
   "Hotel": "hotel",
   "Pacote": "pacote",
+  "Passeio": "passeio",
   "Seguro": "seguro",
   "Transfer": "transfer",
-  "Outros": "outros",
 };
 
 function calcValorFinal(item: Item) {

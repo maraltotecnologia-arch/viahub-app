@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   itemDesc: { fontSize: 8, color: MUTED, marginTop: 1 },
   totalRow: {
     flexDirection: "row",
-    backgroundColor: DARK_BLUE,
+    backgroundColor: "#EFF6FF",
     paddingVertical: 10,
     paddingHorizontal: 10,
     borderBottomLeftRadius: 4,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     flex: 3,
     fontFamily: "Helvetica-Bold",
     fontSize: 12,
-    color: "#ffffff",
+    color: TEXT_COLOR,
     textAlign: "right" as const,
     paddingRight: 12,
   },
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     fontFamily: "Helvetica-Bold",
     fontSize: 12,
     textAlign: "right" as const,
-    color: "#ffffff",
+    color: PRIMARY,
   },
   // Conditions
   conditionsBox: {
