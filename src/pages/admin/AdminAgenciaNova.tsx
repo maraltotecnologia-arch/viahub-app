@@ -8,7 +8,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { createClient } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
 
@@ -61,28 +60,35 @@ export default function AdminAgenciaNova() {
     setSaving(true);
 
     try {
-      // Etapa 1: Criar usuário Auth com instância separada (não faz logout do superadmin)
-      const supabaseSignup = createClient(
-        import.meta.env.VITE_SUPABASE_URL,
-        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
-      );
+      // Verificar se email já existe
+      const { data: existente } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("email", emailAdmin)
+        .maybeSingle();
 
-      const { data: authData, error: authError } = await supabaseSignup.auth.signUp({
-        email: emailAdmin,
-        password: senha,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (authError) {
-        if (authError.message?.includes("already registered")) {
-          throw new Error("Este email já está em uso");
-        }
-        throw authError;
+      if (existente) {
+        throw new Error("Este email já está cadastrado");
       }
 
-      const novoUserId = authData.user?.id;
+      // Etapa 1: Criar usuário via edge function (email já confirmado)
+      const { data: session } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.session?.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ email: emailAdmin, password: senha }),
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Erro ao criar usuário de acesso");
+      }
+
+      const novoUserId = result.user?.id;
       if (!novoUserId) throw new Error("Erro ao criar usuário de acesso");
 
       // Etapa 2: Criar agência usando o cliente do superadmin logado (RLS permite)
