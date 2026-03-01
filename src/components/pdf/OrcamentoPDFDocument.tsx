@@ -15,6 +15,11 @@ const fmt = (v: number) =>
 const fmtDate = (d: string | null | undefined) =>
   d ? new Date(d).toLocaleDateString("pt-BR") : "-";
 
+const formatarPagamento = (forma: string | null | undefined) => {
+  if (!forma) return "-";
+  return ({ 'pix': 'PIX', 'credito': 'Crédito', 'debito': 'Débito', 'avista': 'À Vista', 'a_vista': 'À Vista' } as Record<string, string>)[forma.toLowerCase()] ?? forma;
+};
+
 const s = StyleSheet.create({
   page: {
     padding: 40,
@@ -99,7 +104,7 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
 
         {/* TÍTULO */}
         <Text style={s.title}>
-          {orcamento.numero_orcamento || "ORÇAMENTO"}
+          ORÇAMENTO #{orcamento.numero_orcamento || ""}
         </Text>
         <Text style={s.date}>Data: {fmtDate(orcamento.criado_em)}</Text>
 
@@ -135,7 +140,7 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
         {/* CONDITIONS */}
         <View style={s.condSection}>
           <Text style={s.condLabel}>FORMA DE PAGAMENTO</Text>
-          <Text style={s.condValue}>{orcamento.forma_pagamento || "-"}</Text>
+          <Text style={s.condValue}>{formatarPagamento(orcamento.forma_pagamento)}</Text>
 
           {orcamento.validade && (
             <>
