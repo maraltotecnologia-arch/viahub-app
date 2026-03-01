@@ -194,6 +194,8 @@ export type Database = {
           atualizado_em: string | null
           cliente_id: string | null
           criado_em: string | null
+          enviado_whatsapp: boolean | null
+          enviado_whatsapp_em: string | null
           forma_pagamento: string | null
           id: string
           lucro_bruto: number | null
@@ -213,6 +215,8 @@ export type Database = {
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null
+          enviado_whatsapp?: boolean | null
+          enviado_whatsapp_em?: string | null
           forma_pagamento?: string | null
           id?: string
           lucro_bruto?: number | null
@@ -232,6 +236,8 @@ export type Database = {
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null
+          enviado_whatsapp?: boolean | null
+          enviado_whatsapp_em?: string | null
           forma_pagamento?: string | null
           id?: string
           lucro_bruto?: number | null
