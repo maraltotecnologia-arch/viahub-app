@@ -209,7 +209,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   const addItem = () => {
-    setItens([...itens, { id: Date.now().toString(), tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 }]);
+    const aeroConfig = markupPorTipo["aereo"];
+    setItens([...itens, {
+      id: Date.now().toString(),
+      tipo: "Aéreo",
+      descricao: "",
+      valor_custo: 0,
+      markup_percentual: aeroConfig ? Number(aeroConfig.markup_percentual) || 0 : 0,
+      taxa_fixa: aeroConfig ? Number(aeroConfig.taxa_fixa) || 0 : 0,
+      quantidade: 1,
+    }]);
   };
 
   const removeItem = (id: string) => { if (itens.length > 1) setItens(itens.filter((i) => i.id !== id)); };
