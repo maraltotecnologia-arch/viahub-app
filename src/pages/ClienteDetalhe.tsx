@@ -122,13 +122,6 @@ export default function ClienteDetalhe() {
                 min="1900-01-01"
                 max={new Date().toISOString().split("T")[0]}
                 onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })}
-                onKeyDown={(e) => {
-                  const input = e.currentTarget;
-                  const pos = input.selectionStart || 0;
-                  if (input.value.length >= 10 && pos <= 4 && !["Backspace", "Delete", "Tab", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
-                    e.preventDefault();
-                  }
-                }}
               />
             </div>
           </div>
