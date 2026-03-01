@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Copy, Download, Eye } from "lucide-react";
+import { ArrowLeft, Copy, Download, Eye, Pencil } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -100,9 +101,9 @@ export default function OrcamentoDetalhe() {
     setGeneratingPdf(true);
     try {
       const blob = await pdf(<OrcamentoPDF data={pdfData} />).toBlob();
-      const clienteName = (orc?.clientes as any)?.nome?.replace(/\s+/g, "_") || "Cliente";
-      const date = new Date().toISOString().slice(0, 10);
-      const filename = `ViaHub_Orcamento_${clienteName}_${date}.pdf`;
+      const clienteName = (orc?.clientes as any)?.nome || "Cliente";
+      const numero = (orc as any)?.numero_orcamento || "ORC";
+      const filename = `${numero} ${clienteName}.pdf`;
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -293,6 +294,22 @@ export default function OrcamentoDetalhe() {
                   </SelectContent>
                 </Select>
               </div>
+              {["rascunho", "enviado"].includes(orc.status || "") ? (
+                <Button variant="outline" className="w-full justify-start" onClick={() => navigate(`/orcamentos/${id}/editar`)}>
+                  <Pencil className="h-4 w-4 mr-2" /> Editar
+                </Button>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="w-full">
+                      <Button variant="outline" className="w-full justify-start" disabled>
+                        <Pencil className="h-4 w-4 mr-2" /> Editar
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Não é possível editar orçamentos com status {orc.status}</TooltipContent>
+                </Tooltip>
+              )}
               <Button variant="outline" className="w-full justify-start" onClick={handleDownloadPdf} disabled={generatingPdf}>
                 <Download className="h-4 w-4 mr-2" /> {generatingPdf ? "Gerando PDF..." : "Baixar PDF"}
               </Button>

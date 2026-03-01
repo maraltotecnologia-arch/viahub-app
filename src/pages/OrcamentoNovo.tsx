@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,12 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Save, Send } from "lucide-react";
+import { Plus, Trash2, Save, Send, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface Item {
   id: string;
@@ -26,17 +26,34 @@ interface Item {
 
 const tiposServico = ["Aéreo", "Hotel", "Pacote", "Seguro", "Transfer", "Outros"];
 
+// Map UI labels to DB keys
+const tipoToDbKey: Record<string, string> = {
+  "Aéreo": "aereo",
+  "Hotel": "hotel",
+  "Pacote": "pacote",
+  "Seguro": "seguro",
+  "Transfer": "transfer",
+  "Outros": "outros",
+};
+
 function calcValorFinal(item: Item) {
   return (item.valor_custo * (1 + item.markup_percentual / 100) + item.taxa_fixa) * item.quantidade;
 }
 
-export default function OrcamentoNovo() {
+interface OrcamentoNovoProps {
+  modo?: "criacao" | "edicao";
+}
+
+export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) {
+  const { id: orcamentoId } = useParams();
+  const isEdicao = modo === "edicao" && !!orcamentoId;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const agenciaId = useAgenciaId();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   // Client search
   const [clienteSearch, setClienteSearch] = useState("");
@@ -59,28 +76,96 @@ export default function OrcamentoNovo() {
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
 
-  // Load default markups
+  // Fetch markup configs
+  const { data: markupConfigs } = useQuery({
+    queryKey: ["markup-configs", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("configuracoes_markup")
+        .select("*")
+        .eq("agencia_id", agenciaId!);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const markupPorTipo = markupConfigs
+    ? Object.fromEntries(markupConfigs.map((m) => [m.tipo_servico, m]))
+    : {};
+
+  // Load existing orcamento for edit mode
+  const { data: existingOrc } = useQuery({
+    queryKey: ["orcamento-edit", orcamentoId],
+    enabled: isEdicao,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("*, clientes(id, nome)")
+        .eq("id", orcamentoId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: existingItens } = useQuery({
+    queryKey: ["orcamento-edit-itens", orcamentoId],
+    enabled: isEdicao,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("itens_orcamento")
+        .select("*")
+        .eq("orcamento_id", orcamentoId!);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Populate form for edit mode
   useEffect(() => {
-    if (!agenciaId) return;
-    supabase
-      .from("configuracoes_markup")
-      .select("tipo_servico, markup_percentual, taxa_fixa")
-      .eq("agencia_id", agenciaId)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          const aeroConfig = data.find((d) => d.tipo_servico === "aereo");
-          if (aeroConfig) {
-            setItens([{
-              id: "1", tipo: "Aéreo", descricao: "",
-              valor_custo: 0,
-              markup_percentual: Number(aeroConfig.markup_percentual) || 0,
-              taxa_fixa: Number(aeroConfig.taxa_fixa) || 0,
-              quantidade: 1,
-            }]);
-          }
-        }
-      });
-  }, [agenciaId]);
+    if (isEdicao && existingOrc && existingItens && !initialized) {
+      setTitulo(existingOrc.titulo || "");
+      setValidade(existingOrc.validade || "");
+      setMoeda(existingOrc.moeda || "BRL");
+      setObservacoes(existingOrc.observacoes || "");
+      setFormaPagamento(existingOrc.forma_pagamento || "pix");
+      if ((existingOrc as any).clientes) {
+        const c = (existingOrc as any).clientes;
+        setClienteId(c.id);
+        setClienteNome(c.nome);
+        setClienteSearch(c.nome);
+      }
+      setItens(
+        existingItens.map((i) => ({
+          id: i.id,
+          tipo: i.tipo,
+          descricao: i.descricao || "",
+          valor_custo: Number(i.valor_custo) || 0,
+          markup_percentual: Number(i.markup_percentual) || 0,
+          taxa_fixa: Number(i.taxa_fixa) || 0,
+          quantidade: i.quantidade || 1,
+        }))
+      );
+      setInitialized(true);
+    }
+  }, [isEdicao, existingOrc, existingItens, initialized]);
+
+  // Apply default markup for initial item in create mode
+  useEffect(() => {
+    if (isEdicao || !markupConfigs || markupConfigs.length === 0 || initialized) return;
+    const aeroConfig = markupConfigs.find((d) => d.tipo_servico === "aereo");
+    if (aeroConfig) {
+      setItens([{
+        id: "1", tipo: "Aéreo", descricao: "",
+        valor_custo: 0,
+        markup_percentual: Number(aeroConfig.markup_percentual) || 0,
+        taxa_fixa: Number(aeroConfig.taxa_fixa) || 0,
+        quantidade: 1,
+      }]);
+    }
+    setInitialized(true);
+  }, [markupConfigs, isEdicao, initialized]);
 
   // Search clients
   useEffect(() => {
@@ -130,7 +215,23 @@ export default function OrcamentoNovo() {
   const removeItem = (id: string) => { if (itens.length > 1) setItens(itens.filter((i) => i.id !== id)); };
 
   const updateItem = (id: string, field: keyof Item, value: string | number) => {
-    setItens(itens.map((i) => (i.id === id ? { ...i, [field]: value } : i)));
+    setItens(itens.map((i) => {
+      if (i.id !== id) return i;
+      const updated = { ...i, [field]: value };
+      // Auto-fill markup when tipo changes
+      if (field === "tipo" && typeof value === "string") {
+        const dbKey = tipoToDbKey[value];
+        const config = dbKey ? markupPorTipo[dbKey] : null;
+        if (config) {
+          updated.markup_percentual = Number(config.markup_percentual) || 0;
+          updated.taxa_fixa = Number(config.taxa_fixa) || 0;
+        } else {
+          updated.markup_percentual = 0;
+          updated.taxa_fixa = 0;
+        }
+      }
+      return updated;
+    }));
   };
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
@@ -154,62 +255,115 @@ export default function OrcamentoNovo() {
 
     setLoading(true);
 
-    // Generate numero_orcamento
-    const year = new Date().getFullYear();
-    const { count } = await supabase
-      .from("orcamentos")
-      .select("id", { count: "exact", head: true })
-      .eq("agencia_id", agenciaId!);
-    const seq = String((count ?? 0) + 1).padStart(4, "0");
-    const numero_orcamento = `ORC-${year}-${seq}`;
+    if (isEdicao) {
+      // UPDATE existing orcamento
+      const { error } = await supabase
+        .from("orcamentos")
+        .update({
+          cliente_id: clienteId,
+          titulo,
+          status: enviar ? "enviado" : existingOrc?.status || "rascunho",
+          valor_custo: custoTotal,
+          valor_final: valorFinal,
+          lucro_bruto: lucro,
+          margem_percentual: Number(margem.toFixed(2)),
+          moeda,
+          validade: validade || null,
+          observacoes,
+          forma_pagamento: formaPagamento,
+        })
+        .eq("id", orcamentoId!);
 
-    const { data: orc, error } = await supabase
-      .from("orcamentos")
-      .insert({
-        agencia_id: agenciaId,
-        cliente_id: clienteId,
-        usuario_id: user?.id,
-        titulo,
-        status: enviar ? "enviado" : "rascunho",
-        valor_custo: custoTotal,
-        valor_final: valorFinal,
-        lucro_bruto: lucro,
-        margem_percentual: Number(margem.toFixed(2)),
-        moeda,
-        validade: validade || null,
-        observacoes,
-        forma_pagamento: formaPagamento,
-        numero_orcamento,
-      })
-      .select("id")
-      .single();
+      if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
 
-    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+      // Delete old items and insert new ones
+      await supabase.from("itens_orcamento").delete().eq("orcamento_id", orcamentoId!);
 
-    const itensRows = itens.map((i) => ({
-      orcamento_id: orc.id,
-      tipo: i.tipo,
-      descricao: i.descricao,
-      valor_custo: i.valor_custo,
-      markup_percentual: i.markup_percentual,
-      taxa_fixa: i.taxa_fixa,
-      valor_final: calcValorFinal(i),
-      quantidade: i.quantidade,
-    }));
+      const itensRows = itens.map((i) => ({
+        orcamento_id: orcamentoId!,
+        tipo: i.tipo,
+        descricao: i.descricao,
+        valor_custo: i.valor_custo,
+        markup_percentual: i.markup_percentual,
+        taxa_fixa: i.taxa_fixa,
+        valor_final: calcValorFinal(i),
+        quantidade: i.quantidade,
+      }));
 
-    const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
-    if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
+      const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
+      if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
 
-    queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
-    queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-    toast({ title: enviar ? "Orçamento enviado!" : "Rascunho salvo!", description: `${titulo || "Novo orçamento"} - ${fmt(valorFinal)}` });
-    setLoading(false);
-    navigate(`/orcamentos/${orc.id}`);
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["orcamento", orcamentoId] });
+      queryClient.invalidateQueries({ queryKey: ["orcamento-itens", orcamentoId] });
+      toast({ title: "Orçamento atualizado!", description: `${titulo || "Orçamento"} - ${fmt(valorFinal)}` });
+      setLoading(false);
+      navigate(`/orcamentos/${orcamentoId}`);
+    } else {
+      // CREATE new orcamento
+      const year = new Date().getFullYear();
+      const { count } = await supabase
+        .from("orcamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("agencia_id", agenciaId!);
+      const seq = String((count ?? 0) + 1).padStart(4, "0");
+      const numero_orcamento = `ORC-${year}-${seq}`;
+
+      const { data: orc, error } = await supabase
+        .from("orcamentos")
+        .insert({
+          agencia_id: agenciaId,
+          cliente_id: clienteId,
+          usuario_id: user?.id,
+          titulo,
+          status: enviar ? "enviado" : "rascunho",
+          valor_custo: custoTotal,
+          valor_final: valorFinal,
+          lucro_bruto: lucro,
+          margem_percentual: Number(margem.toFixed(2)),
+          moeda,
+          validade: validade || null,
+          observacoes,
+          forma_pagamento: formaPagamento,
+          numero_orcamento,
+        })
+        .select("id")
+        .single();
+
+      if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+
+      const itensRows = itens.map((i) => ({
+        orcamento_id: orc.id,
+        tipo: i.tipo,
+        descricao: i.descricao,
+        valor_custo: i.valor_custo,
+        markup_percentual: i.markup_percentual,
+        taxa_fixa: i.taxa_fixa,
+        valor_final: calcValorFinal(i),
+        quantidade: i.quantidade,
+      }));
+
+      const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
+      if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
+
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      toast({ title: enviar ? "Orçamento enviado!" : "Rascunho salvo!", description: `${titulo || "Novo orçamento"} - ${fmt(valorFinal)}` });
+      setLoading(false);
+      navigate(`/orcamentos/${orc.id}`);
+    }
   };
 
   return (
     <div className="space-y-6 max-w-4xl animate-fade-in">
-      <h2 className="text-2xl font-bold">Novo Orçamento</h2>
+      <div className="flex items-center gap-3">
+        {isEdicao && (
+          <Button variant="ghost" size="icon" onClick={() => navigate(`/orcamentos/${orcamentoId}`)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        )}
+        <h2 className="text-2xl font-bold">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
+      </div>
 
       {/* Cliente */}
       <Card>
@@ -352,8 +506,17 @@ export default function OrcamentoNovo() {
 
       {/* Ações */}
       <div className="flex gap-3 justify-end pb-6">
-        <Button variant="outline" onClick={() => handleSave(false)} disabled={loading}><Save className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar Rascunho"}</Button>
-        <Button variant="gradient" onClick={() => handleSave(true)} disabled={loading}><Send className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar e Enviar"}</Button>
+        {isEdicao ? (
+          <>
+            <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
+            <Button variant="gradient" onClick={() => handleSave(false)} disabled={loading}><Save className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar Alterações"}</Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" onClick={() => handleSave(false)} disabled={loading}><Save className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar Rascunho"}</Button>
+            <Button variant="gradient" onClick={() => handleSave(true)} disabled={loading}><Send className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar e Enviar"}</Button>
+          </>
+        )}
       </div>
     </div>
   );
