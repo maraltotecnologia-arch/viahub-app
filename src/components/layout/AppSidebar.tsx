@@ -33,6 +33,7 @@ export function AppSidebar() {
     { title: "Markup", url: "/configuracoes/markup" },
     { title: "Agência", url: "/configuracoes/agencia" },
     { title: "Usuários", url: "/configuracoes/usuarios" },
+    { title: "📋 Templates", url: "/configuracoes/templates" },
   ];
 
   const handleSignOut = async () => {

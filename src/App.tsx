@@ -21,6 +21,7 @@ import ClienteDetalhe from "./pages/ClienteDetalhe";
 import ConfigMarkup from "./pages/ConfigMarkup";
 import ConfigAgencia from "./pages/ConfigAgencia";
 import ConfigUsuarios from "./pages/ConfigUsuarios";
+import ConfigTemplates from "./pages/ConfigTemplates";
 import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
@@ -59,6 +60,7 @@ function AppRoutes() {
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
         <Route path="/configuracoes/agencia" element={<ConfigAgencia />} />
         <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
+        <Route path="/configuracoes/templates" element={<ConfigTemplates />} />
         <Route path="/admin/agencias" element={<AdminAgencias />} />
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
