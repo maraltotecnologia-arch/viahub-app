@@ -4,11 +4,15 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Menu } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import useUserRole from "@/hooks/useUserRole";
 
 export default function AppLayout() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
+  const { nome, cargoLabel } = useUserRole();
+  const displayName = nome || user?.email || "Usuário";
+  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <SidebarProvider>
@@ -20,7 +24,12 @@ export default function AppLayout() {
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
             <div className="ml-auto flex items-center gap-3">
-              {!isMobile && <span className="text-sm font-medium">Agência</span>}
+              {!isMobile && (
+                <>
+                  <span className="text-sm font-medium">{displayName}</span>
+                  {cargoLabel && <Badge variant="outline" className="text-xs">{cargoLabel}</Badge>}
+                </>
+              )}
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
                 {initials}
               </div>

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import useUserRole from "@/hooks/useUserRole";
 import Login from "./pages/Login";
 import Onboarding from "./pages/Onboarding";
 import RecuperarSenha from "./pages/RecuperarSenha";
@@ -19,6 +20,7 @@ import Clientes from "./pages/Clientes";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import ConfigMarkup from "./pages/ConfigMarkup";
 import ConfigAgencia from "./pages/ConfigAgencia";
+import ConfigUsuarios from "./pages/ConfigUsuarios";
 import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
@@ -56,6 +58,7 @@ function AppRoutes() {
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
         <Route path="/configuracoes/agencia" element={<ConfigAgencia />} />
+        <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
         <Route path="/admin/agencias" element={<AdminAgencias />} />
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
