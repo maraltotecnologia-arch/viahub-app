@@ -66,7 +66,7 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
   title: string; value: string; icon: any; iconBg: string; isLoading?: boolean;
 }) {
   return (
-    <Card className="rounded-2xl bg-white border border-[rgba(226,232,240,0.8)] shadow-[0_1px_3px_rgba(0,0,0,0.04),0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200">
+    <Card className="rounded-2xl bg-white/90 border border-white/70 shadow-[0_4px_24px_rgba(0,0,0,0.1)] backdrop-blur-[8px] [-webkit-backdrop-filter:blur(8px)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200">
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
@@ -182,8 +182,8 @@ function SuperadminDashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold">Painel Administrativo</h2>
-        <p className="text-sm text-muted-foreground">Visão consolidada de todas as agências</p>
+        <h2 className="text-2xl font-bold text-white">Painel Administrativo</h2>
+        <p className="text-sm text-white/70">Visão consolidada de todas as agências</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -294,7 +294,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold">Dashboard</h2>
+      <h2 className="text-2xl font-bold text-white">Dashboard</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (

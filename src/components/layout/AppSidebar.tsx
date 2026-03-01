@@ -45,7 +45,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="md:flex [&_[data-sidebar=sidebar]]:!bg-[rgba(10,18,40,0.7)] [&_[data-sidebar=sidebar]]:backdrop-blur-[24px] [&_[data-sidebar=sidebar]]:[-webkit-backdrop-filter:blur(24px)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-white/[0.06] [&_[data-sidebar=sidebar]]:shadow-none max-md:[&_[data-sidebar=sidebar]]:!bg-[#0F172A] max-md:[&_[data-sidebar=sidebar]]:backdrop-blur-none">
+    <Sidebar collapsible="icon" className="md:flex [&_[data-sidebar=sidebar]]:!bg-[rgba(255,255,255,0.07)] [&_[data-sidebar=sidebar]]:backdrop-blur-[24px] [&_[data-sidebar=sidebar]]:[-webkit-backdrop-filter:blur(24px)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-white/[0.12] [&_[data-sidebar=sidebar]]:shadow-none max-md:[&_[data-sidebar=sidebar]]:!bg-[rgba(255,255,255,0.07)] max-md:[&_[data-sidebar=sidebar]]:backdrop-blur-[24px]">
       <SidebarContent>
         <div className="p-4 pb-5 border-b border-sidebar-border">
           <h1 className="text-xl font-extrabold tracking-tight">
@@ -69,7 +69,7 @@ export function AppSidebar() {
                       to={item.url}
                       className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
-                          isActive ? "bg-[rgba(37,99,235,0.35)] text-white font-semibold" : "text-white/[0.65] hover:bg-white/[0.07] hover:text-white/90"
+                          isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1] hover:text-white"
                         }`
                       }
                     >
@@ -105,7 +105,7 @@ export function AppSidebar() {
                             to={item.url}
                             className={({ isActive }) =>
                               `flex items-center gap-3 pl-10 pr-3 py-2 rounded-[10px] text-sm transition-all duration-150 ${
-                                isActive ? "bg-[rgba(37,99,235,0.35)] text-white font-semibold" : "text-white/[0.65] hover:bg-white/[0.07]"
+                                isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1]"
                               }`
                             }
                           >
@@ -138,7 +138,7 @@ export function AppSidebar() {
                       to="/admin/agencias"
                       className={({ isActive }) =>
                         `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
-                          isActive ? "bg-[rgba(37,99,235,0.35)] text-white font-semibold" : "text-white/[0.65] hover:bg-white/[0.07] hover:text-white/90"
+                          isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1] hover:text-white"
                         }`
                       }
                     >
