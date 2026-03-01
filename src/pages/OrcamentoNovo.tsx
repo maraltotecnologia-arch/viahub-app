@@ -29,6 +29,9 @@ interface Item {
 
 const tiposServico = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
 
+const gerarToken = () =>
+  Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
 // Map UI labels to DB keys
 const tipoToDbKey: Record<string, string> = {
   "Aéreo": "aereo",
@@ -426,6 +429,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           observacoes,
           forma_pagamento: formaPagamento,
           numero_orcamento,
+          token_publico: gerarToken(),
         })
         .select("id")
         .single();
