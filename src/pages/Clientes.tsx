@@ -9,12 +9,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/contexts/AuthContext";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Clientes() {
-  const { user } = useAuth();
+  const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -26,13 +26,13 @@ export default function Clientes() {
   const [saving, setSaving] = useState(false);
 
   const { data: clientes, isLoading } = useQuery({
-    queryKey: ["clientes", user?.agencia_id, search],
-    enabled: !!user?.agencia_id,
+    queryKey: ["clientes", agenciaId, search],
+    enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("clientes")
         .select("id, nome, email, telefone, criado_em, orcamentos(count)")
-        .eq("agencia_id", user!.agencia_id!)
+        .eq("agencia_id", agenciaId!)
         .order("criado_em", { ascending: false });
 
       if (search.trim()) {
@@ -46,12 +46,18 @@ export default function Clientes() {
   });
 
   const handleCreate = async () => {
-    if (!nome.trim() || !user?.agencia_id) return;
+    if (!nome.trim()) return;
+    if (!agenciaId) {
+      toast({ title: "Erro ao identificar agência", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("clientes")
-      .insert({ agencia_id: user.agencia_id, nome, email: email || null, telefone: telefone || null, cpf: cpf || null });
-    if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); } else {
+      .insert({ agencia_id: agenciaId, nome, email: email || null, telefone: telefone || null, cpf: cpf || null });
+    if (error) {
+      toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" });
+    } else {
       toast({ title: "Cliente criado com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["clientes"] });
       setOpen(false); setNome(""); setEmail(""); setTelefone(""); setCpf("");

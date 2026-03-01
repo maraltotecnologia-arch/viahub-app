@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Plus, Trash2, Save, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ export default function OrcamentoNovo() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const agenciaId = useAgenciaId();
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
 
@@ -59,11 +61,11 @@ export default function OrcamentoNovo() {
 
   // Load default markups
   useEffect(() => {
-    if (!user?.agencia_id) return;
+    if (!agenciaId) return;
     supabase
       .from("configuracoes_markup")
       .select("tipo_servico, markup_percentual, taxa_fixa")
-      .eq("agencia_id", user.agencia_id)
+      .eq("agencia_id", agenciaId)
       .then(({ data }) => {
         if (data && data.length > 0) {
           const aeroConfig = data.find((d) => d.tipo_servico === "aereo");
@@ -78,23 +80,23 @@ export default function OrcamentoNovo() {
           }
         }
       });
-  }, [user?.agencia_id]);
+  }, [agenciaId]);
 
   // Search clients
   useEffect(() => {
-    if (clienteSearch.length < 2 || !user?.agencia_id) { setClienteResults([]); return; }
+    if (clienteSearch.length < 2 || !agenciaId) { setClienteResults([]); return; }
     const timeout = setTimeout(async () => {
       const { data } = await supabase
         .from("clientes")
         .select("id, nome")
-        .eq("agencia_id", user.agencia_id!)
+        .eq("agencia_id", agenciaId)
         .ilike("nome", `%${clienteSearch}%`)
         .limit(5);
       setClienteResults(data || []);
       setShowResults(true);
     }, 300);
     return () => clearTimeout(timeout);
-  }, [clienteSearch, user?.agencia_id]);
+  }, [clienteSearch, agenciaId]);
 
   const selectCliente = (c: { id: string; nome: string }) => {
     setClienteId(c.id);
@@ -104,10 +106,14 @@ export default function OrcamentoNovo() {
   };
 
   const handleCreateCliente = async () => {
-    if (!newNome.trim() || !user?.agencia_id) return;
+    if (!newNome.trim()) return;
+    if (!agenciaId) {
+      toast({ title: "Erro ao identificar agência", variant: "destructive" });
+      return;
+    }
     const { data, error } = await supabase
       .from("clientes")
-      .insert({ agencia_id: user.agencia_id, nome: newNome, email: newEmail || null, telefone: newTelefone || null })
+      .insert({ agencia_id: agenciaId, nome: newNome, email: newEmail || null, telefone: newTelefone || null })
       .select("id, nome")
       .single();
     if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); return; }
@@ -137,7 +143,10 @@ export default function OrcamentoNovo() {
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   const handleSave = async (enviar: boolean) => {
-    if (!user?.agencia_id) return;
+    if (!agenciaId) {
+      toast({ title: "Erro ao identificar agência", variant: "destructive" });
+      return;
+    }
     if (enviar && itens.every((i) => i.valor_custo === 0)) {
       toast({ title: "Adicione pelo menos 1 item com valor", variant: "destructive" });
       return;
@@ -147,9 +156,9 @@ export default function OrcamentoNovo() {
     const { data: orc, error } = await supabase
       .from("orcamentos")
       .insert({
-        agencia_id: user.agencia_id,
+        agencia_id: agenciaId,
         cliente_id: clienteId,
-        usuario_id: user.id,
+        usuario_id: user?.id,
         titulo,
         status: enviar ? "enviado" : "rascunho",
         valor_custo: custoTotal,
