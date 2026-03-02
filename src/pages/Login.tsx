@@ -18,6 +18,10 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
+
+  useEffect(() => {
     if (user) {
       navigate("/dashboard", { replace: true });
     }
