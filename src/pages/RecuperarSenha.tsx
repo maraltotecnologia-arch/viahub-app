@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,15 @@ export default function RecuperarSenha() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+    return () => {
+      const savedTheme = localStorage.getItem('viahub-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
