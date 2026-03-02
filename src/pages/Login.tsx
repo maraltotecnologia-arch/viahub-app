@@ -19,6 +19,11 @@ export default function Login() {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+    return () => {
+      const savedTheme = localStorage.getItem('viahub-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    };
   }, []);
 
   useEffect(() => {

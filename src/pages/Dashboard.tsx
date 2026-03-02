@@ -215,7 +215,7 @@ function SuperadminDashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                   <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                   <Tooltip contentStyle={{ backgroundColor: "var(--bg-card)", borderRadius: 8, border: "1px solid var(--border-color)", color: "var(--text-primary)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-secondary)" }} />
+                   <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC', fontSize: '12px' }} labelStyle={{ color: '#F8FAFC', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: '#CBD5E1' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -327,7 +327,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                   <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                   <Tooltip contentStyle={{ backgroundColor: "var(--bg-card)", borderRadius: 8, border: "1px solid var(--border-color)", color: "var(--text-primary)", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-secondary)" }} />
+                   <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC', fontSize: '12px' }} labelStyle={{ color: '#F8FAFC', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: '#CBD5E1' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

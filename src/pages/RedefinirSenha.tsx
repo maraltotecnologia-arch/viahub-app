@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,15 @@ export default function RedefinirSenha() {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+    return () => {
+      const savedTheme = localStorage.getItem('viahub-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    };
+  }, []);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
