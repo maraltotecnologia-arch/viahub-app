@@ -232,8 +232,8 @@ export default function ConfigUsuarios() {
                       variant="outline"
                       size="sm"
                       className={u.ativo
-                        ? "border-red-300 text-red-500 hover:bg-red-50"
-                        : "border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                        ? "border-red-300 text-red-500 hover:bg-red-50 dark:bg-transparent dark:border-red-500/40 dark:text-red-300 dark:hover:bg-red-500/10"
+                        : "border-emerald-300 text-emerald-600 hover:bg-emerald-50 dark:bg-transparent dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10"
                       }
                       onClick={() => toggleAtivo(u)}
                     >

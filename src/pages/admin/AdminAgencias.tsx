@@ -102,24 +102,24 @@ export default function AdminAgencias() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total de Agências</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Total de Agências</CardTitle>
             <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{total}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{total}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Agências Ativas</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{ativas}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">MRR Estimado</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Estimado</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{fmt(mrr)}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
         </Card>
       </div>
 

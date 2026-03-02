@@ -146,6 +146,27 @@ body {
   background-color: var(--bg-hover) !important;
 }
 
+/* Botões no dark mode */
+[data-theme="dark"] button {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] button[class*="outline"] {
+  background: transparent !important;
+  border-color: var(--border-input) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] button[class*="ghost"] {
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] button[class*="ghost"]:hover,
+[data-theme="dark"] button[class*="outline"]:hover {
+  background: var(--bg-hover) !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
