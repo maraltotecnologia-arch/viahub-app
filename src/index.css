@@ -167,6 +167,20 @@ body {
   background: var(--bg-hover) !important;
 }
 
+/* Dropdowns/selects globais no dark mode */
+[data-theme="dark"] [role="option"],
+[data-theme="dark"] [cmdk-item],
+[data-theme="dark"] .select-item {
+  color: var(--text-primary) !important;
+  background: var(--bg-card) !important;
+}
+
+[data-theme="dark"] [role="option"]:hover,
+[data-theme="dark"] [cmdk-item][data-selected] {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -21,8 +21,9 @@ export default function Login() {
     document.documentElement.setAttribute('data-theme', 'light');
     document.documentElement.style.setProperty('--bg-primary', '#ffffff');
     return () => {
-      const savedTheme = localStorage.getItem('viahub-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
+      const saved = localStorage.getItem('viahub-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      document.documentElement.style.removeProperty('--bg-primary');
     };
   }, []);
 
