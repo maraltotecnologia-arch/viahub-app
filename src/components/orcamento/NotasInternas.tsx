@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare } from "lucide-react";
 import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 interface Props {
@@ -65,12 +64,6 @@ export default function NotasInternas({ orcamentoId }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-        <h3 className="font-semibold text-sm">Notas Internas</h3>
-        <span className="text-xs text-muted-foreground italic">(visível apenas para a equipe)</span>
-      </div>
-
       {/* Add note */}
       <div className="flex gap-2">
         <Textarea
