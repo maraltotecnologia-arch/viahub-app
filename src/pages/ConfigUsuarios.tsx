@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,6 +35,7 @@ const CARGO_CLASSES: Record<string, string> = {
 
 export default function ConfigUsuarios() {
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,6 +47,15 @@ export default function ConfigUsuarios() {
   const [editForm, setEditForm] = useState({ nome: "", cargo: "" });
   const [saving, setSaving] = useState(false);
   const [confirmUser, setConfirmUser] = useState<any>(null);
+  const cargoBadgeDarkStyle = (cargo: string): React.CSSProperties => {
+    const map: Record<string, React.CSSProperties> = {
+      superadmin: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+      admin: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      agente: { background: "rgba(16,185,129,0.25)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.4)" },
+      financeiro: { background: "rgba(245,158,11,0.22)", color: "#FCD34D", border: "1px solid rgba(245,158,11,0.4)" },
+    };
+    return map[cargo] ?? { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" };
+  };
 
   const { data: usuarios, isLoading } = useQuery({
     queryKey: ["agencia-usuarios-config", agenciaId],
@@ -202,7 +213,11 @@ export default function ConfigUsuarios() {
                   <TableCell className="font-medium">{u.nome || "-"}</TableCell>
                   <TableCell>{u.email || "-"}</TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={CARGO_CLASSES[u.cargo || "agente"] || ""}>
+                    <Badge
+                      variant="outline"
+                      className={!isDark ? (CARGO_CLASSES[u.cargo || "agente"] || "") : ""}
+                      style={isDark ? cargoBadgeDarkStyle(u.cargo || "agente") : undefined}
+                    >
                       {CARGO_LABELS[u.cargo || "agente"] || u.cargo}
                     </Badge>
                   </TableCell>

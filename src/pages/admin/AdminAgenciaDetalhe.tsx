@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarCNPJ } from "@/lib/validators";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
@@ -39,10 +40,22 @@ export default function AdminAgenciaDetalhe() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isSuperadmin, loading: roleLoading } = useUserRole();
+  const { isDark } = useTheme();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<any>({});
   const [showDeactivateConfirm, setShowDeactivateConfirm] = useState(false);
   const [cnpjError, setCnpjError] = useState("");
+
+  const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
+    const map: Record<string, React.CSSProperties> = {
+      starter_a: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
+      starter_b: { background: "rgba(14,165,233,0.25)", color: "#7DD3FC", border: "1px solid rgba(14,165,233,0.4)" },
+      pro_a: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      pro_b: { background: "rgba(29,78,216,0.25)", color: "#BFDBFE", border: "1px solid rgba(29,78,216,0.4)" },
+      agency_c: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+    };
+    return map[plano] ?? map.starter_a;
+  };
 
   useEffect(() => {
     if (!roleLoading && !isSuperadmin) {
@@ -177,7 +190,10 @@ export default function AdminAgenciaDetalhe() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 mb-4 md:mb-0">
           <h2 className="text-2xl font-bold">{agencia.nome_fantasia}</h2>
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${planoInfo.color}`}>
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${!isDark ? planoInfo.color : ""}`}
+            style={isDark ? planoBadgeDarkStyle(agencia.plano || "starter_a") : undefined}
+          >
             {planoInfo.label}
           </span>
         </div>

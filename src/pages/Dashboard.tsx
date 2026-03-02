@@ -67,15 +67,27 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
   title: string; value: string; icon: any; iconBg: string; isLoading?: boolean;
 }) {
   return (
-    <Card className="rounded-2xl bg-white/90 border border-white/70 shadow-[0_4px_24px_rgba(0,0,0,0.1)] backdrop-blur-[8px] [-webkit-backdrop-filter:blur(8px)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200">
+    <Card
+      className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200"
+      style={{
+        background: "var(--bg-card)",
+        borderColor: "var(--border-color)",
+      }}
+    >
       <CardContent className="p-6">
         <div className="flex items-center gap-3 mb-3">
           <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
             <Icon className="h-[22px] w-[22px]" />
           </div>
-          <span className="text-sm text-muted-foreground">{title}</span>
+          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{title}</span>
         </div>
-        {isLoading ? <Skeleton className="h-8 w-24" /> : <p className="text-[28px] font-bold leading-tight">{value}</p>}
+        {isLoading ? (
+          <Skeleton className="h-8 w-24" />
+        ) : (
+          <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+            {value}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
@@ -183,8 +195,8 @@ function SuperadminDashboard() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
-        <h2 className="text-2xl font-bold text-[#0F172A]">Painel Administrativo</h2>
-        <p className="text-sm text-[#64748B]">Visão consolidada de todas as agências</p>
+        <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Painel Administrativo</h2>
+        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -201,8 +213,8 @@ function SuperadminDashboard() {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                    <Tooltip contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -221,13 +233,13 @@ function SuperadminDashboard() {
                 {recentes?.map((o: any) => (
                   <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
                     <div>
-                      <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{o.titulo || "Sem título"}</p>
+                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                         {o.clientes?.nome || "Sem cliente"} • {o.agencias?.nome_fantasia || "—"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold">{fmt(Number(o.valor_final) || 0)}</span>
+                      <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{fmt(Number(o.valor_final) || 0)}</span>
                       <StatusBadge status={o.status || "rascunho"} />
                     </div>
                   </Link>
@@ -295,7 +307,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h2 className="text-2xl font-bold text-[#0F172A]">Dashboard</h2>
+      <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
@@ -313,8 +325,8 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                    <Tooltip contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -333,13 +345,13 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                 {recentes?.map((o) => (
                   <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
                     <div>
-                      <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{o.titulo || "Sem título"}</p>
+                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                         {(o.clientes as any)?.nome || "Sem cliente"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold">{fmt(Number(o.valor_final) || 0)}</span>
+                      <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{fmt(Number(o.valor_final) || 0)}</span>
                       <StatusBadge status={o.status || "rascunho"} />
                     </div>
                   </Link>

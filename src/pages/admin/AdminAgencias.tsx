@@ -12,6 +12,7 @@ import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import useUserRole from "@/hooks/useUserRole";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
@@ -35,6 +36,18 @@ export default function AdminAgencias() {
   const navigate = useNavigate();
   const { isSuperadmin, loading: roleLoading } = useUserRole();
   const queryClient = useQueryClient();
+  const { isDark } = useTheme();
+
+  const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
+    const map: Record<string, React.CSSProperties> = {
+      starter_a: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
+      starter_b: { background: "rgba(14,165,233,0.25)", color: "#7DD3FC", border: "1px solid rgba(14,165,233,0.4)" },
+      pro_a: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      pro_b: { background: "rgba(29,78,216,0.25)", color: "#BFDBFE", border: "1px solid rgba(29,78,216,0.4)" },
+      agency_c: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+    };
+    return map[plano] ?? map.starter_a;
+  };
 
   useEffect(() => {
     if (!roleLoading && !isSuperadmin) {
@@ -136,7 +149,10 @@ export default function AdminAgencias() {
                       <TableCell className="font-medium">{a.nome_fantasia}</TableCell>
                       <TableCell className="text-muted-foreground">{a.email || "—"}</TableCell>
                       <TableCell>
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${plano.color}`}>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${!isDark ? plano.color : ""}`}
+                          style={isDark ? planoBadgeDarkStyle(a.plano || "starter_a") : undefined}
+                        >
                           {plano.label}
                         </span>
                       </TableCell>

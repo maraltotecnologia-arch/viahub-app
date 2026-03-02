@@ -7,6 +7,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
 import useAgenciaId from "@/hooks/useAgenciaId";
@@ -15,6 +16,7 @@ import useAlertas from "@/hooks/useAlertas";
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { isDark } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -44,8 +46,25 @@ export function AppSidebar() {
     navigate("/login", { replace: true });
   };
 
+  const navLinkCls = (isActive: boolean) =>
+    `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
+      isActive
+        ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
+        : `${isDark ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/80 hover:bg-white/20 hover:text-white"}`
+    }`;
+
+  const navLinkClsInset = (isActive: boolean) =>
+    `flex items-center gap-3 pl-10 pr-3 py-2 rounded-[10px] text-sm transition-all duration-150 ${
+      isActive
+        ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
+        : `${isDark ? "text-white/70 hover:bg-white/10" : "text-white/80 hover:bg-white/20"}`
+    }`;
+
   return (
-    <Sidebar collapsible="icon" className="md:flex [&_[data-sidebar=sidebar]]:!bg-[#0F172A] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[#1E293B]">
+    <Sidebar
+      collapsible="icon"
+      className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
+    >
       <SidebarContent>
         <div className="p-4 pb-5 border-b border-sidebar-border">
           <h1 className="text-xl font-extrabold tracking-tight">
@@ -68,9 +87,7 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       className={({ isActive }) =>
-                      `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
-                          isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1] hover:text-white"
-                        }`
+                        navLinkCls(isActive)
                       }
                     >
                       <item.icon className="h-4 w-4 shrink-0 opacity-80" />
@@ -91,7 +108,11 @@ export function AppSidebar() {
         {canAccessConfig && (
           <SidebarGroup>
             <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
-              <CollapsibleTrigger className="flex items-center gap-3 px-4 py-2.5 text-sm text-white/30 hover:text-white/90 w-full rounded-[10px] hover:bg-white/[0.07] transition-all duration-150">
+              <CollapsibleTrigger
+                className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full rounded-[10px] transition-all duration-150 ${
+                  isDark ? "text-white/30 hover:text-white/90 hover:bg-white/10" : "text-white/40 hover:text-white/95 hover:bg-white/20"
+                }`}
+              >
                 <Settings className="h-4 w-4 shrink-0" />
                 {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
               </CollapsibleTrigger>
@@ -104,9 +125,7 @@ export function AppSidebar() {
                           <NavLink
                             to={item.url}
                             className={({ isActive }) =>
-                              `flex items-center gap-3 pl-10 pr-3 py-2 rounded-[10px] text-sm transition-all duration-150 ${
-                                isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1]"
-                              }`
+                              navLinkClsInset(isActive)
                             }
                           >
                             <item.icon className="h-3.5 w-3.5 shrink-0" />
@@ -126,7 +145,7 @@ export function AppSidebar() {
           <SidebarGroup>
             <div className="px-3 py-2">
               <Separator className="mb-2 bg-white/[0.08]" />
-              <p className="text-[10px] text-white/30 uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1">
+              <p className={`text-[10px] uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1 ${isDark ? "text-white/30" : "text-white/40"}`}>
                 <Shield className="h-3 w-3" /> Administração
               </p>
             </div>
@@ -137,9 +156,7 @@ export function AppSidebar() {
                     <NavLink
                       to="/admin/agencias"
                       className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
-                          isActive ? "bg-white/[0.15] text-white font-semibold" : "text-white/[0.7] hover:bg-white/[0.1] hover:text-white"
-                        }`
+                        navLinkCls(isActive)
                       }
                     >
                       <Building2 className="h-4 w-4 shrink-0" />
@@ -160,7 +177,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white/[0.85] truncate">{nome || user?.email || "Usuário"}</p>
+              <p className={`text-sm font-medium truncate ${isDark ? "text-white/80" : "text-white/90"}`}>{nome || user?.email || "Usuário"}</p>
               <p className="text-xs text-white/40">{cargoLabel}</p>
             </div>
           )}

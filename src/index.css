@@ -2,6 +2,150 @@
 @tailwind components;
 @tailwind utilities;
 
+/* TEMA DARK (padrão) */
+:root,
+[data-theme="dark"] {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --bg-sidebar: #0B1120;
+  --bg-header: rgba(15,23,42,0.95);
+  --bg-input: #1E293B;
+  --bg-hover: #253047;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+
+  --border-color: rgba(255,255,255,0.08);
+  --border-input: #334155;
+
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+
+  --accent-primary: #2563EB;
+  --accent-secondary: #06B6D4;
+  --accent-gradient: linear-gradient(135deg, #2563EB, #06B6D4);
+}
+
+/* TEMA LIGHT */
+[data-theme="light"] {
+  --bg-primary: #EFF6FF;
+  --bg-secondary: #DBEAFE;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #1E3A8A;
+  --bg-header: rgba(255,255,255,0.95);
+  --bg-input: #FFFFFF;
+  --bg-hover: #EFF6FF;
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  --border-color: #E2E8F0;
+  --border-input: #CBD5E1;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04),
+                 0 4px 16px rgba(0,0,0,0.04);
+
+  --accent-primary: #2563EB;
+  --accent-secondary: #06B6D4;
+  --accent-gradient: linear-gradient(135deg, #2563EB, #06B6D4);
+}
+
+/* APLICAR VARIÁVEIS GLOBALMENTE */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 300ms ease,
+              color 300ms ease;
+}
+
+/* Forçar contraste de tipografia no dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] label {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .text-muted-foreground,
+[data-theme="dark"] [class*="text-gray"],
+[data-theme="dark"] [class*="text-slate"] {
+  color: var(--text-secondary) !important;
+}
+
+/* CONTRASTE (dark) — escopado para páginas autenticadas */
+[data-theme="dark"] body[data-viahub-scope="app"] td,
+[data-theme="dark"] body[data-viahub-scope="app"] td * {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] td span,
+[data-theme="dark"] body[data-viahub-scope="app"] td p,
+[data-theme="dark"] body[data-viahub-scope="app"] td a {
+  color: var(--text-secondary);
+}
+
+/* Inputs / Selects / Textareas (dark) — escopado para páginas autenticadas */
+[data-theme="dark"] body[data-viahub-scope="app"] input,
+[data-theme="dark"] body[data-viahub-scope="app"] select,
+[data-theme="dark"] body[data-viahub-scope="app"] textarea {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-input) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] input::placeholder,
+[data-theme="dark"] body[data-viahub-scope="app"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] input:focus,
+[data-theme="dark"] body[data-viahub-scope="app"] select:focus,
+[data-theme="dark"] body[data-viahub-scope="app"] textarea:focus {
+  border-color: var(--accent-primary) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.3) !important;
+}
+
+/* Dropdowns / Popovers (dark) — escopado para páginas autenticadas */
+[data-theme="dark"] body[data-viahub-scope="app"] [role="listbox"],
+[data-theme="dark"] body[data-viahub-scope="app"] [data-radix-popper-content-wrapper],
+[data-theme="dark"] body[data-viahub-scope="app"] [cmdk-list] {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] [role="option"],
+[data-theme="dark"] body[data-viahub-scope="app"] [role="menuitem"] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] [role="option"]:hover,
+[data-theme="dark"] body[data-viahub-scope="app"] [role="menuitem"]:hover {
+  background-color: var(--bg-hover) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] .select-content,
+[data-theme="dark"] body[data-viahub-scope="app"] [data-state="open"] {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] .viahub-dropdown-content,
+[data-theme="dark"] body[data-viahub-scope="app"] .viahub-popover-content {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] body[data-viahub-scope="app"] .viahub-dropdown-item:hover {
+  background-color: var(--bg-hover) !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -49,20 +193,22 @@
   }
   html,
   body {
-    background: #F8FAFC;
-    @apply text-foreground;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
   /* Refined table styles */
   thead th {
-    @apply bg-muted/60 text-muted-foreground uppercase text-[11px] tracking-wider font-semibold;
-    border-bottom: 2px solid hsl(var(--border));
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    @apply uppercase text-[11px] tracking-wider font-semibold;
+    border-bottom: 2px solid var(--border-color);
   }
 
   tbody td {
     @apply py-3.5;
-    border-bottom: 1px solid hsl(var(--muted));
+    border-bottom: 1px solid var(--border-color);
   }
 
   tbody tr {
@@ -70,7 +216,7 @@
   }
 
   tbody tr:hover {
-    @apply bg-muted/40;
+    background: var(--bg-hover);
   }
 
   tbody td:first-child {
