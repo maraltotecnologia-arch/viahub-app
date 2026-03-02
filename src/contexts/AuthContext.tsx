@@ -15,6 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    document.documentElement.setAttribute('data-theme', 'light');
   };
 
   useEffect(() => {
