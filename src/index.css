@@ -47,8 +47,10 @@
   * {
     @apply border-border;
   }
+  html,
   body {
-    @apply bg-background text-foreground;
+    background: #F8FAFC;
+    @apply text-foreground;
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
