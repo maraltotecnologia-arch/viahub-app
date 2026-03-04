@@ -103,7 +103,7 @@ export default function ClienteDetalhe() {
   const clienteTags = (cliente as any).tags || [];
 
   return (
-    <div className="space-y-6 max-w-3xl animate-fade-in">
+    <div className="space-y-6 max-w-3xl animate-fade-in-up">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" asChild><Link to="/clientes"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <h2 className="text-2xl font-bold">{form.nome}</h2>

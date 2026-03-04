@@ -182,7 +182,7 @@ export default function AdminAgenciaDetalhe() {
     : 0;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <Button variant="ghost" size="sm" onClick={() => navigate("/admin/agencias")}>
         <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
       </Button>

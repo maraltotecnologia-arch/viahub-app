@@ -68,7 +68,7 @@ export default function Pipeline() {
 
   return (
     <TooltipProvider>
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <h2 className="text-2xl font-bold">Pipeline</h2>
       {(!orcamentos || orcamentos.length === 0) ? (
         <EmptyState

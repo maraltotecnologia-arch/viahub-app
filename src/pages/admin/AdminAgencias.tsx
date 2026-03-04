@@ -91,7 +91,7 @@ export default function AdminAgencias() {
     .reduce((s, a) => s + (planoPreco[a.plano || "starter_a"] || 0), 0) ?? 0;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Agências</h2>
         <Button onClick={() => navigate("/admin/agencias/nova")}>

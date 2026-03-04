@@ -400,7 +400,7 @@ export default function OrcamentoDetalhe() {
   const pdfData = buildPdfData();
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       {/* Follow-up reminder */}
       {orc.status === "enviado" && orc.enviado_whatsapp_em && (() => {
         const horario: HorarioFuncionamento =
