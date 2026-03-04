@@ -22,6 +22,8 @@ interface ClienteResult {
 }
 
 export default function GlobalSearch() {
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  const shortcutLabel = isMac ? '⌘K' : 'Ctrl+K';
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -171,7 +173,7 @@ export default function GlobalSearch() {
             className="hidden md:inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium"
             style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border-color)" }}
           >
-            ⌘K
+            {shortcutLabel}
           </kbd>
         )}
       </div>

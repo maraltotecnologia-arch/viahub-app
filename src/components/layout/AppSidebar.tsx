@@ -65,14 +65,14 @@ export function AppSidebar() {
   };
 
   const navLinkCls = (isActive: boolean) =>
-    `flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-sm transition-all duration-150 ${
+    `flex items-center ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-4 py-2.5"} rounded-[10px] text-sm transition-all duration-150 ${
       isActive
         ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
         : `${isDark ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/80 hover:bg-white/20 hover:text-white"}`
     }`;
 
   const navLinkClsInset = (isActive: boolean) =>
-    `flex items-center gap-3 pl-10 pr-3 py-2 rounded-[10px] text-sm transition-all duration-150 ${
+    `flex items-center ${collapsed ? "justify-center px-0 py-3" : "gap-3 pl-10 pr-3 py-2"} rounded-[10px] text-sm transition-all duration-150 ${
       isActive
         ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
         : `${isDark ? "text-white/70 hover:bg-white/10" : "text-white/80 hover:bg-white/20"}`
@@ -84,15 +84,22 @@ export function AppSidebar() {
       className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
     >
       <SidebarContent>
-        <div className="p-4 pb-5 border-b border-sidebar-border">
-          <h1 className="text-xl font-extrabold tracking-tight">
-            <span className="text-sidebar-primary">Via</span>
-            <span className="text-sidebar-accent-foreground">Hub</span>
-          </h1>
-          {!collapsed && (
-            <p className="text-[10px] text-white/[0.35] mt-0.5 tracking-wide uppercase">
-              O ecossistema da sua agência
-            </p>
+        <div className={`border-b border-sidebar-border ${collapsed ? "p-3 pb-3 flex items-center justify-center" : "p-4 pb-5"}`}>
+          {collapsed ? (
+            <span className="text-base font-extrabold tracking-tight">
+              <span className="text-sidebar-primary">V</span>
+              <span className="text-sidebar-accent-foreground">H</span>
+            </span>
+          ) : (
+            <>
+              <h1 className="text-xl font-extrabold tracking-tight">
+                <span className="text-sidebar-primary">Via</span>
+                <span className="text-sidebar-accent-foreground">Hub</span>
+              </h1>
+              <p className="text-[10px] text-white/[0.35] mt-0.5 tracking-wide uppercase">
+                O ecossistema da sua agência
+              </p>
+            </>
           )}
         </div>
 
@@ -105,13 +112,18 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       className={({ isActive }) =>
-                        navLinkCls(isActive)
+                        `${navLinkCls(isActive)} ${collapsed ? "relative" : ""}`
                       }
                     >
-                      <item.icon className="h-4 w-4 shrink-0 opacity-80" />
+                      <item.icon className="h-5 w-5 shrink-0 opacity-80" />
                       {!collapsed && <span className="flex-1">{item.title}</span>}
-                      {item.badge > 0 && (
+                      {!collapsed && item.badge > 0 && (
                         <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                          {item.badge}
+                        </span>
+                      )}
+                      {collapsed && item.badge > 0 && (
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
                           {item.badge}
                         </span>
                       )}
@@ -131,7 +143,7 @@ export function AppSidebar() {
                   isDark ? "text-white/30 hover:text-white/90 hover:bg-white/10" : "text-white/40 hover:text-white/95 hover:bg-white/20"
                 }`}
               >
-                <Settings className="h-4 w-4 shrink-0" />
+                <Settings className="h-5 w-5 shrink-0" />
                 {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
               </CollapsibleTrigger>
               <CollapsibleContent>
@@ -146,7 +158,7 @@ export function AppSidebar() {
                               navLinkClsInset(isActive)
                             }
                           >
-                            <item.icon className="h-3.5 w-3.5 shrink-0" />
+                            <item.icon className="h-5 w-5 shrink-0" />
                             {!collapsed && <span>{item.title}</span>}
                           </NavLink>
                         </SidebarMenuButton>
@@ -177,7 +189,7 @@ export function AppSidebar() {
                         navLinkCls(isActive)
                       }
                     >
-                      <Building2 className="h-4 w-4 shrink-0" />
+                      <Building2 className="h-5 w-5 shrink-0" />
                       {!collapsed && <span>Agências</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -187,13 +199,18 @@ export function AppSidebar() {
                     <NavLink
                       to="/admin/notificacoes"
                       className={({ isActive }) =>
-                        navLinkCls(isActive)
+                        `${navLinkCls(isActive)} ${collapsed ? "relative" : ""}`
                       }
                     >
-                      <Bell className="h-4 w-4 shrink-0" />
+                      <Bell className="h-5 w-5 shrink-0" />
                       {!collapsed && <span className="flex-1">Notificações</span>}
                       {!collapsed && (recentNotifCount ?? 0) > 0 && (
                         <span className="ml-auto inline-flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                          {recentNotifCount}
+                        </span>
+                      )}
+                      {collapsed && (recentNotifCount ?? 0) > 0 && (
+                        <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-blue-500 text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
                           {recentNotifCount}
                         </span>
                       )}
