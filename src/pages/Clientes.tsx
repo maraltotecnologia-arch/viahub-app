@@ -16,8 +16,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import SortableTableHead from "@/components/SortableTableHead";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
 
 const PAGE_SIZE = 20;
+
+const TAG_FILTERS = ["Todos", "VIP", "Corporativo", "Recorrente", "Prospect", "Inativo"] as const;
 
 export default function Clientes() {
   const agenciaId = useAgenciaId();
@@ -34,8 +37,8 @@ export default function Clientes() {
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+  const [tagFilter, setTagFilter] = useState<string>("Todos");
 
-  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearch(searchInput);
@@ -50,17 +53,21 @@ export default function Clientes() {
   };
 
   const { data, isLoading } = useQuery({
-    queryKey: ["clientes", agenciaId, search, page, ordenacao.campo, ordenacao.direcao],
+    queryKey: ["clientes", agenciaId, search, page, ordenacao.campo, ordenacao.direcao, tagFilter],
     enabled: !!agenciaId,
     queryFn: async () => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, email, telefone, criado_em, orcamentos(count)", { count: "exact" })
+        .select("id, nome, email, telefone, criado_em, tags, orcamentos(count)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
         .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
       if (search.trim()) {
         query = query.or(`nome.ilike.%${search}%,email.ilike.%${search}%`);
+      }
+
+      if (tagFilter !== "Todos") {
+        query = query.contains("tags" as any, [tagFilter]);
       }
 
       query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
@@ -115,10 +122,28 @@ export default function Clientes() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar por nome ou email..." className="pl-9" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} />
+          </div>
+          {/* Tag filter */}
+          <div className="flex flex-wrap gap-2">
+            {TAG_FILTERS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => { setTagFilter(tag); setPage(0); }}
+                className="px-3 py-1 rounded-full text-xs font-medium transition-all border"
+                style={
+                  tagFilter === tag
+                    ? { backgroundColor: "#2563EB", color: "#FFFFFF", borderColor: "#2563EB" }
+                    : { backgroundColor: "transparent", borderColor: "var(--border-input)", color: "var(--text-secondary)" }
+                }
+              >
+                {tag}
+              </button>
+            ))}
           </div>
         </CardHeader>
         <CardContent>
@@ -126,11 +151,12 @@ export default function Clientes() {
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
           ) : isMobile ? (
             <div className="space-y-3">
-              {data?.rows?.map((c) => (
+              {data?.rows?.map((c: any) => (
                 <Link key={c.id} to={`/clientes/${c.id}`} className="block">
                   <Card className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4 space-y-1">
                       <p className="font-medium text-sm">{c.nome}</p>
+                      {c.tags && c.tags.length > 0 && <ClienteTagBadges tags={c.tags} />}
                       {c.email && <p className="text-xs text-muted-foreground">{c.email}</p>}
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>{c.telefone || "-"}</span>
@@ -156,6 +182,7 @@ export default function Clientes() {
                 <TableHeader>
                   <TableRow>
                     <SortableTableHead label="Nome" field="nome" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <TableHead>Tags</TableHead>
                     <SortableTableHead label="Email" field="email" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                     <SortableTableHead label="Telefone" field="telefone" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                     <TableHead>Orçamentos</TableHead>
@@ -163,9 +190,10 @@ export default function Clientes() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data?.rows?.map((c) => (
+                  {data?.rows?.map((c: any) => (
                     <TableRow key={c.id} className="cursor-pointer hover:bg-muted/50">
                       <TableCell><Link to={`/clientes/${c.id}`} className="font-medium hover:text-primary">{c.nome}</Link></TableCell>
+                      <TableCell><ClienteTagBadges tags={c.tags || []} /></TableCell>
                       <TableCell>{c.email || "-"}</TableCell>
                       <TableCell>{c.telefone || "-"}</TableCell>
                       <TableCell className="font-semibold">{(c.orcamentos as any)?.[0]?.count ?? 0}</TableCell>
@@ -173,7 +201,7 @@ export default function Clientes() {
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (
-                    <TableRow><TableCell colSpan={5}>
+                    <TableRow><TableCell colSpan={6}>
                       <EmptyState
                         icon={<Users className="h-9 w-9" />}
                         title="Nenhum cliente cadastrado"
