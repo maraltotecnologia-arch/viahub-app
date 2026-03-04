@@ -215,31 +215,31 @@ export default function AdminAgenciaDetalhe() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Orçamentos</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Orçamentos</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{metrics?.totalOrcamentos ?? 0}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{metrics?.totalOrcamentos ?? 0}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Clientes</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Clientes</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{metrics?.totalClientes ?? 0}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{metrics?.totalClientes ?? 0}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Orçam. este mês</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Orçam. este mês</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{metrics?.orcamentosMes ?? 0}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{metrics?.orcamentosMes ?? 0}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Valor orçado (mês)</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Valor orçado (mês)</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{fmt(metrics?.valorMes ?? 0)}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(metrics?.valorMes ?? 0)}</div></CardContent>
         </Card>
       </div>
 
