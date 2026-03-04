@@ -32,7 +32,7 @@ const PERIODOS = [
 ];
 
 const TIPOS_SERVICO = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
-const STATUS_OPTIONS = ["Todos", "aprovado", "emitido"];
+const STATUS_OPTIONS = ["Todos", "aprovado", "emitido", "pago"];
 const PIE_COLORS = ["#2563EB", "#06B6D4", "#8B5CF6", "#F59E0B", "#10B981", "#EF4444"];
 const PAGE_SIZE = 20;
 
@@ -88,7 +88,7 @@ export default function Relatorios() {
       if (appliedFilters.status !== "Todos") {
         query = query.eq("status", appliedFilters.status);
       } else {
-        query = query.in("status", ["aprovado", "emitido"]);
+        query = query.in("status", ["aprovado", "emitido", "pago"]);
       }
 
       const { data: orcamentos, error } = await query;

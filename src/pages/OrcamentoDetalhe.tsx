@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2 } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -42,12 +42,12 @@ import { registrarHistorico } from "@/lib/historico-orcamento";
 import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
-  rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
+  rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info", pago: "success",
 };
 
-const allStatuses = ["rascunho", "enviado", "aprovado", "perdido", "emitido"];
+const allStatuses = ["rascunho", "enviado", "aprovado", "perdido", "emitido", "pago"];
 const statusLabels: Record<string, string> = {
-  rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", perdido: "Perdido", emitido: "Emitido",
+  rascunho: "Rascunho", enviado: "Enviado", aprovado: "Aprovado", perdido: "Perdido", emitido: "Emitido", pago: "Pago",
 };
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -69,6 +69,8 @@ export default function OrcamentoDetalhe() {
   const [templateNome, setTemplateNome] = useState("");
   const [templateDescricao, setTemplateDescricao] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
+  const [showPagoConfirm, setShowPagoConfirm] = useState(false);
+  const [markingPago, setMarkingPago] = useState(false);
 
   // Collapsible state with localStorage persistence
   const [historicoOpen, setHistoricoOpen] = useState(() => {
@@ -219,6 +221,33 @@ export default function OrcamentoDetalhe() {
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
     }
     setChangingStatus(false);
+  };
+
+  const handleMarcarPago = async () => {
+    if (!id || !orc) return;
+    setMarkingPago(true);
+    const { error } = await supabase.from("orcamentos").update({ status: "pago", pago_em: new Date().toISOString() } as any).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao registrar pagamento", variant: "destructive" });
+    } else {
+      if (user && agenciaId) {
+        await registrarHistorico({
+          orcamento_id: id,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "status_alterado",
+          status_anterior: "emitido",
+          status_novo: "pago",
+          descricao: "Pagamento confirmado",
+        });
+        queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      toast({ title: "Pagamento registrado com sucesso!" });
+    }
+    setMarkingPago(false);
+    setShowPagoConfirm(false);
   };
 
   const handleDuplicate = async () => {
@@ -612,6 +641,16 @@ export default function OrcamentoDetalhe() {
               <Button variant="outline" className="w-full justify-start" onClick={() => setShowDuplicateConfirm(true)} disabled={duplicating}>
                 <Copy className="h-4 w-4 mr-2" /> {duplicating ? "Duplicando..." : "Duplicar"}
               </Button>
+              {orc.status === "emitido" && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start border-success/50 text-success hover:bg-success/10"
+                  onClick={() => setShowPagoConfirm(true)}
+                  disabled={markingPago}
+                >
+                  <CheckCheck className="h-4 w-4 mr-2" /> {markingPago ? "Processando..." : "✓ Marcar como Pago"}
+                </Button>
+              )}
               <Button variant="outline" className="w-full justify-start" onClick={() => setShowSaveTemplate(true)}>
                 <BookmarkPlus className="h-4 w-4 mr-2" /> Salvar como Template
               </Button>
@@ -660,6 +699,16 @@ export default function OrcamentoDetalhe() {
         agenciaNome={agencia?.nome_fantasia || ""}
         onSend={handleWhatsAppSend}
         followUpMode={orc.status === "enviado" && orc.enviado_whatsapp_em ? calcularDiasUteis(new Date(orc.enviado_whatsapp_em), (agencia?.horario_funcionamento as unknown as HorarioFuncionamento) || DEFAULT_HORARIO) >= 1 : false}
+      />
+
+      <ConfirmDialog
+        open={showPagoConfirm}
+        onOpenChange={setShowPagoConfirm}
+        title="Confirmar pagamento recebido?"
+        description="Esta ação não pode ser desfeita. O orçamento será marcado como pago."
+        confirmLabel="Confirmar Pagamento"
+        variant="default"
+        onConfirm={handleMarcarPago}
       />
 
       <ConfirmDialog
