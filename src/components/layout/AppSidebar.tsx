@@ -182,6 +182,24 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/notificacoes"
+                      className={({ isActive }) =>
+                        navLinkCls(isActive)
+                      }
+                    >
+                      <Bell className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span className="flex-1">Notificações</span>}
+                      {!collapsed && (recentNotifCount ?? 0) > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                          {recentNotifCount}
+                        </span>
+                      )}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
