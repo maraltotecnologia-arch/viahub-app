@@ -111,7 +111,12 @@ export default function Login() {
           <div className="flex-1 h-px bg-border" />
         </div>
 
-        <p className="text-center text-xs text-[#94A3B8]">
+        <p className="text-center text-sm text-[#64748B]">
+          Não tem uma conta?{" "}
+          <Link to="/cadastro" className="text-[#2563EB] font-medium hover:underline">Criar conta grátis</Link>
+        </p>
+
+        <p className="text-center text-xs text-[#94A3B8] mt-4">
           ViaHub — Ecossistema para agências de viagem
         </p>
       </div>
