@@ -11,7 +11,7 @@
   --bg-sidebar: #0B1120;
   --bg-header: rgba(15,23,42,0.95);
   --bg-input: #1E293B;
-  --bg-hover: #253047;
+  --bg-hover: #1a2540;
 
   --text-primary: #F8FAFC;
   --text-secondary: #CBD5E1;
@@ -251,12 +251,21 @@ body {
   }
 
   tbody tr:hover {
-    background: var(--bg-hover);
+    background: var(--bg-hover) !important;
   }
 
   tbody td:first-child {
     @apply font-medium text-foreground;
   }
+}
+
+/* Toggle switch verde/vermelho */
+[role="switch"][data-state="checked"] {
+  background-color: #22C55E !important;
+}
+
+[role="switch"][data-state="unchecked"] {
+  background-color: #EF4444 !important;
 }
 
 @layer utilities {
