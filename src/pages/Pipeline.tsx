@@ -49,13 +49,30 @@ export default function Pipeline() {
   const handleDrop = async (newStatus: string) => {
     setDropTarget(null);
     if (!dragId) return;
+
+    const oldStatus = orcamentos?.find((o) => o.id === dragId)?.status;
+    if (oldStatus === newStatus) { setDragId(null); return; }
+
     setJustDropped(dragId);
     setTimeout(() => setJustDropped(null), 300);
 
     const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", dragId);
     if (error) { toast({ title: "Erro ao mover", variant: "destructive" }); } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && agenciaId) {
+        await registrarHistorico({
+          orcamento_id: dragId,
+          usuario_id: user.id,
+          agencia_id: agenciaId,
+          tipo: "status_alterado",
+          status_anterior: oldStatus || null,
+          status_novo: newStatus,
+          descricao: `Status alterado de "${oldStatus}" para "${newStatus}" via Pipeline`,
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["pipeline"] });
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["historico-orcamento"] });
     }
     setDragId(null);
   };
