@@ -49,22 +49,6 @@ const maskCNPJ = (v: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
-const maskTelefone = (v: string) => {
-  const d = v.replace(/\D/g, '').slice(0, 11);
-  if (d.length <= 10)
-    return d.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
-  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
-};
-
-const maskCNPJ = (v: string) => {
-  const d = v.replace(/\D/g, '').slice(0, 14);
-  return d
-    .replace(/(\d{2})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1.$2')
-    .replace(/(\d{3})(\d)/, '$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
-};
-
 type FieldErrors = Record<string, string>;
 
 export default function Cadastro() {
