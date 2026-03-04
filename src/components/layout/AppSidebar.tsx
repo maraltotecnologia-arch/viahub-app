@@ -65,14 +65,14 @@ export function AppSidebar() {
   };
 
   const navLinkCls = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-0 py-3" : "gap-3 px-4 py-2.5"} rounded-[10px] text-sm transition-all duration-150 ${
+    `flex items-center ${collapsed ? "justify-start pl-5 pr-0 py-2.5" : "gap-3 px-4 py-2.5"} rounded-[10px] text-sm transition-all duration-150 ${
       isActive
         ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
         : `${isDark ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/80 hover:bg-white/20 hover:text-white"}`
     }`;
 
   const navLinkClsInset = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-0 py-3" : "gap-3 pl-10 pr-3 py-2"} rounded-[10px] text-sm transition-all duration-150 ${
+    `flex items-center ${collapsed ? "justify-start pl-5 pr-0 py-2.5" : "gap-3 pl-10 pr-3 py-2"} rounded-[10px] text-sm transition-all duration-150 ${
       isActive
         ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
         : `${isDark ? "text-white/70 hover:bg-white/10" : "text-white/80 hover:bg-white/20"}`
@@ -84,7 +84,7 @@ export function AppSidebar() {
       className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
     >
       <SidebarContent>
-        <div className={`border-b border-sidebar-border ${collapsed ? "p-3 pb-3 flex items-center justify-center" : "p-4 pb-5"}`}>
+        <div className={`border-b border-sidebar-border ${collapsed ? "py-3 pl-4 pr-2 flex items-center justify-start" : "p-4 pb-5"}`}>
           {collapsed ? (
             <span className="text-base font-extrabold tracking-tight">
               <span className="text-sidebar-primary">V</span>
@@ -111,6 +111,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to={item.url}
+                      title={collapsed ? item.title : undefined}
                       className={({ isActive }) =>
                         `${navLinkCls(isActive)} ${collapsed ? "relative" : ""}`
                       }
@@ -139,7 +140,8 @@ export function AppSidebar() {
           <SidebarGroup>
             <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
               <CollapsibleTrigger
-                className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full rounded-[10px] transition-all duration-150 ${
+                title={collapsed ? "Configurações" : undefined}
+                className={`flex items-center ${collapsed ? "justify-start pl-5 pr-0 py-2.5" : "gap-3 px-4 py-2.5"} text-sm w-full rounded-[10px] transition-all duration-150 ${
                   isDark ? "text-white/30 hover:text-white/90 hover:bg-white/10" : "text-white/40 hover:text-white/95 hover:bg-white/20"
                 }`}
               >
@@ -154,6 +156,7 @@ export function AppSidebar() {
                         <SidebarMenuButton asChild>
                           <NavLink
                             to={item.url}
+                            title={collapsed ? item.title : undefined}
                             className={({ isActive }) =>
                               navLinkClsInset(isActive)
                             }
@@ -173,18 +176,21 @@ export function AppSidebar() {
 
         {isSuperadmin && (
           <SidebarGroup>
-            <div className="px-3 py-2">
-              <Separator className="mb-2 bg-white/[0.08]" />
-              <p className={`text-[10px] uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1 ${isDark ? "text-white/30" : "text-white/40"}`}>
-                <Shield className="h-3 w-3" /> Administração
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="px-3 py-2">
+                <Separator className="mb-2 bg-white/[0.08]" />
+                <p className={`text-[10px] uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1 ${isDark ? "text-white/30" : "text-white/40"}`}>
+                  <Shield className="h-3 w-3" /> Administração
+                </p>
+              </div>
+            )}
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <NavLink
                       to="/admin/agencias"
+                      title={collapsed ? "Agências" : undefined}
                       className={({ isActive }) =>
                         navLinkCls(isActive)
                       }
@@ -198,6 +204,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild>
                     <NavLink
                       to="/admin/notificacoes"
+                      title={collapsed ? "Notificações" : undefined}
                       className={({ isActive }) =>
                         `${navLinkCls(isActive)} ${collapsed ? "relative" : ""}`
                       }
@@ -224,8 +231,8 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
-        <div className="flex items-center gap-3 px-4 py-3 border-t border-white/[0.06] bg-white/[0.04]">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
+        <div className={`flex items-center border-t border-white/[0.06] bg-white/[0.04] overflow-hidden ${collapsed ? "gap-0 py-3 pl-4 pr-2" : "gap-3 px-4 py-3"}`}>
+          <div className={`rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold shrink-0 ${collapsed ? "h-8 w-8 text-[11px]" : "h-8 w-8 text-xs"}`}>
             {initials}
           </div>
           {!collapsed && (
@@ -234,9 +241,11 @@ export function AppSidebar() {
               <p className="text-xs text-white/40">{cargoLabel}</p>
             </div>
           )}
-          <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
-            <LogOut className="h-4 w-4" />
-          </button>
+          {!collapsed && (
+            <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
+              <LogOut className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>
