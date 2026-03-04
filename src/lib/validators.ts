@@ -32,7 +32,8 @@ const transicoes: Record<string, string[]> = {
   rascunho: ["enviado", "perdido"],
   enviado: ["aprovado", "perdido", "rascunho"],
   aprovado: ["emitido", "perdido"],
-  emitido: [],
+  emitido: ["pago"],
+  pago: [],
   perdido: ["rascunho"],
 };
 

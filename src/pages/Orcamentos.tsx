@@ -129,6 +129,7 @@ export default function Orcamentos() {
                 <SelectItem value="aprovado">Aprovado</SelectItem>
                 <SelectItem value="perdido">Perdido</SelectItem>
                 <SelectItem value="emitido">Emitido</SelectItem>
+                <SelectItem value="pago">Pago</SelectItem>
               </SelectContent>
             </Select>
           </div>

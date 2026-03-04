@@ -1,4 +1,4 @@
-import { FileText, Send, CheckCircle, XCircle, Award } from "lucide-react";
+import { FileText, Send, CheckCircle, XCircle, Award, CheckCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -28,6 +28,11 @@ const statusConfig: Record<string, { label: string; className: string; icon: Luc
     className: "bg-info/10 text-info border border-info/20",
     icon: Award,
   },
+  pago: {
+    label: "Pago",
+    className: "border",
+    icon: CheckCheck,
+  },
 };
 
 interface StatusBadgeProps {
@@ -46,13 +51,14 @@ export default function StatusBadge({ status, className = "" }: StatusBadgeProps
     aprovado: { background: "rgba(16,185,129,0.3)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.4)" },
     perdido: { background: "rgba(239,68,68,0.3)", color: "#FCA5A5", border: "1px solid rgba(239,68,68,0.4)" },
     emitido: { background: "rgba(139,92,246,0.3)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+    pago: { background: "rgba(16,185,129,0.3)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.4)" },
   };
   const style = isDark ? (darkStyleByStatus[status] ?? darkStyleByStatus.rascunho) : undefined;
 
   return (
     <span
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${!isDark ? config.className : ""} ${className}`}
-      style={style}
+      style={style || (status === "pago" && !isDark ? { background: "#D1FAE5", color: "#065F46", border: "1px solid #6EE7B7" } : style)}
     >
       <Icon className="w-3 h-3" />
       {config.label}
