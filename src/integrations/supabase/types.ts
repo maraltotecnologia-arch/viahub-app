@@ -431,30 +431,44 @@ export type Database = {
       }
       notificacoes_sistema: {
         Row: {
+          agencia_id: string | null
           ativo: boolean | null
           criado_em: string | null
+          destinatario: string | null
           id: string
           mensagem: string
           tipo: string | null
           titulo: string
         }
         Insert: {
+          agencia_id?: string | null
           ativo?: boolean | null
           criado_em?: string | null
+          destinatario?: string | null
           id?: string
           mensagem: string
           tipo?: string | null
           titulo: string
         }
         Update: {
+          agencia_id?: string | null
           ativo?: boolean | null
           criado_em?: string | null
+          destinatario?: string | null
           id?: string
           mensagem?: string
           tipo?: string | null
           titulo?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_sistema_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orcamentos: {
         Row: {
