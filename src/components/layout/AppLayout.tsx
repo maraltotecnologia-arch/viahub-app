@@ -68,7 +68,7 @@ export default function AppLayout() {
               backdropFilter: "blur(12px)",
             }}
           >
-            <SidebarTrigger className="shrink-0">
+            <SidebarTrigger className="shrink-0" title="Recolher menu">
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
             <div className="ml-auto flex items-center gap-3">
@@ -92,7 +92,10 @@ export default function AppLayout() {
                 {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
               <NotificacoesDropdown />
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm">
+              <div
+                className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm"
+                title="Meu perfil"
+              >
                 {initials}
               </div>
             </div>

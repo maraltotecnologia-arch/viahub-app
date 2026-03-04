@@ -37,7 +37,7 @@ export default function NotificacoesDropdown() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-[10px] bg-muted/50 hover:bg-muted transition-colors">
+        <button className="relative p-2 rounded-[10px] bg-muted/50 hover:bg-muted transition-colors" title="Notificações">
           <Bell className="h-5 w-5 text-muted-foreground" />
           {total > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-bold px-1">

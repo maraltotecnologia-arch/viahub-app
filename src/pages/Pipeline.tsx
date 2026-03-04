@@ -14,12 +14,12 @@ import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 
-const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info" }[] = [
-  { id: "rascunho", title: "Rascunho", variant: "muted" },
-  { id: "enviado", title: "Enviado", variant: "default" },
-  { id: "aprovado", title: "Aprovado", variant: "success" },
-  { id: "perdido", title: "Perdido", variant: "destructive" },
-  { id: "emitido", title: "Emitido", variant: "info" },
+const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info"; borderColor: string }[] = [
+  { id: "rascunho", title: "Rascunho", variant: "muted", borderColor: "#64748B" },
+  { id: "enviado", title: "Enviado", variant: "default", borderColor: "#2563EB" },
+  { id: "aprovado", title: "Aprovado", variant: "success", borderColor: "#22C55E" },
+  { id: "perdido", title: "Perdido", variant: "destructive", borderColor: "#EF4444" },
+  { id: "emitido", title: "Emitido", variant: "info", borderColor: "#8B5CF6" },
 ];
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -135,6 +135,9 @@ export default function Pipeline() {
                             isDragging ? "shadow-lg" : ""
                           } ${diasParaVencer <= 3 && diasParaVencer >= 0 ? "border-accent border-2" : ""
                           } ${diasParaVencer < 0 ? "opacity-60" : ""}`}
+                          style={{
+                            borderLeft: diasParaVencer <= 3 && diasParaVencer >= 0 ? undefined : `3px solid ${col.borderColor}`,
+                          }}
                         >
                           <CardContent className="p-4">
                             <div className="flex items-center gap-1">
