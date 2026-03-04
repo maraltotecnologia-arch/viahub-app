@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,11 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-utils";
+import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
+import ContatosCliente from "@/components/clientes/ContatosCliente";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -99,12 +100,22 @@ export default function ClienteDetalhe() {
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
   if (!cliente) return <div className="text-center py-12"><p className="text-muted-foreground">Cliente não encontrado</p><Button variant="link" asChild><Link to="/clientes">Voltar</Link></Button></div>;
 
+  const clienteTags = (cliente as any).tags || [];
+
   return (
     <div className="space-y-6 max-w-3xl animate-fade-in">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="icon" asChild><Link to="/clientes"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <h2 className="text-2xl font-bold">{form.nome}</h2>
       </div>
+
+      {/* Tags */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Tags</CardTitle></CardHeader>
+        <CardContent>
+          <ClienteTagSelector clienteId={cliente.id} tags={clienteTags} />
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Dados Pessoais</CardTitle></CardHeader>
@@ -131,6 +142,14 @@ export default function ClienteDetalhe() {
             <Textarea value={form.observacoes} onChange={(e) => handleObsChange(e.target.value)} />
           </div>
           <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+        </CardContent>
+      </Card>
+
+      {/* Contatos */}
+      <Card>
+        <CardHeader><CardTitle className="text-base">Contatos</CardTitle></CardHeader>
+        <CardContent>
+          <ContatosCliente clienteId={cliente.id} agenciaId={cliente.agencia_id} />
         </CardContent>
       </Card>
 

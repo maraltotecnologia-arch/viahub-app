@@ -67,6 +67,7 @@ export type Database = {
           nome: string
           observacoes: string | null
           passaporte: string | null
+          tags: string[] | null
           telefone: string | null
         }
         Insert: {
@@ -79,6 +80,7 @@ export type Database = {
           nome: string
           observacoes?: string | null
           passaporte?: string | null
+          tags?: string[] | null
           telefone?: string | null
         }
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           nome?: string
           observacoes?: string | null
           passaporte?: string | null
+          tags?: string[] | null
           telefone?: string | null
         }
         Relationships: [
@@ -189,6 +192,57 @@ export type Database = {
             columns: ["agencia_id"]
             isOneToOne: false
             referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contatos_cliente: {
+        Row: {
+          agencia_id: string
+          cargo: string | null
+          cliente_id: string
+          criado_em: string | null
+          email: string | null
+          id: string
+          nome: string
+          principal: boolean | null
+          telefone: string | null
+        }
+        Insert: {
+          agencia_id: string
+          cargo?: string | null
+          cliente_id: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          principal?: boolean | null
+          telefone?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          cargo?: string | null
+          cliente_id?: string
+          criado_em?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          principal?: boolean | null
+          telefone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contatos_cliente_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contatos_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
             referencedColumns: ["id"]
           },
         ]
