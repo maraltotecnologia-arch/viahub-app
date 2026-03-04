@@ -26,6 +26,7 @@ import ConfigTemplates from "./pages/ConfigTemplates";
 import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
+import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Cadastro from "./pages/Cadastro";
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="/admin/agencias" element={<AdminAgencias />} />
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
+        <Route path="/admin/notificacoes" element={<AdminNotificacoes />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

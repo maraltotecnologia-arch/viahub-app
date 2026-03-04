@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, ChevronDown, Building2, Shield, Bell } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import useAlertas from "@/hooks/useAlertas";
+import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -23,6 +24,23 @@ export function AppSidebar() {
   const { isSuperadmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
   const agenciaId = useAgenciaId();
   const { data: alertas } = useAlertas(isSuperadmin ? null : agenciaId);
+
+  // Count notifications sent in the last 7 days for superadmin badge
+  const { data: recentNotifCount } = useQuery({
+    queryKey: ["admin-notif-count-7d"],
+    enabled: isSuperadmin,
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async () => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { count, error } = await supabase
+        .from("notificacoes_sistema")
+        .select("*", { count: "exact", head: true })
+        .gte("criado_em", sevenDaysAgo.toISOString());
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const initials = nome ? nome.slice(0, 2).toUpperCase() : user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
@@ -161,6 +179,24 @@ export function AppSidebar() {
                     >
                       <Building2 className="h-4 w-4 shrink-0" />
                       {!collapsed && <span>Agências</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/admin/notificacoes"
+                      className={({ isActive }) =>
+                        navLinkCls(isActive)
+                      }
+                    >
+                      <Bell className="h-4 w-4 shrink-0" />
+                      {!collapsed && <span className="flex-1">Notificações</span>}
+                      {!collapsed && (recentNotifCount ?? 0) > 0 && (
+                        <span className="ml-auto inline-flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                          {recentNotifCount}
+                        </span>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
