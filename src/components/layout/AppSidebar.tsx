@@ -138,39 +138,51 @@ export function AppSidebar() {
 
         {canAccessConfig && (
           <SidebarGroup>
-            <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
-              <CollapsibleTrigger
-                title={collapsed ? "Configurações" : undefined}
-                className={`flex items-center ${collapsed ? "justify-start pl-5 pr-0 py-2.5" : "gap-3 px-4 py-2.5"} text-sm w-full rounded-[10px] transition-all duration-150 ${
-                  isDark ? "text-white/30 hover:text-white/90 hover:bg-white/10" : "text-white/40 hover:text-white/95 hover:bg-white/20"
-                }`}
-              >
-                <Settings className="h-5 w-5 shrink-0" />
-                {!collapsed && (<><span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" /></>)}
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {configItems.map((item) => (
-                      <SidebarMenuItem key={item.title}>
-                        <SidebarMenuButton asChild>
-                          <NavLink
-                            to={item.url}
-                            title={collapsed ? item.title : undefined}
-                            className={({ isActive }) =>
-                              navLinkClsInset(isActive)
-                            }
-                          >
-                            <item.icon className="h-5 w-5 shrink-0" />
-                            {!collapsed && <span>{item.title}</span>}
-                          </NavLink>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </CollapsibleContent>
-            </Collapsible>
+            {collapsed ? (
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/configuracoes/markup"
+                      title="Configurações"
+                      className={({ isActive }) => navLinkCls(isActive)}
+                    >
+                      <Settings className="h-5 w-5 shrink-0 opacity-80" />
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            ) : (
+              <Collapsible defaultOpen={location.pathname.startsWith("/configuracoes")}>
+                <CollapsibleTrigger
+                  className={`flex items-center gap-3 px-4 py-2.5 text-sm w-full rounded-[10px] transition-all duration-150 ${
+                    isDark ? "text-white/30 hover:text-white/90 hover:bg-white/10" : "text-white/40 hover:text-white/95 hover:bg-white/20"
+                  }`}
+                >
+                  <Settings className="h-5 w-5 shrink-0" />
+                  <span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarGroupContent>
+                    <SidebarMenu>
+                      {configItems.map((item) => (
+                        <SidebarMenuItem key={item.title}>
+                          <SidebarMenuButton asChild>
+                            <NavLink
+                              to={item.url}
+                              className={({ isActive }) => navLinkClsInset(isActive)}
+                            >
+                              <item.icon className="h-5 w-5 shrink-0" />
+                              <span>{item.title}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      ))}
+                    </SidebarMenu>
+                  </SidebarGroupContent>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </SidebarGroup>
         )}
 
@@ -230,24 +242,22 @@ export function AppSidebar() {
         )}
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className={`flex items-center border-t border-white/[0.06] bg-white/[0.04] overflow-hidden ${collapsed ? "gap-0 py-3 pl-4 pr-2" : "gap-3 px-4 py-3"}`}>
-          <div className={`rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold shrink-0 ${collapsed ? "h-8 w-8 text-[11px]" : "h-8 w-8 text-xs"}`}>
-            {initials}
-          </div>
-          {!collapsed && (
+      {!collapsed && (
+        <SidebarFooter>
+          <div className="flex items-center border-t border-white/[0.06] bg-white/[0.04] gap-3 px-4 py-3">
+            <div className="rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold shrink-0 h-8 w-8 text-xs">
+              {initials}
+            </div>
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-medium truncate ${isDark ? "text-white/80" : "text-white/90"}`}>{nome || user?.email || "Usuário"}</p>
               <p className="text-xs text-white/40">{cargoLabel}</p>
             </div>
-          )}
-          {!collapsed && (
             <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
               <LogOut className="h-4 w-4" />
             </button>
-          )}
-        </div>
-      </SidebarFooter>
+          </div>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
