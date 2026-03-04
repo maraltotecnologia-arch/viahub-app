@@ -485,6 +485,7 @@ export type Database = {
           moeda: string | null
           numero_orcamento: string | null
           observacoes: string | null
+          pago_em: string | null
           status: string | null
           titulo: string | null
           token_publico: string | null
@@ -507,6 +508,7 @@ export type Database = {
           moeda?: string | null
           numero_orcamento?: string | null
           observacoes?: string | null
+          pago_em?: string | null
           status?: string | null
           titulo?: string | null
           token_publico?: string | null
@@ -529,6 +531,7 @@ export type Database = {
           moeda?: string | null
           numero_orcamento?: string | null
           observacoes?: string | null
+          pago_em?: string | null
           status?: string | null
           titulo?: string | null
           token_publico?: string | null
