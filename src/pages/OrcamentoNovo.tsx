@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Save, Send, ArrowLeft, FileText } from "lucide-react";
+import { Plus, Trash2, Save, Send, ArrowLeft, FileText, X } from "lucide-react";
 import { registrarHistorico } from "@/lib/historico-orcamento";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
@@ -211,7 +211,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const selectCliente = (c: { id: string; nome: string }) => {
     setClienteId(c.id);
     setClienteNome(c.nome);
-    setClienteSearch(c.nome);
+    setClienteSearch("");
+    setClienteResults([]);
     setShowResults(false);
   };
 
@@ -490,26 +491,39 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         <CardContent>
           <div className="space-y-2 relative">
             <Label>Nome do cliente</Label>
-            <Input
-              placeholder="Buscar cliente por nome..."
-              value={clienteSearch}
-              onChange={(e) => { setClienteSearch(e.target.value); setClienteId(null); }}
-              onFocus={() => clienteResults.length > 0 && setShowResults(true)}
-            />
-            {showResults && clienteResults.length > 0 && (
-              <div className="absolute z-10 top-full left-0 right-0 bg-card border rounded-md shadow-lg mt-1">
-                {clienteResults.map((c) => (
-                  <button key={c.id} className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => selectCliente(c)}>
-                    {c.nome}
-                  </button>
-                ))}
+            {clienteId ? (
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
+                <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>✓ {clienteNome}</span>
+                <button
+                  type="button"
+                  onClick={() => { setClienteId(null); setClienteNome(""); setClienteSearch(""); }}
+                  className="ml-auto p-0.5 rounded hover:bg-muted transition-colors"
+                  title="Remover cliente"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
               </div>
-            )}
-            {clienteId && <p className="text-xs text-success">✓ Cliente selecionado: {clienteNome}</p>}
-            {!clienteId && (
-              <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => setShowNewClientModal(true)}>
-                + Criar novo cliente
-              </Button>
+            ) : (
+              <>
+                <Input
+                  placeholder="Buscar cliente por nome..."
+                  value={clienteSearch}
+                  onChange={(e) => setClienteSearch(e.target.value)}
+                  onFocus={() => clienteResults.length > 0 && setShowResults(true)}
+                />
+                {showResults && clienteResults.length > 0 && (
+                  <div className="absolute z-10 top-full left-0 right-0 bg-card border rounded-md shadow-lg mt-1">
+                    {clienteResults.map((c) => (
+                      <button key={c.id} className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => selectCliente(c)}>
+                        {c.nome}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <Button variant="link" size="sm" className="p-0 h-auto" onClick={() => setShowNewClientModal(true)}>
+                  + Criar novo cliente
+                </Button>
+              </>
             )}
           </div>
         </CardContent>
