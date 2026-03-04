@@ -8,6 +8,7 @@ import { Menu, Sun, Moon } from "lucide-react";
 import useUserRole from "@/hooks/useUserRole";
 import NotificacoesDropdown from "@/components/NotificacoesDropdown";
 import { useTheme } from "@/contexts/ThemeContext";
+import GlobalSearch from "@/components/GlobalSearch";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
   Superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
@@ -71,6 +72,7 @@ export default function AppLayout() {
               {isMobile && <Menu className="h-5 w-5" />}
             </SidebarTrigger>
             <div className="ml-auto flex items-center gap-3">
+              <GlobalSearch />
               {!isMobile && (
                 <>
                   <span className="text-sm font-medium text-foreground">{displayName}</span>
