@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import useAlertas from "@/hooks/useAlertas";
+import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
   const { state } = useSidebar();
@@ -23,6 +24,23 @@ export function AppSidebar() {
   const { isSuperadmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
   const agenciaId = useAgenciaId();
   const { data: alertas } = useAlertas(isSuperadmin ? null : agenciaId);
+
+  // Count notifications sent in the last 7 days for superadmin badge
+  const { data: recentNotifCount } = useQuery({
+    queryKey: ["admin-notif-count-7d"],
+    enabled: isSuperadmin,
+    refetchInterval: 5 * 60 * 1000,
+    queryFn: async () => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { count, error } = await supabase
+        .from("notificacoes_sistema")
+        .select("*", { count: "exact", head: true })
+        .gte("criado_em", sevenDaysAgo.toISOString());
+      if (error) throw error;
+      return count || 0;
+    },
+  });
 
   const initials = nome ? nome.slice(0, 2).toUpperCase() : user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
