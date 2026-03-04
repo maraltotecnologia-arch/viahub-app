@@ -49,6 +49,22 @@ const maskCNPJ = (v: string) => {
     .replace(/(\d{4})(\d)/, '$1-$2');
 };
 
+const maskTelefone = (v: string) => {
+  const d = v.replace(/\D/g, '').slice(0, 11);
+  if (d.length <= 10)
+    return d.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+};
+
+const maskCNPJ = (v: string) => {
+  const d = v.replace(/\D/g, '').slice(0, 14);
+  return d
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2');
+};
+
 type FieldErrors = Record<string, string>;
 
 export default function Cadastro() {
@@ -260,13 +276,13 @@ export default function Cadastro() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="telefone">Telefone *</Label>
-                  <Input id="telefone" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                  <Input id="telefone" placeholder="(11) 99999-9999" value={telefone} onChange={(e) => setTelefone(maskTelefone(e.target.value))} />
                   <FieldError field="telefone" />
                 </div>
 
                 <div className="space-y-1.5">
                   <Label htmlFor="cnpj">CNPJ (opcional)</Label>
-                  <Input id="cnpj" placeholder="00.000.000/0001-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+                  <Input id="cnpj" placeholder="00.000.000/0001-00" value={cnpj} onChange={(e) => setCnpj(maskCNPJ(e.target.value))} />
                   <FieldError field="cnpj" />
                 </div>
               </div>
