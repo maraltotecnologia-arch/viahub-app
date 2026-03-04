@@ -28,6 +28,7 @@ import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
+import Cadastro from "./pages/Cadastro";
 
 const queryClient = new QueryClient();
 
