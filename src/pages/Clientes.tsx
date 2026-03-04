@@ -101,7 +101,7 @@ export default function Clientes() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Clientes</h2>
         <Dialog open={open} onOpenChange={setOpen}>

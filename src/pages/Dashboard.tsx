@@ -50,7 +50,7 @@ export default function Dashboard() {
   }, [user, navigate]);
 
   if (checkingAccess) return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <Skeleton className="h-8 w-40" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
@@ -193,7 +193,7 @@ function SuperadminDashboard() {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <div>
         <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Painel Administrativo</h2>
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
@@ -306,7 +306,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in-up">
       <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
