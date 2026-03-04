@@ -13,6 +13,7 @@ import { Clock, LayoutGrid } from "lucide-react";
 import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import { registrarHistorico } from "@/lib/historico-orcamento";
 
 const statusConfig: { id: string; title: string; variant: "muted" | "default" | "success" | "destructive" | "info"; borderColor: string }[] = [
   { id: "rascunho", title: "Rascunho", variant: "muted", borderColor: "#64748B" },
