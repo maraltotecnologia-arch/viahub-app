@@ -40,12 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Fire-and-forget — never block auth flow
         const userId = session.user.id;
         const email = session.user.email;
-        supabase
-          .from("usuarios")
-          .select("nome, cargo, agencia_id")
-          .eq("id", userId)
-          .maybeSingle()
-          .then(({ data: usuario }) => {
+        Promise.resolve(
+          supabase
+            .from("usuarios")
+            .select("nome, cargo, agencia_id")
+            .eq("id", userId)
+            .maybeSingle()
+        ).then(({ data: usuario }) => {
             if (usuario?.agencia_id) {
               (supabase as any).from("logs_acesso").insert({
                 usuario_id: userId,
