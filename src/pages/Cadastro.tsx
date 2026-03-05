@@ -294,7 +294,7 @@ export default function Cadastro() {
                   className="mt-0.5"
                 />
                 <label htmlFor="aceite" className="text-sm text-[#64748B] leading-tight cursor-pointer">
-                  Li e aceito os <span className="text-[#2563EB] hover:underline">Termos de Uso</span> e <span className="text-[#2563EB] hover:underline">Política de Privacidade</span>
+                  Li e aceito os <a href="/termos" target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">Termos de Uso</a> e <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-[#2563EB] hover:underline">Política de Privacidade</a>
                 </label>
               </div>
               <FieldError field="aceite" />
