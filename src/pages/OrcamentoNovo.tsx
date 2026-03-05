@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
+import DatePickerInput from "@/components/ui/DatePickerInput";
 
 interface Item {
   id: string;
@@ -549,14 +550,12 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lua de mel - Maldivas" value={titulo} onChange={(e) => setTitulo(e.target.value)} /></div>
             <div className="space-y-2">
               <Label>Validade</Label>
-              <Input
-                type="date"
+              <DatePickerInput
                 value={validade}
-                min={todayStr()}
-                max="2099-12-31"
-                onChange={(e) => setValidade(e.target.value)}
-                
-                className={validade && !validarValidade(validade) ? "border-destructive" : ""}
+                onChange={setValidade}
+                placeholder="Selecione a validade"
+                minDate={new Date()}
+                maxDate={new Date(2099, 11, 31)}
               />
               {validade && !validarValidade(validade) && (
                 <p className="text-xs text-destructive">
