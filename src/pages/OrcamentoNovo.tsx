@@ -337,7 +337,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
-  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i), 0);
+  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i) * planoMultiplier, 0);
   const acrescimo = formaPagamento === "credito" ? valorFinalBase * (acrescimoCartao / 100) : 0;
   const valorFinal = valorFinalBase + acrescimo;
   const lucro = valorFinal - custoTotal;
@@ -415,7 +415,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i),
+        valor_final: calcValorFinal(i) * planoMultiplier,
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
@@ -533,7 +533,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i),
+        valor_final: calcValorFinal(i) * planoMultiplier,
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
