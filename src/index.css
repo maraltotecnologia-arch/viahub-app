@@ -1091,7 +1091,7 @@ body[data-viahub-scope="auth"] label {
   color: #94A3B8 !important;
 }
 .lp-plan-card--popular .lp-plan-card__alt-price {
-  color: #64748B !important;
+  color: #F1F5F9 !important;
 }
 .lp-plan-card--popular .lp-plan-card__feats li {
   color: #CBD5E1 !important;
@@ -1105,8 +1105,8 @@ body[data-viahub-scope="auth"] label {
   line-height: 1.5;
 }
 .lp-plan-card__alt-price {
-  font-size: 13px;
-  color: var(--lp-muted) !important;
+  font-size: 14px;
+  color: #F1F5F9 !important;
   margin-top: -8px;
 }
 .lp-plan-card__badge {
