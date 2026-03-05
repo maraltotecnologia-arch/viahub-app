@@ -23,6 +23,8 @@ import { pdf } from "@react-pdf/renderer";
 import RelatorioPDFDocument from "@/components/pdf/RelatorioPDFDocument";
 import type { RelatorioPDFProps } from "@/components/pdf/RelatorioPDFDocument";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RelatorioAgentes from "@/components/relatorios/RelatorioAgentes";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
