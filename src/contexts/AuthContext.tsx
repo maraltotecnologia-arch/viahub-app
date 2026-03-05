@@ -33,8 +33,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
+
+      if (event === "SIGNED_IN" && session?.user) {
+        // Log access asynchronously — don't block auth flow
+        try {
+          const { data: usuario } = await supabase
+            .from("usuarios")
+            .select("nome, cargo, agencia_id")
+            .eq("id", session.user.id)
+            .maybeSingle();
+
+          if (usuario?.agencia_id) {
+            await supabase.from("logs_acesso" as any).insert({
+              usuario_id: session.user.id,
+              agencia_id: usuario.agencia_id,
+              usuario_nome: usuario.nome || session.user.email,
+              cargo: usuario.cargo || "agente",
+            } as any);
+          }
+        } catch {
+          // silently ignore logging errors
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
