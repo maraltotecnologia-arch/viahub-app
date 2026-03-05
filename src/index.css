@@ -60,19 +60,19 @@ body {
               color 300ms ease;
 }
 
-/* Forçar contraste de tipografia no dark mode */
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] p,
-[data-theme="dark"] span,
-[data-theme="dark"] label {
+/* Forçar contraste de tipografia no dark mode — apenas app, não landing */
+[data-theme="dark"] h1:not(.viahub-landing *),
+[data-theme="dark"] h2:not(.viahub-landing *),
+[data-theme="dark"] h3:not(.viahub-landing *),
+[data-theme="dark"] p:not(.viahub-landing *),
+[data-theme="dark"] span:not(.viahub-landing *),
+[data-theme="dark"] label:not(.viahub-landing *) {
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .text-muted-foreground,
-[data-theme="dark"] [class*="text-gray"],
-[data-theme="dark"] [class*="text-slate"] {
+[data-theme="dark"] .text-muted-foreground:not(.viahub-landing *),
+[data-theme="dark"] [class*="text-gray"]:not(.viahub-landing *),
+[data-theme="dark"] [class*="text-slate"]:not(.viahub-landing *) {
   color: var(--text-secondary) !important;
 }
 
@@ -956,20 +956,32 @@ body[data-viahub-scope="auth"] label {
   box-shadow: 0 0 24px rgba(37,99,235,0.08);
 }
 .lp-plan-card--popular {
-  border: 1px solid transparent !important;
-  background: rgba(37,99,235,0.06) !important;
-  background-clip: padding-box !important;
-  position: relative;
+  background: #111827 !important;
+  border: 2px solid #2563EB !important;
   border-radius: 12px;
-  box-shadow: 0 0 24px rgba(37,99,235,0.1);
+  box-shadow: 0 0 32px rgba(37,99,235,0.2);
+  position: relative;
 }
-.lp-plan-card--popular::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #2563EB, #06B6D4);
-  z-index: -1;
+.lp-plan-card--popular .lp-plan-card__name {
+  color: #F1F5F9 !important;
+}
+.lp-plan-card--popular .lp-plan-card__amount {
+  color: #F1F5F9 !important;
+}
+.lp-plan-card--popular .lp-plan-card__per {
+  color: #94A3B8 !important;
+}
+.lp-plan-card--popular .lp-plan-card__desc {
+  color: #94A3B8 !important;
+}
+.lp-plan-card--popular .lp-plan-card__alt-price {
+  color: #64748B !important;
+}
+.lp-plan-card--popular .lp-plan-card__feats li {
+  color: #CBD5E1 !important;
+}
+.lp-plan-card--popular .lp-plan-card__check {
+  color: #06B6D4 !important;
 }
 .lp-plan-card__desc {
   font-size: 12px;
