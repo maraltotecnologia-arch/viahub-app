@@ -54,8 +54,8 @@ const s = StyleSheet.create({
   colStatus: { width: "12%", textAlign: "center" as const },
   colData: { width: "10%" },
   // Footer
-  footer: { position: "absolute" as const, bottom: 25, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 0.5, borderTopColor: "#CBD5E1", paddingTop: 6 },
-  footerText: { fontSize: 7, color: "#94A3B8" },
+  footer: { position: "absolute" as const, bottom: 25, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 0.5, borderTopColor: "#CBD5E1", paddingTop: 6 },
+  footerText: { fontSize: 9, color: "#94A3B8" },
 });
 
 export interface RelatorioPDFProps {
@@ -114,14 +114,11 @@ export default function RelatorioPDFDocument({ data }: { data: RelatorioPDFProps
           {pageIdx === 0 && (
             <>
               <View style={s.headerRow}>
-                <View>
+              <View>
                   {data.logoUrl ? (
                     <Image
                       src={data.logoUrl}
-                      style={{
-                        height: Math.min(data.logoDims?.height ?? 40, 40),
-                        width: Math.min(data.logoDims?.width ?? 120, 120),
-                      }}
+                      style={{ width: 60, height: 60, objectFit: "contain" }}
                     />
                   ) : (
                     <Text style={s.agencyName}>{data.agenciaNome}</Text>
@@ -202,7 +199,7 @@ export default function RelatorioPDFDocument({ data }: { data: RelatorioPDFProps
           {/* Footer */}
           <View style={s.footer} fixed>
             <Text style={s.footerText}>
-              Gerado por ViaHub · viahub.app{"\n"}Maralto Tecnologia da Informação e Serviços Digitais LTDA
+              Gerado por ViaHub · viahub.app
             </Text>
             <Text style={s.footerText}>
               Página {pageIdx + 1} de {totalPages}
