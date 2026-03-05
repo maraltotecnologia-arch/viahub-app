@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   FileText, LayoutList, Users, BarChart3, Sparkles, Bell,
-  Menu, X, Check, ArrowRight, Quote
+  Menu, X, Check, ArrowRight, Quote, Loader2
 } from "lucide-react";
 
 /* ─── helpers ─── */
@@ -102,11 +102,18 @@ export default function Index() {
 
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <Hero />
+      <hr className="lp-section-divider" />
       <Features />
+      <hr className="lp-section-divider" />
       <HowItWorks />
+      <hr className="lp-section-divider" />
       <Plans />
+      <hr className="lp-section-divider" />
       <Testimonials />
+      <hr className="lp-section-divider" />
       <CTAFinal />
+      <hr className="lp-section-divider" />
+      <ContactForm />
       <Footer />
     </div>
   );
@@ -233,6 +240,7 @@ function Features() {
               className={`lp-feature-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
               style={{ animationDelay: `${i * 80}ms` }}
             >
+              <span className="lp-feature-card__order">{String(i + 1).padStart(2, '0')}</span>
               <div className="lp-feature-card__icon">
                 <f.icon size={20} />
               </div>
@@ -351,8 +359,13 @@ function Testimonials() {
               <Quote size={32} className="lp-testimonial-card__quote" />
               <p className="lp-testimonial-card__text">"{t.text}"</p>
               <div className="lp-testimonial-card__author">
-                <span className="lp-testimonial-card__name">{t.name}</span>
-                <span className="lp-testimonial-card__agency">{t.agency}</span>
+                <div className="lp-testimonial-card__avatar">
+                  <span>{t.name.split(' ').map(w => w[0]).join('')}</span>
+                </div>
+                <div className="lp-testimonial-card__author-info">
+                  <span className="lp-testimonial-card__name">{t.name}</span>
+                  <span className="lp-testimonial-card__agency">{t.agency}</span>
+                </div>
               </div>
             </div>
           ))}
@@ -383,7 +396,7 @@ function CTAFinal() {
 /* ─── Footer ─── */
 function Footer() {
   return (
-    <footer id="contato" className="lp-footer">
+    <footer className="lp-footer">
       <div className="lp-container lp-footer__inner">
         <div className="lp-footer__brand">
           <span className="lp-logo" style={{ fontSize: 20 }}>ViaHub</span>
