@@ -393,8 +393,51 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       queryClient.invalidateQueries({ queryKey: ["orcamento", orcamentoId] });
       queryClient.invalidateQueries({ queryKey: ["orcamento-itens", orcamentoId] });
 
-      // Register edit history
-      if (user && agenciaId) {
+      // Register detailed item change history
+      if (user && agenciaId && existingItens) {
+        const fmtVal = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        const oldMap = new Map(existingItens.map((i) => [i.id, i]));
+        const newMap = new Map(itens.map((i) => [i.id, i]));
+
+        // Removed items
+        for (const old of existingItens) {
+          if (!newMap.has(old.id)) {
+            await registrarHistorico({
+              orcamento_id: orcamentoId!,
+              usuario_id: user.id,
+              agencia_id: agenciaId,
+              tipo: "edicao_valor",
+              descricao: `Item '${old.descricao || old.tipo}' removido do orçamento`,
+            });
+          }
+        }
+
+        // Added or changed items
+        for (const item of itens) {
+          const old = oldMap.get(item.id);
+          if (!old) {
+            await registrarHistorico({
+              orcamento_id: orcamentoId!,
+              usuario_id: user.id,
+              agencia_id: agenciaId,
+              tipo: "edicao_valor",
+              descricao: `Item '${item.descricao || item.tipo}' adicionado ao orçamento`,
+            });
+          } else {
+            const oldVal = Number(old.valor_final) || 0;
+            const newVal = calcValorFinal(item);
+            if (Math.abs(oldVal - newVal) > 0.01) {
+              await registrarHistorico({
+                orcamento_id: orcamentoId!,
+                usuario_id: user.id,
+                agencia_id: agenciaId,
+                tipo: "edicao_valor",
+                descricao: `Valor do item '${item.descricao || item.tipo}' alterado de ${fmtVal(oldVal)} para ${fmtVal(newVal)}`,
+              });
+            }
+          }
+        }
+
         await registrarHistorico({
           orcamento_id: orcamentoId!,
           usuario_id: user.id,
