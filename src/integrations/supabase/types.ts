@@ -396,6 +396,57 @@ export type Database = {
           },
         ]
       }
+      metas_agentes: {
+        Row: {
+          agencia_id: string
+          ano: number
+          atualizado_em: string | null
+          criado_em: string | null
+          id: string
+          mes: number
+          meta_orcamentos: number | null
+          meta_valor: number | null
+          usuario_id: string
+        }
+        Insert: {
+          agencia_id: string
+          ano: number
+          atualizado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          mes: number
+          meta_orcamentos?: number | null
+          meta_valor?: number | null
+          usuario_id: string
+        }
+        Update: {
+          agencia_id?: string
+          ano?: number
+          atualizado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          mes?: number
+          meta_orcamentos?: number | null
+          meta_valor?: number | null
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "metas_agentes_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "metas_agentes_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notificacoes_lidas: {
         Row: {
           lida_em: string | null
@@ -652,6 +703,7 @@ export type Database = {
     }
     Functions: {
       get_user_agencia_id: { Args: never; Returns: string }
+      is_agency_admin: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
     }
     Enums: {
