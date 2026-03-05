@@ -246,7 +246,6 @@ function Features() {
               </div>
               <h3 className="lp-feature-card__title">
                 {f.title}
-                {f.badge && <span className="lp-badge-cyan">{f.badge}</span>}
               </h3>
               <p className="lp-feature-card__desc">{f.desc}</p>
             </div>
