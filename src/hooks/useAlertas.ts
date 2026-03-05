@@ -37,7 +37,8 @@ export default function useAlertas(agenciaId: string | null) {
         .select("id, enviado_whatsapp_em")
         .eq("agencia_id", agenciaId!)
         .eq("status", "enviado")
-        .not("enviado_whatsapp_em", "is", null);
+        .not("enviado_whatsapp_em", "is", null)
+        .not("status", "in", '("aprovado","emitido","pago","perdido")');
 
       const aguardandoResposta = (aguardandoRows || []).filter((o) => {
         if (!o.enviado_whatsapp_em) return false;
