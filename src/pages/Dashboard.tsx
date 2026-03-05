@@ -279,7 +279,9 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       const enviados = orcamentos.filter((o) => o.status === "enviado").length;
       const aprovados = orcamentos.filter((o) => o.status === "aprovado").length;
       const conversao = enviados > 0 ? Math.round((aprovados / enviados) * 100) : 0;
-      const comissao = orcamentos.reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
+      const comissao = orcamentos
+        .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
+        .reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
       const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
       const pagosCount = pagos.length;
       return { total, valorTotal, conversao, comissao, recebido, pagosCount };
@@ -314,7 +316,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
     { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600", subtitle: "" },
     { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-100 text-green-600", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
     { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-100 text-violet-600", subtitle: "" },
-    { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600", subtitle: "" },
+    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600", subtitle: "" },
   ];
 
   return (
