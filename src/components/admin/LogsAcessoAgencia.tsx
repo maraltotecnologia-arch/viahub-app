@@ -77,6 +77,7 @@ export default function LogsAcessoAgencia({ agenciaId }: { agenciaId: string }) 
                 <TableHead>Data/Hora</TableHead>
                 <TableHead>Usuário</TableHead>
                 <TableHead>Cargo</TableHead>
+                <TableHead>IP</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -89,11 +90,14 @@ export default function LogsAcessoAgencia({ agenciaId }: { agenciaId: string }) 
                   <TableCell>
                     <Badge variant="outline">{log.cargo || "agente"}</Badge>
                   </TableCell>
+                  <TableCell className="text-muted-foreground text-sm font-mono">
+                    {log.ip || "—"}
+                  </TableCell>
                 </TableRow>
               ))}
               {(!data?.logs || data.logs.length === 0) && (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground py-6">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-6">
                     Nenhum acesso registrado no período
                   </TableCell>
                 </TableRow>
