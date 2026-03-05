@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BadgeCheck, CheckCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-utils";
@@ -46,13 +47,15 @@ export default function ClienteDetalhe() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
-        .select("id, titulo, valor_final, status, criado_em")
+        .select("id, titulo, valor_final, status, criado_em, pago_em")
         .eq("cliente_id", id!)
         .order("criado_em", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  const totalRecebido = orcamentos?.filter((o) => o.status === "pago").reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
 
   useEffect(() => {
     if (cliente) {
@@ -154,24 +157,59 @@ export default function ClienteDetalhe() {
         </CardContent>
       </Card>
 
+      {/* Total Recebido Card */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 text-green-600">
+              <BadgeCheck className="h-[22px] w-[22px]" />
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Recebido</p>
+              <p className="text-2xl font-bold">{fmt(totalRecebido)}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader><CardTitle className="text-base">Histórico de Orçamentos</CardTitle></CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {orcamentos?.map((o) => (
-              <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors">
-                <div>
-                  <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
-                  <p className="text-xs text-muted-foreground">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="font-semibold text-sm">{fmt(Number(o.valor_final) || 0)}</span>
-                  <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
-                </div>
-              </Link>
-            ))}
-            {(!orcamentos || orcamentos.length === 0) && <p className="text-sm text-muted-foreground text-center py-4">Nenhum orçamento</p>}
-          </div>
+          <TooltipProvider>
+            <div className="space-y-3">
+              {orcamentos?.map((o) => (
+                <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex items-center justify-between py-3 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-md transition-colors">
+                  <div>
+                    <p className="font-medium text-sm">{o.titulo || "Sem título"}</p>
+                    <p className="text-xs text-muted-foreground">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-semibold text-sm">{fmt(Number(o.valor_final) || 0)}</span>
+                    {o.status === "pago" ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div>
+                            <Badge variant="success" className="flex items-center gap-1">
+                              <CheckCheck className="h-3 w-3" /> Pago
+                            </Badge>
+                            {o.pago_em && (
+                              <p className="text-[10px] text-muted-foreground mt-0.5 text-right">Pago em {formatarApenasDatabrasilia(o.pago_em)}</p>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {o.pago_em ? `Pago em ${formatarApenasDatabrasilia(o.pago_em)}` : "Pago"}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <Badge variant={statusVariant[o.status || "rascunho"]}>{o.status}</Badge>
+                    )}
+                  </div>
+                </Link>
+              ))}
+              {(!orcamentos || orcamentos.length === 0) && <p className="text-sm text-muted-foreground text-center py-4">Nenhum orçamento</p>}
+            </div>
+          </TooltipProvider>
         </CardContent>
       </Card>
     </div>

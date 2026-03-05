@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, DollarSign, TrendingUp, TrendingDown, Percent, Building2, AlertCircle, AlertTriangle, Info, Clock } from "lucide-react";
+import { FileText, DollarSign, TrendingUp, TrendingDown, Percent, Building2, AlertCircle, AlertTriangle, Info, Clock, BadgeCheck } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,8 +63,8 @@ export default function Dashboard() {
 }
 
 /* ===== METRIC CARD ===== */
-function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
-  title: string; value: string; icon: any; iconBg: string; isLoading?: boolean;
+function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
+  title: string; value: string; icon: any; iconBg: string; isLoading?: boolean; subtitle?: string;
 }) {
   return (
     <Card
@@ -84,9 +84,12 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading }: {
         {isLoading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
-            {value}
-          </p>
+          <>
+            <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+              {value}
+            </p>
+            {subtitle && <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
+          </>
         )}
       </CardContent>
     </Card>
@@ -261,17 +264,25 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-metrics", agenciaId],
     queryFn: async () => {
-      const { data: orcamentos, error } = await supabase
-        .from("orcamentos").select("status, valor_final, lucro_bruto, criado_em")
-        .eq("agencia_id", agenciaId).gte("criado_em", startOfMonth);
-      if (error) throw error;
-      const total = orcamentos?.length ?? 0;
-      const valorTotal = orcamentos?.reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
-      const enviados = orcamentos?.filter((o) => o.status === "enviado").length ?? 0;
-      const aprovados = orcamentos?.filter((o) => o.status === "aprovado").length ?? 0;
+      const [orcRes, pagosRes] = await Promise.all([
+        supabase.from("orcamentos").select("status, valor_final, lucro_bruto, criado_em")
+          .eq("agencia_id", agenciaId).gte("criado_em", startOfMonth),
+        supabase.from("orcamentos").select("valor_final, pago_em")
+          .eq("agencia_id", agenciaId).eq("status", "pago").gte("pago_em", startOfMonth),
+      ]);
+      if (orcRes.error) throw orcRes.error;
+      if (pagosRes.error) throw pagosRes.error;
+      const orcamentos = orcRes.data ?? [];
+      const pagos = pagosRes.data ?? [];
+      const total = orcamentos.length;
+      const valorTotal = orcamentos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
+      const enviados = orcamentos.filter((o) => o.status === "enviado").length;
+      const aprovados = orcamentos.filter((o) => o.status === "aprovado").length;
       const conversao = enviados > 0 ? Math.round((aprovados / enviados) * 100) : 0;
-      const comissao = orcamentos?.reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0) ?? 0;
-      return { total, valorTotal, conversao, comissao };
+      const comissao = orcamentos.reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
+      const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
+      const pagosCount = pagos.length;
+      return { total, valorTotal, conversao, comissao, recebido, pagosCount };
     },
   });
 
@@ -299,19 +310,20 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   });
 
   const metricCards = [
-    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-100 text-blue-600" },
-    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600" },
-    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-100 text-violet-600" },
-    { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600" },
+    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-100 text-blue-600", subtitle: "" },
+    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600", subtitle: "" },
+    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-100 text-green-600", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
+    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-100 text-violet-600", subtitle: "" },
+    { title: "Comissão total", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600", subtitle: "" },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in-up">
       <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((m) => (
-          <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} />
+          <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} subtitle={m.subtitle} />
         ))}
       </div>
 
