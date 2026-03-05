@@ -305,7 +305,7 @@ export default function Relatorios() {
           <RelatorioAgentes />
         </TabsContent>
 
-        <TabsContent value="financeiro">
+        <TabsContent value="financeiro" className="space-y-6">
       <div className="flex items-center justify-end">
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportarPDF} disabled={filteredData.length === 0 || generatingPdf}>
