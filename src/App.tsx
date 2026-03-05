@@ -29,6 +29,7 @@ import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
+import Index from "./pages/Index";
 import Cadastro from "./pages/Cadastro";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
@@ -41,6 +42,7 @@ function AppRoutes() {
   if (!user) {
     return (
       <Routes>
+        <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/termos" element={<TermosDeUso />} />
@@ -48,7 +50,7 @@ function AppRoutes() {
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
   }
