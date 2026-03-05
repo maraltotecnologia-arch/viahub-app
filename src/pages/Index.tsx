@@ -375,7 +375,117 @@ function Testimonials() {
 }
 
 /* ─── CTA Final ─── */
-function CTAFinal() {
+/* ─── Final Section (CTA + Form side by side) ─── */
+function FinalSection() {
+  const { ref, visible } = useInView();
+  const [sent, setSent] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormLoading(true);
+    const fd = new FormData(e.currentTarget);
+    const nome = String(fd.get("nome") || "").trim();
+    const email = String(fd.get("email") || "").trim();
+    const telefone = String(fd.get("telefone") || "").trim();
+    const assunto = String(fd.get("assunto") || "").trim();
+    const mensagem = String(fd.get("mensagem") || "").trim();
+
+    const subject = encodeURIComponent(assunto);
+    const body = encodeURIComponent(
+      `Nome: ${nome}\nEmail: ${email}\nTelefone: ${telefone}\n\nMensagem:\n${mensagem}`
+    );
+    window.location.href = `mailto:suporte@viahub.app?subject=${subject}&body=${body}`;
+
+    setTimeout(() => {
+      setFormLoading(false);
+      setSent(true);
+    }, 600);
+  };
+
+  return (
+    <section id="contato" className="lp-section" ref={ref}>
+      <div className="lp-container">
+        <div className={`lp-final-grid ${visible ? "lp-animate-in" : "lp-pre-animate"}`}>
+          {/* Left: CTA */}
+          <div className="lp-final-cta">
+            <div className="lp-cta-badge">
+              <span>✦ 14 dias grátis · Sem cartão de crédito</span>
+            </div>
+            <h2 className="lp-cta-card-v2__title">
+              Comece hoje.<br /><span className="lp-gradient-text">Revolucione</span> sua agência.
+            </h2>
+            <p className="lp-cta-card-v2__desc">
+              Mais de 100 agências já usam o ViaHub para fechar mais vendas, perder menos tempo e ter o controle total do negócio. Junte-se a elas.
+            </p>
+            <div className="lp-cta-proofs">
+              {[
+                { icon: Clock, value: "15 min", label: "Tempo médio para criar um orçamento completo" },
+                { icon: TrendingUp, value: "+30%", label: "Aumento na taxa de conversão de vendas" },
+                { icon: Users, value: "100+", label: "Agências ativas na plataforma" },
+              ].map((p) => (
+                <div key={p.value} className="lp-cta-proof">
+                  <p.icon size={20} className="lp-cta-proof__icon" />
+                  <span className="lp-cta-proof__value">{p.value}</span>
+                  <span className="lp-cta-proof__label">{p.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="lp-cta-card-v2__actions">
+              <Link to="/cadastro" className="lp-btn lp-btn--primary lp-cta-btn-main">
+                Criar minha conta grátis <ArrowRight size={16} />
+              </Link>
+            </div>
+            <p className="lp-cta-card-v2__guarantee">
+              🔒 Sem compromisso · Cancele quando quiser · Dados protegidos pela LGPD
+            </p>
+          </div>
+
+          {/* Right: Form */}
+          <div className="lp-final-form">
+            <h3 className="lp-final-form__title">Fale com um consultor</h3>
+            <p className="lp-final-form__subtitle">Tire suas dúvidas antes de decidir. Respondemos em até 2h.</p>
+            {sent ? (
+              <div className="lp-contact-success">
+                <div className="lp-contact-success__icon"><Check size={24} /></div>
+                <p>Mensagem enviada! Em breve nossa<br />equipe entrará em contato.</p>
+              </div>
+            ) : (
+              <form className="lp-contact-form" onSubmit={handleSubmit}>
+                <div>
+                  <label>Nome completo *</label>
+                  <input name="nome" required placeholder="Seu nome" />
+                </div>
+                <div>
+                  <label>Email *</label>
+                  <input name="email" type="email" required placeholder="seu@email.com" />
+                </div>
+                <div>
+                  <label>Telefone / WhatsApp *</label>
+                  <input name="telefone" required placeholder="(00) 00000-0000" />
+                </div>
+                <div>
+                  <label>Assunto *</label>
+                  <select name="assunto" required defaultValue="">
+                    <option value="" disabled>Selecione um assunto</option>
+                    {assuntoOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label>Mensagem *</label>
+                  <textarea name="mensagem" required rows={4} placeholder="Sua mensagem..." />
+                </div>
+                <button type="submit" className="lp-btn lp-btn--primary lp-btn--lg" style={{ width: "100%", justifyContent: "center" }} disabled={formLoading}>
+                  {formLoading ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : "Enviar mensagem"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
   const { ref, visible } = useInView();
   return (
     <section className="lp-section" ref={ref}>
