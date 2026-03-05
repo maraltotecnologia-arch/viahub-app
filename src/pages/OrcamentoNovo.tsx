@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
 import DatePickerInput from "@/components/ui/DatePickerInput";
+import { getPlanoMultiplier } from "@/lib/plan-commission";
 
 interface Item {
   id: string;
