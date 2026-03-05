@@ -261,7 +261,7 @@ function HowItWorks() {
     <section id="como-funciona" className="lp-section lp-section--alt" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section__title">Do cadastro ao <span className="lp-gradient-text">fechamento</span></h2>
-        <div className="lp-steps">
+         <div className="lp-steps">
           <div className="lp-steps__line" />
           {steps.map((s, i) => (
             <div
@@ -269,8 +269,8 @@ function HowItWorks() {
               className={`lp-step ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              <span className="lp-step__number">{s.n}</span>
               <div className="lp-step__dot" />
+              <span className="lp-step__number">{s.n}</span>
               <h3 className="lp-step__title">{s.title}</h3>
               <p className="lp-step__desc">{s.desc}</p>
             </div>
@@ -432,9 +432,11 @@ function FinalSection() {
                 { icon: TrendingUp, value: "+30%", label: "Aumento na taxa de conversão de vendas" },
                 { icon: Users, value: "100+", label: "Agências ativas na plataforma" },
               ].map((p) => (
-                <div key={p.value} className="lp-cta-proof">
-                  <p.icon size={20} className="lp-cta-proof__icon" />
-                  <span className="lp-cta-proof__value">{p.value}</span>
+              <div key={p.value} className="lp-cta-proof">
+                  <div className="lp-cta-proof__head">
+                    <p.icon size={20} className="lp-cta-proof__icon" />
+                    <span className="lp-cta-proof__value">{p.value}</span>
+                  </div>
                   <span className="lp-cta-proof__label">{p.label}</span>
                 </div>
               ))}
