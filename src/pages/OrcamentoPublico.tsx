@@ -211,6 +211,11 @@ export default function OrcamentoPublico() {
           <p className="text-xs text-[#94A3B8] mt-1">
             Gerado por ViaHub · viahub.com.br
           </p>
+          <p className="text-xs text-[#94A3B8] mt-1">
+            <a href="/termos" target="_blank" rel="noopener noreferrer" className="hover:underline">Termos de Uso</a>
+            {" · "}
+            <a href="/privacidade" target="_blank" rel="noopener noreferrer" className="hover:underline">Privacidade</a>
+          </p>
         </div>
       </footer>
     </div>
