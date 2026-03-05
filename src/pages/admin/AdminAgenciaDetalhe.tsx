@@ -16,6 +16,7 @@ import useUserRole from "@/hooks/useUserRole";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarCNPJ } from "@/lib/validators";
 import { useTheme } from "@/contexts/ThemeContext";
+import LogsAcessoAgencia from "@/components/admin/LogsAcessoAgencia";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
@@ -403,6 +404,12 @@ export default function AdminAgenciaDetalhe() {
             <span className="text-muted-foreground">Tempo como cliente:</span>{" "}
             {tempoCliente} dias
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6">
+          <LogsAcessoAgencia agenciaId={agencia.id} />
         </CardContent>
       </Card>
       <ConfirmDialog
