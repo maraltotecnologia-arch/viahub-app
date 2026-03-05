@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   FileText, LayoutList, Users, BarChart3, Sparkles, Bell,
-  Menu, X, Check, ArrowRight, Quote, Loader2
+  Menu, X, Check, ArrowRight, Quote, Loader2, Clock, TrendingUp
 } from "lucide-react";
 
 /* ─── helpers ─── */
@@ -349,6 +349,8 @@ function Testimonials() {
   return (
     <section className="lp-section lp-section--alt" ref={ref}>
       <div className="lp-container">
+        <h2 className="lp-section__title">O que dizem nossas <span className="lp-gradient-text">agências</span></h2>
+        <p className="lp-section__subtitle">Resultados reais de quem já transformou sua gestão com o ViaHub.</p>
         <div className="lp-testimonials-grid">
           {testimonials.map((t, i) => (
             <div
@@ -381,19 +383,44 @@ function CTAFinal() {
   return (
     <section className="lp-section" ref={ref}>
       <div className="lp-container">
-        <div className={`lp-cta-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}>
-          <h2 className="lp-cta-card__title">Pronto para transformar sua agência?</h2>
-          <p className="lp-cta-card__desc">Comece grátis em menos de 2 minutos. Sem cartão de crédito.</p>
-          <Link to="/cadastro" className="lp-btn lp-btn--primary lp-btn--lg">
-            Criar conta grátis <ArrowRight size={16} />
-          </Link>
+        <div className={`lp-cta-card-v2 ${visible ? "lp-animate-in" : "lp-pre-animate"}`}>
+          <div className="lp-cta-badge">
+            <span>✦ 14 dias grátis · Sem cartão de crédito</span>
+          </div>
+          <h2 className="lp-cta-card-v2__title">
+            Comece hoje.<br />Veja a <span className="lp-gradient-text">diferença</span> em <span className="lp-gradient-text">24 horas</span>.
+          </h2>
+          <p className="lp-cta-card-v2__desc">
+            Mais de 100 agências já usam o ViaHub para fechar mais vendas, perder menos tempo e ter o controle total do negócio. Junte-se a elas.
+          </p>
+          <div className="lp-cta-proofs">
+            {[
+              { icon: Clock, value: "15 min", label: "Tempo médio para criar um orçamento completo" },
+              { icon: TrendingUp, value: "+30%", label: "Aumento na taxa de conversão de vendas" },
+              { icon: Users, value: "100+", label: "Agências ativas na plataforma" },
+            ].map((p) => (
+              <div key={p.value} className="lp-cta-proof">
+                <p.icon size={20} className="lp-cta-proof__icon" />
+                <span className="lp-cta-proof__value">{p.value}</span>
+                <span className="lp-cta-proof__label">{p.label}</span>
+              </div>
+            ))}
+          </div>
+          <div className="lp-cta-card-v2__actions">
+            <Link to="/cadastro" className="lp-btn lp-btn--primary lp-cta-btn-main">
+              Criar minha conta grátis <ArrowRight size={16} />
+            </Link>
+            <a href="#contato" className="lp-btn lp-btn--ghost lp-btn--lg">Falar com consultor</a>
+          </div>
+          <p className="lp-cta-card-v2__guarantee">
+            🔒 Sem compromisso · Cancele quando quiser · Dados protegidos pela LGPD
+          </p>
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── Contact Form ─── */
 const assuntoOptions = [
   "Quero conhecer o sistema",
   "Dúvidas sobre planos",
