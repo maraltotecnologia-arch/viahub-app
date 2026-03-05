@@ -23,6 +23,14 @@ export interface OrcamentoPDFData {
     valor_final?: number | null;
     quantidade?: number | null;
     observacao?: string | null;
+    partida_data?: string | null;
+    partida_hora?: string | null;
+    chegada_data?: string | null;
+    chegada_hora?: string | null;
+    checkin_data?: string | null;
+    checkin_hora?: string | null;
+    checkout_data?: string | null;
+    checkout_hora?: string | null;
   }[];
   agencia: {
     nome_fantasia: string;
