@@ -621,6 +621,11 @@ body[data-viahub-scope="auth"] label {
   background: rgba(37,99,235,0.08) !important;
   border: 1px solid rgba(37,99,235,0.25) !important;
   margin-bottom: 32px;
+  animation: lp-pulse-border 2s ease-in-out infinite;
+}
+@keyframes lp-pulse-border {
+  0%, 100% { border-color: rgba(37,99,235,0.4); }
+  50% { border-color: rgba(6,182,212,0.8); }
 }
 .lp-hero__badge span {
   font-size: 12px;
@@ -634,6 +639,7 @@ body[data-viahub-scope="auth"] label {
   line-height: 1.08;
   color: var(--lp-text) !important;
   margin-bottom: 24px;
+  text-shadow: 0 0 80px rgba(37,99,235,0.3);
 }
 @media (min-width: 768px) {
   .lp-hero__title { font-size: 64px; }
@@ -673,6 +679,11 @@ body[data-viahub-scope="auth"] label {
 .lp-hero__mockup {
   margin-top: 64px;
   perspective: 1000px;
+  animation: lp-float 4s ease-in-out infinite;
+}
+@keyframes lp-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
 }
 
 /* ── Mockup ── */
@@ -791,9 +802,9 @@ body[data-viahub-scope="auth"] label {
   .lp-section { padding: 120px 0; }
 }
 .lp-section--alt {
-  background: transparent;
-  border-top: none;
-  border-bottom: none;
+  background: rgba(255,255,255,0.015);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 .lp-section__title {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -816,7 +827,14 @@ body[data-viahub-scope="auth"] label {
   margin-right: auto;
 }
 
-/* Decorative line — disabled */
+/* Section divider */
+.lp-section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(37,99,235,0.2), rgba(6,182,212,0.2), transparent);
+  border: none;
+  margin: 0;
+}
 
 /* ── Feature cards ── */
 .lp-features-grid {
@@ -838,9 +856,24 @@ body[data-viahub-scope="auth"] label {
   padding: 36px;
   transition: all 0.3s;
   border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+.lp-feature-card__order {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 48px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.04) !important;
+  line-height: 1;
+  pointer-events: none;
 }
 .lp-feature-card:hover {
   background: rgba(255,255,255,0.02) !important;
+}
+.lp-feature-card:hover .lp-feature-card__icon {
+  box-shadow: 0 0 20px rgba(37,99,235,0.3);
 }
 .lp-feature-card__icon {
   width: 40px; height: 40px;
@@ -851,6 +884,7 @@ body[data-viahub-scope="auth"] label {
   justify-content: center;
   margin-bottom: 16px;
   color: var(--lp-blue) !important;
+  transition: box-shadow 0.3s;
 }
 .lp-feature-card__title {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -909,14 +943,14 @@ body[data-viahub-scope="auth"] label {
 .lp-step__number {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
-  font-size: 56px;
-  color: rgba(37,99,235,0.12) !important;
+  font-size: 64px;
+  color: rgba(37,99,235,0.2) !important;
   line-height: 1;
   display: block;
   margin-bottom: 12px;
 }
 @media (min-width: 768px) {
-  .lp-step__number { font-size: 72px; }
+  .lp-step__number { font-size: 80px; }
 }
 .lp-step__dot {
   width: 10px; height: 10px;
@@ -1090,6 +1124,26 @@ body[data-viahub-scope="auth"] label {
 }
 .lp-testimonial-card__author {
   display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lp-testimonial-card__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563EB, #06B6D4) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lp-testimonial-card__avatar span {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff !important;
+}
+.lp-testimonial-card__author-info {
+  display: flex;
   flex-direction: column;
 }
 .lp-testimonial-card__name {
@@ -1128,6 +1182,81 @@ body[data-viahub-scope="auth"] label {
 }
 
 /* ── Footer ── */
+/* ── Contact Form ── */
+.lp-contact-form-card {
+  max-width: 600px;
+  margin: 0 auto;
+  background: rgba(255,255,255,0.03) !important;
+  border: 1px solid var(--lp-border) !important;
+  border-radius: 16px;
+  padding: 40px 32px;
+  backdrop-filter: blur(12px);
+}
+.lp-contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lp-contact-form label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--lp-text2) !important;
+  margin-bottom: 4px;
+  display: block;
+}
+.lp-contact-form input,
+.lp-contact-form select,
+.lp-contact-form textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.05) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  color: #F1F5F9 !important;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.lp-contact-form input:focus,
+.lp-contact-form select:focus,
+.lp-contact-form textarea:focus {
+  border-color: rgba(37,99,235,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
+}
+.lp-contact-form input::placeholder,
+.lp-contact-form textarea::placeholder {
+  color: var(--lp-text3) !important;
+}
+.lp-contact-form select option {
+  background: #111827;
+  color: #F1F5F9;
+}
+.lp-contact-form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+.lp-contact-success {
+  text-align: center;
+  padding: 32px 0;
+}
+.lp-contact-success__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(34,197,94,0.15) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  color: #22C55E !important;
+}
+.lp-contact-success p {
+  font-size: 15px;
+  color: var(--lp-text) !important;
+  line-height: 1.6;
+}
+
 .lp-footer {
   background: var(--lp-deep) !important;
   border-top: 1px solid var(--lp-border);

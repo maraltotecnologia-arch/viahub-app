@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   FileText, LayoutList, Users, BarChart3, Sparkles, Bell,
-  Menu, X, Check, ArrowRight, Quote
+  Menu, X, Check, ArrowRight, Quote, Loader2
 } from "lucide-react";
 
 /* ─── helpers ─── */
@@ -102,11 +102,18 @@ export default function Index() {
 
       <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <Hero />
+      <hr className="lp-section-divider" />
       <Features />
+      <hr className="lp-section-divider" />
       <HowItWorks />
+      <hr className="lp-section-divider" />
       <Plans />
+      <hr className="lp-section-divider" />
       <Testimonials />
+      <hr className="lp-section-divider" />
       <CTAFinal />
+      <hr className="lp-section-divider" />
+      <ContactForm />
       <Footer />
     </div>
   );
@@ -233,6 +240,7 @@ function Features() {
               className={`lp-feature-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
               style={{ animationDelay: `${i * 80}ms` }}
             >
+              <span className="lp-feature-card__order">{String(i + 1).padStart(2, '0')}</span>
               <div className="lp-feature-card__icon">
                 <f.icon size={20} />
               </div>
@@ -351,8 +359,13 @@ function Testimonials() {
               <Quote size={32} className="lp-testimonial-card__quote" />
               <p className="lp-testimonial-card__text">"{t.text}"</p>
               <div className="lp-testimonial-card__author">
-                <span className="lp-testimonial-card__name">{t.name}</span>
-                <span className="lp-testimonial-card__agency">{t.agency}</span>
+                <div className="lp-testimonial-card__avatar">
+                  <span>{t.name.split(' ').map(w => w[0]).join('')}</span>
+                </div>
+                <div className="lp-testimonial-card__author-info">
+                  <span className="lp-testimonial-card__name">{t.name}</span>
+                  <span className="lp-testimonial-card__agency">{t.agency}</span>
+                </div>
               </div>
             </div>
           ))}
@@ -380,10 +393,93 @@ function CTAFinal() {
   );
 }
 
+/* ─── Contact Form ─── */
+const assuntoOptions = [
+  "Quero conhecer o sistema",
+  "Dúvidas sobre planos",
+  "Quero falar com um consultor",
+  "Suporte técnico",
+  "Outro",
+];
+
+function ContactForm() {
+  const { ref, visible } = useInView();
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    const fd = new FormData(e.currentTarget);
+    const nome = String(fd.get("nome") || "").trim();
+    const email = String(fd.get("email") || "").trim();
+    const telefone = String(fd.get("telefone") || "").trim();
+    const assunto = String(fd.get("assunto") || "").trim();
+    const mensagem = String(fd.get("mensagem") || "").trim();
+
+    const subject = encodeURIComponent(assunto);
+    const body = encodeURIComponent(
+      `Nome: ${nome}\nEmail: ${email}\nTelefone: ${telefone}\n\nMensagem:\n${mensagem}`
+    );
+    window.location.href = `mailto:suporte@viahub.app?subject=${subject}&body=${body}`;
+
+    setTimeout(() => {
+      setLoading(false);
+      setSent(true);
+    }, 600);
+  };
+
+  return (
+    <section id="contato" className="lp-section" ref={ref}>
+      <div className="lp-container">
+        <h2 className="lp-section__title">Fale com a <span className="lp-gradient-text">gente</span></h2>
+        <p className="lp-section__subtitle">Tire suas dúvidas ou converse com um consultor antes de decidir.</p>
+        <div className={`lp-contact-form-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}>
+          {sent ? (
+            <div className="lp-contact-success">
+              <div className="lp-contact-success__icon"><Check size={24} /></div>
+              <p>Mensagem enviada! Em breve nossa<br />equipe entrará em contato.</p>
+            </div>
+          ) : (
+            <form className="lp-contact-form" onSubmit={handleSubmit}>
+              <div>
+                <label>Nome completo *</label>
+                <input name="nome" required placeholder="Seu nome" />
+              </div>
+              <div>
+                <label>Email *</label>
+                <input name="email" type="email" required placeholder="seu@email.com" />
+              </div>
+              <div>
+                <label>Telefone / WhatsApp *</label>
+                <input name="telefone" required placeholder="(00) 00000-0000" />
+              </div>
+              <div>
+                <label>Assunto *</label>
+                <select name="assunto" required defaultValue="">
+                  <option value="" disabled>Selecione um assunto</option>
+                  {assuntoOptions.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+              <div>
+                <label>Mensagem *</label>
+                <textarea name="mensagem" required rows={4} placeholder="Sua mensagem..." />
+              </div>
+              <button type="submit" className="lp-btn lp-btn--primary lp-btn--lg" style={{ width: "100%", justifyContent: "center" }} disabled={loading}>
+                {loading ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : "Enviar mensagem"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ─── Footer ─── */
 function Footer() {
   return (
-    <footer id="contato" className="lp-footer">
+    <footer className="lp-footer">
       <div className="lp-container lp-footer__inner">
         <div className="lp-footer__brand">
           <span className="lp-logo" style={{ fontSize: 20 }}>ViaHub</span>
