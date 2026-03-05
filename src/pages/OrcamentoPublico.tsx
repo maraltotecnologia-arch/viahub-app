@@ -1,15 +1,24 @@
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Download, MessageCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Download, MessageCircle, CheckCircle2 } from "lucide-react";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
 
 const fmtDate = (d: string | null | undefined) =>
   d ? formatarApenasDatabrasilia(d + "T12:00:00") : "-";
@@ -24,6 +33,11 @@ const formatarPagamento = (forma: string | null | undefined) => {
 
 export default function OrcamentoPublico() {
   const { token } = useParams();
+  const queryClient = useQueryClient();
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+  const [approvalName, setApprovalName] = useState("");
+  const [approving, setApproving] = useState(false);
+  const [approvedInfo, setApprovedInfo] = useState<{ nome: string; data: string } | null>(null);
 
   const { data: orc, isLoading, error } = useQuery({
     queryKey: ["orcamento-publico", token],
@@ -72,6 +86,7 @@ export default function OrcamentoPublico() {
   const itens = (orc.itens_orcamento as any[]) || [];
   const total = itens.reduce((s: number, i: any) => s + (Number(i.valor_final) || 0), 0);
   const showStatus = ["aprovado", "emitido"].includes(orc.status || "");
+  const canApprove = orc.status === "enviado" && !approvedInfo;
 
   const handleWhatsApp = () => {
     if (!agencia?.telefone) return;
@@ -82,6 +97,53 @@ export default function OrcamentoPublico() {
   };
 
   const handlePrint = () => window.print();
+
+  const handleApprove = async () => {
+    const trimmed = approvalName.trim();
+    if (!trimmed || trimmed.length < 2) return;
+    setApproving(true);
+    try {
+      // 1. Update orcamento
+      const { error: updateErr } = await supabase
+        .from("orcamentos")
+        .update({
+          status: "aprovado",
+          aprovado_pelo_cliente_em: new Date().toISOString(),
+          aprovado_pelo_cliente_nome: trimmed,
+        } as any)
+        .eq("token_publico", token!);
+      if (updateErr) throw updateErr;
+
+      // 2. Register history
+      await supabase.from("historico_orcamento" as any).insert({
+        orcamento_id: orc.id,
+        usuario_id: null,
+        agencia_id: orc.agencia_id,
+        tipo: "status_alterado",
+        status_anterior: "enviado",
+        status_novo: "aprovado",
+        descricao: `Aprovado pelo cliente: ${trimmed}`,
+      });
+
+      // 3. Create notification for agency
+      await supabase.from("notificacoes_sistema").insert({
+        tipo: "info",
+        titulo: "Orçamento aprovado pelo cliente",
+        mensagem: `O orçamento ${orc.numero_orcamento || ""} foi aprovado por ${trimmed} via link público.`,
+        agencia_id: orc.agencia_id,
+        destinatario: "admins",
+      } as any);
+
+      setApprovedInfo({ nome: trimmed, data: formatarDataHoraBrasilia(new Date()) });
+      setShowApprovalModal(false);
+      setApprovalName("");
+      queryClient.invalidateQueries({ queryKey: ["orcamento-publico", token] });
+    } catch (e) {
+      console.error("Erro ao aprovar:", e);
+    } finally {
+      setApproving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] print:bg-white">
@@ -177,6 +239,36 @@ export default function OrcamentoPublico() {
           )}
         </div>
 
+        {/* Approval success card */}
+        {approvedInfo && (
+          <div className="bg-[#F0FDF4] border border-[#BBF7D0] rounded-xl p-6 flex items-start gap-4">
+            <CheckCircle2 className="h-8 w-8 text-[#16A34A] shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-lg font-bold text-[#15803D]">Orçamento aprovado!</h3>
+              <p className="text-sm text-[#166534] mt-1">
+                Obrigado, {approvedInfo.nome}. Sua aprovação foi registrada em {approvedInfo.data}. Em breve nossa equipe entrará em contato.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Approval button — only for "enviado" status */}
+        {canApprove && (
+          <div className="print:hidden">
+            <button
+              onClick={() => setShowApprovalModal(true)}
+              className="w-full h-[52px] rounded-xl font-semibold text-base text-white flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, #2563EB, #06B6D4)",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              ✓ Aprovar este orçamento
+            </button>
+          </div>
+        )}
+
         {/* Action buttons */}
         <div className="flex flex-col sm:flex-row gap-3 print:hidden">
           <Button
@@ -218,6 +310,41 @@ export default function OrcamentoPublico() {
           </p>
         </div>
       </footer>
+
+      {/* Approval Modal */}
+      <Dialog open={showApprovalModal} onOpenChange={setShowApprovalModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar aprovação</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Ao aprovar, você confirma que leu e concorda com os itens e valores descritos neste orçamento.
+          </p>
+          <div className="space-y-2 mt-2">
+            <Label htmlFor="approval-name">Seu nome completo</Label>
+            <Input
+              id="approval-name"
+              placeholder="Digite seu nome para confirmar"
+              value={approvalName}
+              onChange={(e) => setApprovalName(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+          <div className="flex gap-3 mt-4 justify-end">
+            <Button variant="ghost" onClick={() => setShowApprovalModal(false)} disabled={approving}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleApprove}
+              disabled={approving || approvalName.trim().length < 2}
+              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
+              className="text-white"
+            >
+              {approving ? "Aprovando..." : "Confirmar aprovação"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock } from "lucide-react";
+import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
@@ -51,10 +51,11 @@ export default function HistoricoOrcamento({ orcamentoId }: Props) {
 
       <div className="space-y-4">
         {eventos.map((ev: any) => {
-          const Icon = iconByTipo[ev.tipo] || Clock;
-          const color = colorByTipo[ev.tipo] || "#94A3B8";
+          const isClientApproval = ev.tipo === "status_alterado" && ev.status_novo === "aprovado" && !ev.usuario_id;
+          const Icon = isClientApproval ? UserCheck : (iconByTipo[ev.tipo] || Clock);
+          const color = isClientApproval ? "#16A34A" : (colorByTipo[ev.tipo] || "#94A3B8");
           const data = ev.criado_em ? formatarDataHoraBrasilia(ev.criado_em) : "";
-          const nomeUsuario = ev.usuarios?.nome || "Sistema";
+          const nomeUsuario = ev.usuarios?.nome || (ev.usuario_id ? "Sistema" : "Cliente");
 
           return (
             <div key={ev.id} className="relative flex items-start gap-3">

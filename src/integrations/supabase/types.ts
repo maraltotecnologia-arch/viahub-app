@@ -473,6 +473,8 @@ export type Database = {
       orcamentos: {
         Row: {
           agencia_id: string
+          aprovado_pelo_cliente_em: string | null
+          aprovado_pelo_cliente_nome: string | null
           atualizado_em: string | null
           cliente_id: string | null
           criado_em: string | null
@@ -496,6 +498,8 @@ export type Database = {
         }
         Insert: {
           agencia_id: string
+          aprovado_pelo_cliente_em?: string | null
+          aprovado_pelo_cliente_nome?: string | null
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null
@@ -519,6 +523,8 @@ export type Database = {
         }
         Update: {
           agencia_id?: string
+          aprovado_pelo_cliente_em?: string | null
+          aprovado_pelo_cliente_nome?: string | null
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null

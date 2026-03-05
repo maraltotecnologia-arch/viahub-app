@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck, UserCheck } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
@@ -464,6 +464,19 @@ export default function OrcamentoDetalhe() {
         </div>
         <StatusBadge status={orc.status || "rascunho"} />
       </div>
+
+      {/* Client approval badge */}
+      {(orc as any).aprovado_pelo_cliente_nome && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground -mt-4">
+          <UserCheck className="h-4 w-4 text-green-600 shrink-0" />
+          <span>
+            ✓ Aprovado pelo cliente: <strong>{(orc as any).aprovado_pelo_cliente_nome}</strong>
+            {(orc as any).aprovado_pelo_cliente_em && (
+              <> em {formatarDataHoraBrasilia((orc as any).aprovado_pelo_cliente_em)}</>
+            )}
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
