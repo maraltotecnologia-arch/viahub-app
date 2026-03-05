@@ -33,6 +33,22 @@ const planos = [
   { value: "agency_c", label: "White Label" },
 ];
 
+const planoPreco: Record<string, number> = {
+  starter_a: 397,
+  starter_b: 197,
+  pro_a: 697,
+  pro_b: 297,
+  agency_c: 1997,
+};
+
+const planoComissao: Record<string, number> = {
+  starter_a: 0,
+  starter_b: 0.015,
+  pro_a: 0,
+  pro_b: 0.012,
+  agency_c: 0,
+};
+
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function AdminAgenciaDetalhe() {
