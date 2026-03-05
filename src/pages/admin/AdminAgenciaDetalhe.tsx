@@ -33,6 +33,22 @@ const planos = [
   { value: "agency_c", label: "White Label" },
 ];
 
+const planoPreco: Record<string, number> = {
+  starter_a: 397,
+  starter_b: 197,
+  pro_a: 697,
+  pro_b: 297,
+  agency_c: 1997,
+};
+
+const planoComissao: Record<string, number> = {
+  starter_a: 0,
+  starter_b: 0.015,
+  pro_a: 0,
+  pro_b: 0.012,
+  agency_c: 0,
+};
+
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export default function AdminAgenciaDetalhe() {
@@ -103,7 +119,7 @@ export default function AdminAgenciaDetalhe() {
 
       const { data: orcamentos } = await supabase
         .from("orcamentos")
-        .select("id, valor_final, criado_em")
+        .select("id, valor_final, criado_em, status, pago_em")
         .eq("agencia_id", id!);
 
       const { count: clienteCount } = await supabase
@@ -117,11 +133,16 @@ export default function AdminAgenciaDetalhe() {
         ?.filter((o) => o.criado_em && o.criado_em >= startOfMonth)
         .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
 
+      const volumePagoMes = orcamentos
+        ?.filter((o) => o.status === "pago" && o.pago_em && o.pago_em >= startOfMonth)
+        .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
+
       return {
         totalOrcamentos,
         totalClientes: clienteCount ?? 0,
         orcamentosMes,
         valorMes,
+        volumePagoMes,
       };
     },
   });
@@ -329,6 +350,39 @@ export default function AdminAgenciaDetalhe() {
           </Table>
         </CardContent>
       </Card>
+
+      {(() => {
+        const plano = agencia.plano || "starter_a";
+        const mensalidade = planoPreco[plano] || 0;
+        const taxa = planoComissao[plano] || 0;
+        const volumePago = metrics?.volumePagoMes ?? 0;
+        const comissao = volumePago * taxa;
+        return (
+          <Card>
+            <CardHeader><CardTitle className="text-lg">Receita Estimada (mês atual)</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p className="text-sm text-muted-foreground">Mensalidade fixa</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Volume pago</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(volumePago)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Comissão ({taxa > 0 ? `${(taxa * 100).toFixed(1)}%` : "—"})</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(comissao)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total estimado</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade + comissao)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Card>
         <CardHeader><CardTitle className="text-lg">Histórico</CardTitle></CardHeader>
