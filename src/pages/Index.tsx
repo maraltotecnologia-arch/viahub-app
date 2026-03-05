@@ -421,6 +421,14 @@ function CTAFinal() {
   );
 }
 
+const assuntoOptions = [
+  "Quero conhecer o sistema",
+  "Dúvidas sobre planos",
+  "Quero falar com um consultor",
+  "Suporte técnico",
+  "Outro",
+];
+
 function ContactForm() {
   const { ref, visible } = useInView();
   const [sent, setSent] = useState(false);
