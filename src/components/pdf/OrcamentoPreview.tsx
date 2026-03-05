@@ -206,6 +206,9 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
 
         {/* RODAPÉ */}
         <div style={{ position: "absolute", bottom: 24, left: 48, right: 48, textAlign: "center" as const }}>
+          <div style={{ fontSize: 8, color: "#94A3B8", marginBottom: 6 }}>
+            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.
+          </div>
           <div style={{ fontSize: 9, color: "#9CA3AF" }}>
             {agencia.nome_fantasia}
             {agencia.email ? ` · ${agencia.email}` : ""}

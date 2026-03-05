@@ -17,6 +17,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
 import DatePickerInput from "@/components/ui/DatePickerInput";
+import { getPlanoMultiplier } from "@/lib/plan-commission";
 
 interface Item {
   id: string;
@@ -97,6 +98,23 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [itens, setItens] = useState<Item[]>([
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
+
+  // Fetch agency plan for silent commission
+  const { data: agenciaData } = useQuery({
+    queryKey: ["agencia-plano", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("plano")
+        .eq("id", agenciaId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const planoMultiplier = getPlanoMultiplier(agenciaData?.plano);
 
   // Fetch markup configs
   const { data: markupConfigs } = useQuery({
@@ -319,7 +337,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
-  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i), 0);
+  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i) * planoMultiplier, 0);
   const acrescimo = formaPagamento === "credito" ? valorFinalBase * (acrescimoCartao / 100) : 0;
   const valorFinal = valorFinalBase + acrescimo;
   const lucro = valorFinal - custoTotal;
@@ -397,7 +415,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i),
+        valor_final: calcValorFinal(i) * planoMultiplier,
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
@@ -449,7 +467,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             });
           } else {
             const oldVal = Number(old.valor_final) || 0;
-            const newVal = calcValorFinal(item);
+            const newVal = calcValorFinal(item) * planoMultiplier;
             if (Math.abs(oldVal - newVal) > 0.01) {
               await registrarHistorico({
                 orcamento_id: orcamentoId!,
@@ -515,7 +533,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i),
+        valor_final: calcValorFinal(i) * planoMultiplier,
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
@@ -751,7 +769,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <div className="space-y-1"><Label className="text-xs">Markup %</Label><Input type="number" min={0} value={item.markup_percentual || ""} onChange={(e) => updateItem(item.id, "markup_percentual", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
-                <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item))}</div></div>
+                <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
               </div>
               {/* Conditional date/time fields by service type */}
               {(item.tipo === "Aéreo" || item.tipo === "Transfer") && (
