@@ -22,7 +22,7 @@ const planoConfig: Record<string, { label: string; color: string }> = {
   starter_b: { label: "Starter + Comissão", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
   pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
   pro_b: { label: "Pro + Comissão", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
-  agency_c: { label: "White Label", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+  agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
 const planos = [
@@ -30,7 +30,7 @@ const planos = [
   { value: "starter_b", label: "Starter + Comissão" },
   { value: "pro_a", label: "Pro" },
   { value: "pro_b", label: "Pro + Comissão" },
-  { value: "agency_c", label: "White Label" },
+  { value: "agency_c", label: "Elite" },
 ];
 
 const planoPreco: Record<string, number> = {

@@ -17,7 +17,7 @@ const planos = [
   { value: "starter_b", label: "Starter + Comissão — R$197/mês + 1,5%" },
   { value: "pro_a", label: "Pro — R$697/mês" },
   { value: "pro_b", label: "Pro + Comissão — R$297/mês + 1,2%" },
-  { value: "agency_c", label: "White Label — R$1.997/mês" },
+  { value: "agency_c", label: "Elite — R$1.997/mês" },
 ];
 
 function gerarSenha() {

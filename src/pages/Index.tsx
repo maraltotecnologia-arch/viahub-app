@@ -56,7 +56,7 @@ const plans = [
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
-    name: "White Label", price: "R$1.997", per: "/mês", popular: false, whitelabel: true,
+    name: "Elite", price: "R$1.997", per: "/mês", popular: false, whitelabel: true,
     desc: "Para agências que querem o sistema com a própria marca",
     altPrice: "",
     feats: ["Tudo do Pro", "Marca e logo próprias", "Domínio personalizado", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
@@ -345,6 +345,11 @@ function PlanCard({ p, i, visible }: { p: typeof plans[number]; i: number; visib
         >
           {p.cta}
         </Link>
+      )}
+      {p.whitelabel && (
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: 8 }}>
+          *Plano indisponível para teste grátis.
+        </p>
       )}
     </div>
   );
