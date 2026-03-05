@@ -99,6 +99,23 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
 
+  // Fetch agency plan for silent commission
+  const { data: agenciaData } = useQuery({
+    queryKey: ["agencia-plano", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("plano")
+        .eq("id", agenciaId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const planoMultiplier = getPlanoMultiplier(agenciaData?.plano);
+
   // Fetch markup configs
   const { data: markupConfigs } = useQuery({
     queryKey: ["markup-configs", agenciaId],
