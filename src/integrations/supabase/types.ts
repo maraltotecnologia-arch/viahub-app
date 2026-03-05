@@ -307,12 +307,20 @@ export type Database = {
       }
       itens_orcamento: {
         Row: {
+          checkin_data: string | null
+          checkin_hora: string | null
+          checkout_data: string | null
+          checkout_hora: string | null
+          chegada_data: string | null
+          chegada_hora: string | null
           descricao: string | null
           detalhes: Json | null
           id: string
           markup_percentual: number | null
           observacao: string | null
           orcamento_id: string
+          partida_data: string | null
+          partida_hora: string | null
           quantidade: number | null
           taxa_fixa: number | null
           tipo: string
@@ -320,12 +328,20 @@ export type Database = {
           valor_final: number | null
         }
         Insert: {
+          checkin_data?: string | null
+          checkin_hora?: string | null
+          checkout_data?: string | null
+          checkout_hora?: string | null
+          chegada_data?: string | null
+          chegada_hora?: string | null
           descricao?: string | null
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
           observacao?: string | null
           orcamento_id: string
+          partida_data?: string | null
+          partida_hora?: string | null
           quantidade?: number | null
           taxa_fixa?: number | null
           tipo: string
@@ -333,12 +349,20 @@ export type Database = {
           valor_final?: number | null
         }
         Update: {
+          checkin_data?: string | null
+          checkin_hora?: string | null
+          checkout_data?: string | null
+          checkout_hora?: string | null
+          chegada_data?: string | null
+          chegada_hora?: string | null
           descricao?: string | null
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
           observacao?: string | null
           orcamento_id?: string
+          partida_data?: string | null
+          partida_hora?: string | null
           quantidade?: number | null
           taxa_fixa?: number | null
           tipo?: string
