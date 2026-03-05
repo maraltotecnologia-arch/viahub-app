@@ -28,6 +28,7 @@ import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import Metas from "./pages/Metas";
+import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="/pipeline" element={<Pipeline />} />
         <Route path="/metas" element={<Metas />} />
         <Route path="/relatorios" element={<Relatorios />} />
+        <Route path="/financeiro/comissoes" element={<ComissoesFinanceiro />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
