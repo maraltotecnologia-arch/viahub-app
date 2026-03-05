@@ -104,36 +104,12 @@ export default function OrcamentoPublico() {
     if (!trimmed || trimmed.length < 2) return;
     setApproving(true);
     try {
-      // 1. Update orcamento
-      const { error: updateErr } = await supabase
-        .from("orcamentos")
-        .update({
-          status: "aprovado",
-          aprovado_pelo_cliente_em: new Date().toISOString(),
-          aprovado_pelo_cliente_nome: trimmed,
-        } as any)
-        .eq("token_publico", token!);
-      if (updateErr) throw updateErr;
-
-      // 2. Register history
-      await supabase.from("historico_orcamento" as any).insert({
-        orcamento_id: orc.id,
-        usuario_id: null,
-        agencia_id: orc.agencia_id,
-        tipo: "status_alterado",
-        status_anterior: "enviado",
-        status_novo: "aprovado",
-        descricao: `Aprovado pelo cliente: ${trimmed}`,
+      const { data, error: invokeErr } = await supabase.functions.invoke("aprovar-orcamento-publico", {
+        body: { token: token!, nome: trimmed },
       });
 
-      // 3. Create notification for agency
-      await supabase.from("notificacoes_sistema").insert({
-        tipo: "info",
-        titulo: "Orçamento aprovado pelo cliente",
-        mensagem: `O orçamento ${orc.numero_orcamento || ""} foi aprovado por ${trimmed} via link público.`,
-        agencia_id: orc.agencia_id,
-        destinatario: "admins",
-      } as any);
+      if (invokeErr) throw invokeErr;
+      if (data?.error) throw new Error(data.error);
 
       setApprovedInfo({ nome: trimmed, data: formatarDataHoraBrasilia(new Date()) });
       setShowApprovalModal(false);
