@@ -154,14 +154,18 @@ function SuperadminDashboard() {
       const [agenciasRes, orcamentosRes, pagosRes] = await Promise.all([
         supabase.from("agencias").select("id, plano, ativo"),
         supabase.from("orcamentos").select("valor_final, criado_em").gte("criado_em", startOfMonth),
-        supabase.from("orcamentos").select("valor_final, agencia_id, criado_em").eq("status", "pago").gte("criado_em", startOfMonth),
+        supabase.from("orcamentos").select("valor_final, agencia_id, pago_em, atualizado_em, criado_em").eq("status", "pago"),
       ]);
       if (agenciasRes.error) throw agenciasRes.error;
       if (orcamentosRes.error) throw orcamentosRes.error;
       if (pagosRes.error) throw pagosRes.error;
       const agenciasAtivas = agenciasRes.data?.filter((a) => a.ativo !== false) ?? [];
       const orcamentos = orcamentosRes.data ?? [];
-      const pagos = pagosRes.data ?? [];
+      const pagos = (pagosRes.data ?? []).filter((o) => {
+        const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
+        if (!dataRef) return false;
+        return new Date(dataRef) >= new Date(startOfMonth);
+      });
 
       const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter_a"] || 0), 0);
 

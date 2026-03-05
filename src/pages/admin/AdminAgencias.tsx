@@ -112,12 +112,15 @@ export default function AdminAgencias() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
-        .select("agencia_id, valor_final, pago_em")
-        .eq("status", "pago")
-        .gte("pago_em", periodoStart.toISOString())
-        .lte("pago_em", periodoEnd.toISOString());
+        .select("agencia_id, valor_final, pago_em, atualizado_em, criado_em")
+        .eq("status", "pago");
       if (error) throw error;
-      return data;
+      return data?.filter((o) => {
+        const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
+        if (!dataRef) return false;
+        const d = new Date(dataRef);
+        return d >= periodoStart && d <= periodoEnd;
+      }) ?? [];
     },
   });
 

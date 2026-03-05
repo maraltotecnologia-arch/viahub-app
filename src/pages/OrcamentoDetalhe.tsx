@@ -244,6 +244,9 @@ export default function OrcamentoDetalhe() {
       }
       queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-comissoes-orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["superadmin-metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
       toast({ title: "Pagamento registrado com sucesso!" });
     }
     setMarkingPago(false);
