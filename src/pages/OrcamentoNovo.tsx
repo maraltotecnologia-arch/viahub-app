@@ -26,6 +26,7 @@ interface Item {
   markup_percentual: number;
   taxa_fixa: number;
   quantidade: number;
+  observacao?: string;
 }
 
 const tiposServico = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
@@ -173,6 +174,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           markup_percentual: Number(i.markup_percentual) || 0,
           taxa_fixa: Number(i.taxa_fixa) || 0,
           quantidade: i.quantidade || 1,
+          observacao: (i as any).observacao || "",
         }))
       );
       setInitialized(true);
@@ -381,7 +383,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         taxa_fixa: i.taxa_fixa,
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
-      }));
+        observacao: i.observacao || null,
+      } as any));
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
       if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
@@ -447,7 +450,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         taxa_fixa: i.taxa_fixa,
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
-      }));
+        observacao: i.observacao || null,
+      } as any));
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
       if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
@@ -673,6 +677,15 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
                 <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item))}</div></div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs">Observação do item</Label>
+                <Textarea
+                  placeholder="Ex: voo direto, café da manhã incluso..."
+                  value={item.observacao || ""}
+                  onChange={(e) => updateItem(item.id, "observacao", e.target.value)}
+                  className="min-h-[60px] text-sm resize-none"
+                />
               </div>
             </div>
           ))}
