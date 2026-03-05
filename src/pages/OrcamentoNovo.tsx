@@ -66,8 +66,10 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [clienteSearch, setClienteSearch] = useState("");
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [clienteNome, setClienteNome] = useState("");
-  const [clienteResults, setClienteResults] = useState<{ id: string; nome: string }[]>([]);
+  const [clienteResults, setClienteResults] = useState<{ id: string; nome: string; tags?: string[] | null }[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [clienteTagFilter, setClienteTagFilter] = useState<string | null>(null);
+  const TAGS_DISPONIVEIS = ["VIP", "Corporativo", "Eventual", "Recorrente", "Inativo", "Prospect"] as const;
   const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [newNome, setNewNome] = useState("");
   const [newEmail, setNewEmail] = useState("");
@@ -195,19 +197,25 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
 
   // Search clients
   useEffect(() => {
-    if (clienteSearch.length < 2 || !agenciaId) { setClienteResults([]); return; }
+    const needsSearch = clienteSearch.length >= 2 || clienteTagFilter;
+    if (!needsSearch || !agenciaId) { setClienteResults([]); return; }
     const timeout = setTimeout(async () => {
-      const { data } = await supabase
+      let query = supabase
         .from("clientes")
-        .select("id, nome")
-        .eq("agencia_id", agenciaId)
-        .ilike("nome", `%${clienteSearch}%`)
-        .limit(5);
+        .select("id, nome, tags")
+        .eq("agencia_id", agenciaId);
+      if (clienteSearch.length >= 2) {
+        query = query.ilike("nome", `%${clienteSearch}%`);
+      }
+      if (clienteTagFilter) {
+        query = query.contains("tags", [clienteTagFilter]);
+      }
+      const { data } = await query.limit(5);
       setClienteResults(data || []);
       setShowResults(true);
     }, 300);
     return () => clearTimeout(timeout);
-  }, [clienteSearch, agenciaId]);
+  }, [clienteSearch, agenciaId, clienteTagFilter]);
 
   const selectCliente = (c: { id: string; nome: string }) => {
     setClienteId(c.id);
@@ -506,6 +514,36 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
               </div>
             ) : (
               <>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {TAGS_DISPONIVEIS.map((tag) => {
+                    const isActive = clienteTagFilter === tag;
+                    const tagColors: Record<string, { bg: string; text: string; border: string; activeBg: string }> = {
+                      VIP: { bg: "rgba(245,158,11,0.08)", text: "#F59E0B", border: "rgba(245,158,11,0.25)", activeBg: "rgba(245,158,11,0.2)" },
+                      Corporativo: { bg: "rgba(37,99,235,0.08)", text: "#60A5FA", border: "rgba(37,99,235,0.25)", activeBg: "rgba(37,99,235,0.2)" },
+                      Eventual: { bg: "rgba(100,116,139,0.08)", text: "#94A3B8", border: "rgba(100,116,139,0.25)", activeBg: "rgba(100,116,139,0.2)" },
+                      Recorrente: { bg: "rgba(34,197,94,0.08)", text: "#4ADE80", border: "rgba(34,197,94,0.25)", activeBg: "rgba(34,197,94,0.2)" },
+                      Inativo: { bg: "rgba(239,68,68,0.08)", text: "#FCA5A5", border: "rgba(239,68,68,0.25)", activeBg: "rgba(239,68,68,0.2)" },
+                      Prospect: { bg: "rgba(139,92,246,0.08)", text: "#C4B5FD", border: "rgba(139,92,246,0.25)", activeBg: "rgba(139,92,246,0.2)" },
+                    };
+                    const colors = tagColors[tag];
+                    return (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setClienteTagFilter(isActive ? null : tag)}
+                        className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all"
+                        style={{
+                          backgroundColor: isActive ? colors.activeBg : colors.bg,
+                          color: colors.text,
+                          borderColor: colors.border,
+                          opacity: isActive ? 1 : 0.7,
+                        }}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
                 <Input
                   placeholder="Buscar cliente por nome..."
                   value={clienteSearch}
@@ -515,8 +553,28 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 {showResults && clienteResults.length > 0 && (
                   <div className="absolute z-10 top-full left-0 right-0 bg-card border rounded-md shadow-lg mt-1">
                     {clienteResults.map((c) => (
-                      <button key={c.id} className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors" onClick={() => selectCliente(c)}>
-                        {c.nome}
+                      <button key={c.id} className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors flex items-center gap-2" onClick={() => selectCliente(c)}>
+                        <span>{c.nome}</span>
+                        {c.tags && c.tags.length > 0 && (
+                          <span className="flex gap-1 ml-auto">
+                            {c.tags.map((t) => {
+                              const tc: Record<string, { bg: string; text: string; border: string }> = {
+                                VIP: { bg: "rgba(245,158,11,0.15)", text: "#F59E0B", border: "rgba(245,158,11,0.4)" },
+                                Corporativo: { bg: "rgba(37,99,235,0.15)", text: "#60A5FA", border: "rgba(37,99,235,0.4)" },
+                                Eventual: { bg: "rgba(100,116,139,0.15)", text: "#94A3B8", border: "rgba(100,116,139,0.4)" },
+                                Recorrente: { bg: "rgba(34,197,94,0.15)", text: "#4ADE80", border: "rgba(34,197,94,0.4)" },
+                                Inativo: { bg: "rgba(239,68,68,0.15)", text: "#FCA5A5", border: "rgba(239,68,68,0.4)" },
+                                Prospect: { bg: "rgba(139,92,246,0.15)", text: "#C4B5FD", border: "rgba(139,92,246,0.4)" },
+                              };
+                              const colors = tc[t] || tc.Eventual;
+                              return (
+                                <span key={t} className="inline-flex items-center px-1.5 py-0 rounded-full text-[9px] font-semibold border" style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}>
+                                  {t}
+                                </span>
+                              );
+                            })}
+                          </span>
+                        )}
                       </button>
                     ))}
                   </div>
