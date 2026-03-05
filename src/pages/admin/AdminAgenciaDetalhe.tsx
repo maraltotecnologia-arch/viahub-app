@@ -20,17 +20,17 @@ import LogsAcessoAgencia from "@/components/admin/LogsAcessoAgencia";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
-  starter_b: { label: "Starter + Comissão", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
+  starter_b: { label: "Starter", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
   pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-  pro_b: { label: "Pro + Comissão", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
+  pro_b: { label: "Pro", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
   agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
 const planos = [
   { value: "starter_a", label: "Starter" },
-  { value: "starter_b", label: "Starter + Comissão" },
+  { value: "starter_b", label: "Starter (taxa operacional)" },
   { value: "pro_a", label: "Pro" },
-  { value: "pro_b", label: "Pro + Comissão" },
+  { value: "pro_b", label: "Pro (taxa operacional)" },
   { value: "agency_c", label: "Elite" },
 ];
 
@@ -380,7 +380,7 @@ export default function AdminAgenciaDetalhe() {
                   <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(volumePago)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Comissão ({taxa > 0 ? `${(taxa * 100).toFixed(1)}%` : "—"})</p>
+                  <p className="text-sm text-muted-foreground">Taxa operacional embutida ({taxa > 0 ? `${(taxa * 100).toFixed(1)}% embutido nos orçamentos` : "—"})</p>
                   <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(comissao)}</p>
                 </div>
                 <div>

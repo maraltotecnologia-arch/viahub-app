@@ -141,7 +141,7 @@ export default function RelatorioPDFDocument({ data }: { data: RelatorioPDFProps
                   <Text style={s.cardValue}>{fmt(data.faturamentoBruto)}</Text>
                 </View>
                 <View style={s.card}>
-                  <Text style={s.cardLabel}>Total de Comissões</Text>
+                  <Text style={s.cardLabel}>Lucro Bruto</Text>
                   <Text style={s.cardValue}>{fmt(data.totalComissoes)}</Text>
                 </View>
                 <View style={s.card}>

@@ -95,7 +95,7 @@ export default function TermosDeUso() {
               <h2 className="text-lg font-bold text-[#0F172A]">4. Planos e Pagamento</h2>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Cobrança mensal antecipada conforme plano escolhido no momento do cadastro</li>
-                <li>Planos com comissão variável (Starter + Comissão e Pro + Comissão): percentual calculado sobre o volume total de orçamentos marcados como "Pago" no período mensal</li>
+                <li>Planos com encargos operacionais: taxa calculada automaticamente e embutida nos valores dos orçamentos gerados, conforme o plano contratado</li>
                 <li>O Contratante é responsável pela correta marcação dos orçamentos pagos</li>
                 <li>Não há reembolso após 7 dias corridos do início do uso</li>
                 <li>A Maralto reserva o direito de reajustar os preços com aviso prévio de 30 dias</li>

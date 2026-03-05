@@ -107,7 +107,7 @@ export default function ComissoesFinanceiro() {
 
   const handleExportCSV = () => {
     if (!filtered.length) { toast.info("Nenhum dado para exportar"); return; }
-    const header = "Nº Orçamento;Cliente;Valor Pago;Comissão (%);Valor Comissão;Data Pagamento";
+    const header = "Nº Orçamento;Cliente;Valor Pago;Taxa Op. (%);Valor Taxa Op.;Data Pagamento";
     const rows = filtered.map((o) => {
       const clienteNome = (o as any).clientes?.nome || "—";
       const val = Number(o.valor_final) || 0;
@@ -121,7 +121,7 @@ export default function ComissoesFinanceiro() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `comissoes_${periodo}.csv`;
+    a.download = `receita_operacional_${periodo}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -137,7 +137,7 @@ export default function ComissoesFinanceiro() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Comissões</h2>
+        <h2 className="text-2xl font-bold">Receita Operacional</h2>
         <div className="flex gap-2">
           <Select value={periodo} onValueChange={setPeriodo}>
             <SelectTrigger className="w-[200px]">
@@ -165,13 +165,13 @@ export default function ComissoesFinanceiro() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Comissões Geradas</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa Operacional Gerada</CardTitle>
             <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{fmt(totalComissao)}</div>
-            {taxa > 0 && <p className="text-xs text-muted-foreground mt-1">Taxa: {(taxa * 100).toFixed(1)}%</p>}
-            {taxa === 0 && <p className="text-xs text-muted-foreground mt-1">Plano sem comissão variável</p>}
+            {taxa > 0 && <p className="text-xs text-muted-foreground mt-1">Encargo operacional embutido</p>}
+            {taxa === 0 && <p className="text-xs text-muted-foreground mt-1">Plano sem taxa operacional</p>}
           </CardContent>
         </Card>
         <Card>
@@ -196,7 +196,7 @@ export default function ComissoesFinanceiro() {
                   <TableHead>Nº Orçamento</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead className="text-right">Valor Pago</TableHead>
-                  <TableHead className="text-right">Comissão</TableHead>
+                  <TableHead className="text-right">Taxa Op.</TableHead>
                   <TableHead>Data Pgto</TableHead>
                 </TableRow>
               </TableHeader>
