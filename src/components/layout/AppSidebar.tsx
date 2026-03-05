@@ -48,7 +48,7 @@ export function AppSidebar() {
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, show: true, badge: alertas?.total || 0 },
     { title: "Orçamentos", url: "/orcamentos", icon: FileText, show: true },
     { title: "Pipeline", url: "/pipeline", icon: BarChart3, show: !isFinanceiro, badge: 0 },
-    { title: "Metas", url: "/metas", icon: Target, show: !isSuperadmin && (isAdmin || !isFinanceiro), badge: 0 },
+    { title: "Metas", url: "/metas", icon: Target, show: !isSuperadmin && (canAccessConfig || !isFinanceiro), badge: 0 },
     { title: "Relatórios", url: "/relatorios", icon: TrendingUp, show: canAccessRelatorios, badge: 0 },
     { title: "Clientes", url: "/clientes", icon: Users, show: !isFinanceiro, badge: 0 },
   ];
