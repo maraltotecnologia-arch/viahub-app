@@ -118,7 +118,7 @@ const s = StyleSheet.create({
     borderBottomColor: "#E2E8F0",
   },
   tdService: { width: "20%", fontSize: 10, color: "#111827" },
-  tdDesc: { width: "60%", fontSize: 10, color: "#374151" },
+  tdDesc: { width: "60%", fontSize: 10, color: "#374151", flexDirection: "column" as const },
   tdValue: { width: "20%", fontSize: 10, color: "#111827", textAlign: "right" },
   totalRow: {
     flexDirection: "row",
