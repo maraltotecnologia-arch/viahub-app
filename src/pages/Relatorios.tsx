@@ -565,6 +565,8 @@ export default function Relatorios() {
           </Card>
         </>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
