@@ -355,6 +355,9 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
 
         {/* RODAPÉ FIXO (em todas as páginas) */}
         <View fixed style={s.footer}>
+          <Text style={{ fontSize: 7, color: "#94A3B8", marginBottom: 6, textAlign: "center" }}>
+            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.
+          </Text>
           <Text style={s.footerLine1}>
             Orçamento emitido por {agencia.nome_fantasia || ""}, válido conforme data informada neste documento. Sujeito a alteração de valores sem aviso prévio conforme Termos e Condições, consulte o seu agente de viagens para mais informações.
           </Text>
