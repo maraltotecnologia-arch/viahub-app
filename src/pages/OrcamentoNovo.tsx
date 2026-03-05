@@ -493,7 +493,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           <div className="space-y-2 relative">
             <Label>Nome do cliente</Label>
             {clienteId ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md border bg-muted/50">
+              <div className="viahub-cliente-selecionado flex items-center gap-2 px-3 py-2 rounded-md border" style={{ background: "var(--bg-secondary)", borderColor: "var(--border-color)" }}>
                 <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>✓ {clienteNome}</span>
                 <button
                   type="button"
@@ -594,7 +594,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         </CardHeader>
         <CardContent className="space-y-4">
           {itens.map((item, idx) => (
-            <div key={item.id} className="border rounded-lg p-4 space-y-3 bg-muted/20">
+            <div key={item.id} className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)" }}>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-muted-foreground">Item {idx + 1}</span>
                 {itens.length > 1 && <Button variant="ghost" size="icon" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}

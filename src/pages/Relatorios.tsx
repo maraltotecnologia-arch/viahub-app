@@ -285,6 +285,7 @@ export default function Relatorios() {
                     key={t}
                     variant={tiposFiltro.includes(t) ? "default" : "outline"}
                     className="cursor-pointer text-xs"
+                    style={!tiposFiltro.includes(t) ? { background: 'transparent', borderColor: 'var(--border-input)', color: 'var(--text-primary)' } : { background: 'var(--accent-primary)', borderColor: 'var(--accent-primary)', color: '#FFFFFF' }}
                     onClick={() => toggleTipo(t)}
                   >
                     {t}
@@ -334,10 +335,10 @@ export default function Relatorios() {
                 {barData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={barData}>
-                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                      <XAxis dataKey="name" fontSize={11} className="fill-muted-foreground" />
-                      <YAxis fontSize={11} className="fill-muted-foreground" tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ background: "white", borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                      <XAxis dataKey="name" fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} />
+                      <YAxis fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
                       <Bar dataKey="valor" fill="#2563EB" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -356,8 +357,8 @@ export default function Relatorios() {
                       <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" label={({ name, value }) => `${name} ${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%`}>
                         {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                       </Pie>
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} />
-                      <Legend />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
+                      <Legend wrapperStyle={{ color: 'var(--text-secondary)' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
