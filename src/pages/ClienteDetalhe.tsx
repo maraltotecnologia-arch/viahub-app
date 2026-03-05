@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-utils";
+import DatePickerInput from "@/components/ui/DatePickerInput";
 import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
 import ContatosCliente from "@/components/clientes/ContatosCliente";
 
@@ -128,12 +129,12 @@ export default function ClienteDetalhe() {
             <div className="space-y-2"><Label>Passaporte</Label><Input value={form.passaporte} onChange={(e) => setForm({ ...form, passaporte: e.target.value })} /></div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>
-              <Input
-                type="date"
+              <DatePickerInput
                 value={form.data_nascimento}
-                min="1900-01-01"
-                max={new Date().toISOString().split("T")[0]}
-                onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })}
+                onChange={(v) => setForm({ ...form, data_nascimento: v })}
+                placeholder="Selecione a data"
+                maxDate={new Date()}
+                minDate={new Date(1900, 0, 1)}
               />
             </div>
           </div>
