@@ -8,6 +8,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { OrcamentoPDFData } from "./OrcamentoPreview";
+import { buildServiceDateInfo } from "@/lib/service-dates";
 
 const fmt = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -293,18 +294,24 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
             <Text style={s.thDesc}>DESCRIÇÃO</Text>
             <Text style={s.thValue}>VALOR</Text>
           </View>
-          {itens.map((item, idx) => (
+          {itens.map((item, idx) => {
+            const dateInfo = buildServiceDateInfo(item);
+            return (
             <View key={idx} style={idx % 2 === 0 ? s.tableRow : s.tableRowAlt}>
               <Text style={s.tdService}>{item.tipo}</Text>
               <View style={s.tdDesc}>
                 <Text>{item.descricao || "-"}</Text>
+                {dateInfo && (
+                  <Text style={{ fontSize: 8, color: "#6B7280", marginTop: 2 }}>{dateInfo}</Text>
+                )}
                 {(item as any).observacao && (
                   <Text style={{ fontSize: 8, color: "#9CA3AF", marginTop: 3 }}>{(item as any).observacao}</Text>
                 )}
               </View>
               <Text style={s.tdValue}>{fmt(Number(item.valor_final) || 0)}</Text>
             </View>
-          ))}
+            );
+          })}
           <View style={s.totalRow}>
             <Text style={s.totalText}>TOTAL: {fmt(Number(orcamento.valor_final) || total)}</Text>
           </View>

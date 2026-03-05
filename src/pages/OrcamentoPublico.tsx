@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { buildServiceDateInfo } from "@/lib/service-dates";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -204,7 +205,9 @@ export default function OrcamentoPublico() {
                 </tr>
               </thead>
               <tbody>
-                {itens.map((item: any, idx: number) => (
+                {itens.map((item: any, idx: number) => {
+                  const dateInfo = buildServiceDateInfo(item);
+                  return (
                   <tr key={item.id || idx} className="border-b border-[#E2E8F0] last:border-0">
                     <td className="py-3 px-4 text-[#0F172A] font-medium">
                       {item.tipo}
@@ -212,6 +215,9 @@ export default function OrcamentoPublico() {
                     </td>
                     <td className="py-3 px-4 text-[#64748B]">
                       <div>{item.descricao || "-"}</div>
+                      {dateInfo && (
+                        <div className="text-xs text-[#6B7280] mt-1">{dateInfo}</div>
+                      )}
                       {item.observacao && (
                         <div className="text-xs text-[#9CA3AF] mt-1">{item.observacao}</div>
                       )}
@@ -220,7 +226,8 @@ export default function OrcamentoPublico() {
                       {fmt(Number(item.valor_final) || 0)}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

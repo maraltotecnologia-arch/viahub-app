@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { buildServiceDateInfo } from "@/lib/service-dates";
 
 export interface OrcamentoPDFData {
   orcamento: {
@@ -123,7 +124,9 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
             </tr>
           </thead>
           <tbody>
-            {itens.map((item, idx) => (
+            {itens.map((item, idx) => {
+              const dateInfo = buildServiceDateInfo(item);
+              return (
               <tr key={idx}>
                 <td style={{ padding: 12, fontSize: 13, color: "#111827", border: "1px solid #E5E7EB" }}>
                   {item.tipo}
@@ -131,6 +134,9 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
                 </td>
                 <td style={{ padding: 12, fontSize: 12, color: "#374151", border: "1px solid #E5E7EB" }}>
                   <div>{item.descricao || "-"}</div>
+                  {dateInfo && (
+                    <div style={{ fontSize: 10, color: "#6B7280", marginTop: 3 }}>{dateInfo}</div>
+                  )}
                   {item.observacao && (
                     <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4 }}>{item.observacao}</div>
                   )}
@@ -139,7 +145,8 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
                   {fmt(Number(item.valor_final) || 0)}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
 
