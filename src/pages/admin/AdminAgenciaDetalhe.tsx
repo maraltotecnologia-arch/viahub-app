@@ -119,7 +119,7 @@ export default function AdminAgenciaDetalhe() {
 
       const { data: orcamentos } = await supabase
         .from("orcamentos")
-        .select("id, valor_final, criado_em")
+        .select("id, valor_final, criado_em, status, pago_em")
         .eq("agencia_id", id!);
 
       const { count: clienteCount } = await supabase
@@ -133,11 +133,16 @@ export default function AdminAgenciaDetalhe() {
         ?.filter((o) => o.criado_em && o.criado_em >= startOfMonth)
         .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
 
+      const volumePagoMes = orcamentos
+        ?.filter((o) => o.status === "pago" && o.pago_em && o.pago_em >= startOfMonth)
+        .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
+
       return {
         totalOrcamentos,
         totalClientes: clienteCount ?? 0,
         orcamentosMes,
         valorMes,
+        volumePagoMes,
       };
     },
   });
