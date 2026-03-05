@@ -42,17 +42,17 @@ const steps = [
 
 const plans = [
   {
-    name: "Starter", price: "a partir de R$197", per: "/mês", popular: false, whitelabel: false,
-    desc: "*com comissão de 1,5% sobre vendas confirmadas",
-    altPrice: "ou R$397/mês sem comissão",
-    feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos"],
+    name: "Starter", price: "R$197", per: "/mês", popular: false, whitelabel: false,
+    desc: "",
+    altPrice: "ou R$397/mês sem encargos operacionais",
+    feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos", "Encargos operacionais calculados automaticamente"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
-    name: "Pro", price: "a partir de R$297", per: "/mês", popular: true, whitelabel: false,
-    desc: "*com comissão de 1,2% sobre vendas confirmadas",
-    altPrice: "ou R$697/mês sem comissão",
-    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário"],
+    name: "Pro", price: "R$297", per: "/mês", popular: true, whitelabel: false,
+    desc: "",
+    altPrice: "ou R$697/mês sem encargos operacionais",
+    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário", "Encargos operacionais calculados automaticamente"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
