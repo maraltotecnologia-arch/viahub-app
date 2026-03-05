@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock } from "lucide-react";
+import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock, UserCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
