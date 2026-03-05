@@ -2,3 +2,6 @@ project_id = "stpnsnrtowgqvlutwmse"
 
 [functions.registrar-log-acesso]
 verify_jwt = false
+
+[functions.aprovar-orcamento-publico]
+verify_jwt = false
