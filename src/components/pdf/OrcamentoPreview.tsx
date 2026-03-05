@@ -1,4 +1,5 @@
 import React, { forwardRef } from "react";
+import { buildServiceDateInfo } from "@/lib/service-dates";
 
 export interface OrcamentoPDFData {
   orcamento: {
@@ -22,6 +23,14 @@ export interface OrcamentoPDFData {
     valor_final?: number | null;
     quantidade?: number | null;
     observacao?: string | null;
+    partida_data?: string | null;
+    partida_hora?: string | null;
+    chegada_data?: string | null;
+    chegada_hora?: string | null;
+    checkin_data?: string | null;
+    checkin_hora?: string | null;
+    checkout_data?: string | null;
+    checkout_hora?: string | null;
   }[];
   agencia: {
     nome_fantasia: string;
@@ -123,7 +132,9 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
             </tr>
           </thead>
           <tbody>
-            {itens.map((item, idx) => (
+            {itens.map((item, idx) => {
+              const dateInfo = buildServiceDateInfo(item);
+              return (
               <tr key={idx}>
                 <td style={{ padding: 12, fontSize: 13, color: "#111827", border: "1px solid #E5E7EB" }}>
                   {item.tipo}
@@ -131,6 +142,9 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
                 </td>
                 <td style={{ padding: 12, fontSize: 12, color: "#374151", border: "1px solid #E5E7EB" }}>
                   <div>{item.descricao || "-"}</div>
+                  {dateInfo && (
+                    <div style={{ fontSize: 10, color: "#6B7280", marginTop: 3 }}>{dateInfo}</div>
+                  )}
                   {item.observacao && (
                     <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4 }}>{item.observacao}</div>
                   )}
@@ -139,7 +153,8 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
                   {fmt(Number(item.valor_final) || 0)}
                 </td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
 
