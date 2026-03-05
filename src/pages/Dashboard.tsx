@@ -145,6 +145,81 @@ function AlertasCard({ agenciaId }: { agenciaId: string }) {
   );
 }
 
+/* ===== MINHA META CARD (agents) ===== */
+function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
+  const { user } = useAuth();
+  const { isAgente } = useUserRole();
+  const now = new Date();
+  const mes = now.getMonth() + 1;
+  const ano = now.getFullYear();
+
+  const { data: meta } = useQuery({
+    queryKey: ["minha-meta", agenciaId, user?.id, mes, ano],
+    enabled: !!user && isAgente,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("metas_agentes")
+        .select("meta_valor, meta_orcamentos")
+        .eq("agencia_id", agenciaId)
+        .eq("usuario_id", user!.id)
+        .eq("mes", mes)
+        .eq("ano", ano)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: realizado } = useQuery({
+    queryKey: ["minha-meta-realizado", agenciaId, user?.id, mes, ano],
+    enabled: !!user && isAgente,
+    queryFn: async () => {
+      const startDate = new Date(ano, mes - 1, 1).toISOString();
+      const endDate = new Date(ano, mes, 0, 23, 59, 59, 999).toISOString();
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("valor_final")
+        .eq("agencia_id", agenciaId)
+        .eq("usuario_id", user!.id)
+        .gte("criado_em", startDate)
+        .lte("criado_em", endDate)
+        .in("status", ["aprovado", "emitido", "pago"]);
+      if (error) throw error;
+      return (data ?? []).reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
+    },
+  });
+
+  if (!isAgente || !meta || (Number(meta.meta_valor) === 0 && Number(meta.meta_orcamentos) === 0)) return null;
+
+  const metaValor = Number(meta.meta_valor) || 0;
+  const valorRealizado = realizado ?? 0;
+  const pct = metaValor > 0 ? Math.round((valorRealizado / metaValor) * 100) : 0;
+  const progressColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#2563EB" : pct >= 50 ? "#F59E0B" : "#EF4444";
+
+  return (
+    <Card className="rounded-2xl" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+      <CardContent className="p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+            <Target className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Minha Meta</p>
+            <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+              {fmt(valorRealizado)} <span className="text-sm font-normal text-muted-foreground">de {fmt(metaValor)}</span>
+            </p>
+          </div>
+          <span className="text-lg font-bold" style={{ color: progressColor }}>{pct}%</span>
+        </div>
+        <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden mb-2">
+          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.min(pct, 100)}%`, backgroundColor: progressColor }} />
+        </div>
+        <Link to="/metas" className="text-xs text-primary font-medium hover:underline">Ver detalhes →</Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ===== SUPERADMIN DASHBOARD ===== */
 function SuperadminDashboard() {
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
