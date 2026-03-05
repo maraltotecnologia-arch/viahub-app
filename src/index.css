@@ -436,7 +436,11 @@ body[data-viahub-scope="auth"] label {
 .viahub-landing .lp-plan-card--popular,
 .viahub-landing .lp-plan-card--whitelabel,
 .viahub-landing .lp-testimonial-card,
-.viahub-landing .lp-cta-card {
+.viahub-landing .lp-cta-card,
+.viahub-landing .lp-cta-card-v2,
+.viahub-landing .lp-cta-badge,
+.viahub-landing .lp-cta-proof,
+.viahub-landing .lp-contact-form-card {
   background-color: unset !important;
 }
 
