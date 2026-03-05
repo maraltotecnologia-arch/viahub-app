@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock, UserCheck } from "lucide-react";
+import { Plus, ArrowRight, MessageCircle, Copy, Edit, Clock, UserCheck, Pencil } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatarDataHoraBrasilia } from "@/lib/date-utils";
 
@@ -10,6 +10,7 @@ const iconByTipo: Record<string, React.ElementType> = {
   enviado_whatsapp: MessageCircle,
   duplicado: Copy,
   editado: Edit,
+  edicao_valor: Pencil,
 };
 
 const colorByTipo: Record<string, string> = {
@@ -18,6 +19,7 @@ const colorByTipo: Record<string, string> = {
   enviado_whatsapp: "#22C55E",
   duplicado: "#94A3B8",
   editado: "#F59E0B",
+  edicao_valor: "#F97316",
 };
 
 interface Props {
