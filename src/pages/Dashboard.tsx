@@ -84,10 +84,12 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
         {isLoading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
-            {value}
-          </p>
-          {subtitle && <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
+          <>
+            <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+              {value}
+            </p>
+            {subtitle && <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
+          </>
         )}
       </CardContent>
     </Card>
