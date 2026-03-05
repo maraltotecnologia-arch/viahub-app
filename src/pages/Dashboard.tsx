@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, DollarSign, TrendingUp, TrendingDown, Percent, Building2, AlertCircle, AlertTriangle, Info, Clock, BadgeCheck } from "lucide-react";
+import { FileText, DollarSign, TrendingUp, TrendingDown, Percent, Building2, AlertCircle, AlertTriangle, Info, Clock, BadgeCheck, Target } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
+import useUserRole from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -346,6 +347,8 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} subtitle={m.subtitle} />
         ))}
       </div>
+
+      <MinhaMetaCard agenciaId={agenciaId} />
 
       <AlertasCard agenciaId={agenciaId} />
 

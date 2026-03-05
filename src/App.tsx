@@ -27,6 +27,7 @@ import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
+import Metas from "./pages/Metas";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
@@ -67,6 +68,7 @@ function AppRoutes() {
         <Route path="/orcamentos/:id" element={<OrcamentoDetalhe />} />
         <Route path="/orcamentos/:id/editar" element={<OrcamentoNovo modo="edicao" />} />
         <Route path="/pipeline" element={<Pipeline />} />
+        <Route path="/metas" element={<Metas />} />
         <Route path="/relatorios" element={<Relatorios />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
