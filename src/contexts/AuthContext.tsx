@@ -48,11 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .maybeSingle()
         ).then(({ data: usuario }) => {
             if (usuario?.agencia_id) {
-              (supabase as any).from("logs_acesso").insert({
-                usuario_id: userId,
-                agencia_id: usuario.agencia_id,
-                usuario_nome: usuario.nome || email,
-                cargo: usuario.cargo || "agente",
+              supabase.functions.invoke("registrar-log-acesso", {
+                body: {
+                  usuario_id: userId,
+                  agencia_id: usuario.agencia_id,
+                  usuario_nome: usuario.nome || email,
+                  cargo: usuario.cargo || "agente",
+                },
               }).then(() => {});
             }
           })

@@ -1,1 +1,4 @@
 project_id = "stpnsnrtowgqvlutwmse"
+
+[functions.registrar-log-acesso]
+verify_jwt = false
