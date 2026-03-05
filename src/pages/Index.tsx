@@ -263,6 +263,8 @@ function HowItWorks() {
 /* ─── Plans ─── */
 function Plans() {
   const { ref, visible } = useInView();
+  const row1 = plans.filter(p => ["Starter", "Pro", "White Label"].includes(p.name));
+  const row2 = plans.filter(p => ["Starter+", "Pro+"].includes(p.name));
   return (
     <section id="planos" className="lp-section" ref={ref}>
       <div className="lp-container">
@@ -270,36 +272,46 @@ function Plans() {
         <p className="lp-section__subtitle">14 dias grátis em qualquer plano. Sem cartão de crédito.</p>
         <div className="lp-plans-scroll">
           <div className="lp-plans-grid">
-            {plans.map((p, i) => (
-              <div
-                key={p.name}
-                className={`lp-plan-card ${p.popular ? "lp-plan-card--popular" : ""} ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
-                style={{ animationDelay: `${i * 80}ms` }}
-              >
-                {p.popular && <span className="lp-plan-card__badge">Mais popular</span>}
-                <h3 className="lp-plan-card__name">{p.name}</h3>
-                <div className="lp-plan-card__price">
-                  <span className="lp-plan-card__amount">{p.price}</span>
-                  <span className="lp-plan-card__per">{p.per}</span>
-                </div>
-                <ul className="lp-plan-card__feats">
-                  {p.feats.map(f => (
-                    <li key={f}><Check size={14} className="lp-plan-card__check" /> {f}</li>
-                  ))}
-                </ul>
-                <Link
-                  to="/cadastro"
-                  className={`lp-btn ${p.popular ? "lp-btn--primary" : "lp-btn--ghost"}`}
-                  style={{ width: "100%", justifyContent: "center" }}
-                >
-                  Começar grátis
-                </Link>
-              </div>
+            {row1.map((p, i) => (
+              <PlanCard key={p.name} p={p} i={i} visible={visible} />
+            ))}
+          </div>
+          <div className="lp-plans-row2">
+            {row2.map((p, i) => (
+              <PlanCard key={p.name} p={p} i={i + 3} visible={visible} />
             ))}
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function PlanCard({ p, i, visible }: { p: typeof plans[number]; i: number; visible: boolean }) {
+  return (
+    <div
+      className={`lp-plan-card ${p.popular ? "lp-plan-card--popular" : ""} ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
+      style={{ animationDelay: `${i * 80}ms` }}
+    >
+      {p.popular && <span className="lp-plan-card__badge">Mais popular</span>}
+      <h3 className="lp-plan-card__name">{p.name}</h3>
+      <div className="lp-plan-card__price">
+        <span className="lp-plan-card__amount">{p.price}</span>
+        <span className="lp-plan-card__per">{p.per}</span>
+      </div>
+      <ul className="lp-plan-card__feats">
+        {p.feats.map(f => (
+          <li key={f}><Check size={14} className="lp-plan-card__check" /> {f}</li>
+        ))}
+      </ul>
+      <Link
+        to="/cadastro"
+        className={`lp-btn ${p.popular ? "lp-btn--primary" : "lp-btn--ghost"}`}
+        style={{ width: "100%", justifyContent: "center" }}
+      >
+        Começar grátis
+      </Link>
+    </div>
   );
 }
 
