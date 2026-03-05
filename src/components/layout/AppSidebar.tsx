@@ -50,7 +50,7 @@ export function AppSidebar() {
     { title: "Pipeline", url: "/pipeline", icon: BarChart3, show: !isFinanceiro, badge: 0 },
     { title: "Metas", url: "/metas", icon: Target, show: !isSuperadmin && (canAccessConfig || !isFinanceiro), badge: 0 },
     { title: "Relatórios", url: "/relatorios", icon: TrendingUp, show: canAccessRelatorios, badge: 0 },
-    { title: "Comissões", url: "/financeiro/comissoes", icon: Percent, show: !isSuperadmin && (isAdmin || isFinanceiro), badge: 0 },
+    { title: "Comissões", url: "/financeiro/comissoes", icon: Percent, show: !isSuperadmin && (canAccessConfig || isFinanceiro), badge: 0 },
     { title: "Clientes", url: "/clientes", icon: Users, show: !isFinanceiro, badge: 0 },
   ];
 
