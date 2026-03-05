@@ -60,19 +60,19 @@ body {
               color 300ms ease;
 }
 
-/* Forçar contraste de tipografia no dark mode — apenas app, não landing */
-[data-theme="dark"] h1:not(.viahub-landing *),
-[data-theme="dark"] h2:not(.viahub-landing *),
-[data-theme="dark"] h3:not(.viahub-landing *),
-[data-theme="dark"] p:not(.viahub-landing *),
-[data-theme="dark"] span:not(.viahub-landing *),
-[data-theme="dark"] label:not(.viahub-landing *) {
+/* Forçar contraste de tipografia no dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] p,
+[data-theme="dark"] span,
+[data-theme="dark"] label {
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .text-muted-foreground:not(.viahub-landing *),
-[data-theme="dark"] [class*="text-gray"]:not(.viahub-landing *),
-[data-theme="dark"] [class*="text-slate"]:not(.viahub-landing *) {
+[data-theme="dark"] .text-muted-foreground,
+[data-theme="dark"] [class*="text-gray"],
+[data-theme="dark"] [class*="text-slate"] {
   color: var(--text-secondary) !important;
 }
 
@@ -408,19 +408,36 @@ body[data-viahub-scope="auth"] label {
 }
 
 /* Reset landing page elements from global dark overrides */
-.viahub-landing input,
-.viahub-landing textarea,
-.viahub-landing select,
-.viahub-landing label,
 .viahub-landing h1,
 .viahub-landing h2,
 .viahub-landing h3,
+.viahub-landing h4,
 .viahub-landing p,
 .viahub-landing span,
-.viahub-landing button {
-  color: inherit !important;
-  background-color: inherit !important;
-  border-color: inherit !important;
+.viahub-landing label,
+.viahub-landing li,
+.viahub-landing div,
+.viahub-landing button,
+.viahub-landing a {
+  background-color: transparent !important;
+}
+/* Restore specific backgrounds that are intentional */
+.viahub-landing .lp-btn--primary,
+.viahub-landing .lp-feature-card__icon,
+.viahub-landing .lp-badge-cyan,
+.viahub-landing .lp-plan-card__badge,
+.viahub-landing .lp-hero__badge span,
+.viahub-landing .lp-step__dot,
+.viahub-landing .lp-mockup,
+.viahub-landing .lp-mockup__metric,
+.viahub-landing .lp-mockup__row-badge,
+.viahub-landing .lp-feature-card,
+.viahub-landing .lp-plan-card,
+.viahub-landing .lp-plan-card--popular,
+.viahub-landing .lp-plan-card--whitelabel,
+.viahub-landing .lp-testimonial-card,
+.viahub-landing .lp-cta-card {
+  background-color: unset !important;
 }
 
 /* Orbs */
