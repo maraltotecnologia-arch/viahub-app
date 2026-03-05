@@ -14,7 +14,11 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const MRR_MAP: Record<string, number> = {
-  starter_a: 397, starter_b: 397, pro_a: 697, pro_b: 697, agency_c: 1997,
+  starter_a: 397, starter_b: 197, pro_a: 697, pro_b: 297, agency_c: 1997,
+};
+
+const COMISSAO_MAP: Record<string, number> = {
+  starter_a: 0, starter_b: 0.015, pro_a: 0, pro_b: 0.012, agency_c: 0,
 };
 
 export default function Dashboard() {
