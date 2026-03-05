@@ -186,38 +186,48 @@ function Hero() {
 /* ─── Dashboard Mockup ─── */
 function DashboardMockup() {
   return (
-    <div className="lp-mockup">
-      <div className="lp-mockup__header">
-        <span className="lp-mockup__logo">ViaHub</span>
-        <div className="lp-mockup__dots">
-          <span /><span /><span />
+    <div className="lp-mockup-frame">
+      <div className="lp-mockup-toolbar">
+        <div className="lp-mockup-toolbar__dots">
+          <span style={{ background: '#FF5F57' }} />
+          <span style={{ background: '#FEBC2E' }} />
+          <span style={{ background: '#28C840' }} />
         </div>
+        <span className="lp-mockup-toolbar__url">app.viahub.app</span>
       </div>
-      <div className="lp-mockup__metrics">
-        {[
-          { label: "Faturamento", value: "R$ 47.200" },
-          { label: "Orçamentos", value: "23" },
-          { label: "Conversão", value: "89%" },
-        ].map(m => (
-          <div key={m.label} className="lp-mockup__metric">
-            <span className="lp-mockup__metric-label">{m.label}</span>
-            <span className="lp-mockup__metric-value">{m.value}</span>
+      <div className="lp-mockup">
+        <div className="lp-mockup__header">
+          <span className="lp-mockup__logo">ViaHub</span>
+          <div className="lp-mockup__dots">
+            <span /><span /><span />
           </div>
-        ))}
-      </div>
-      <div className="lp-mockup__table">
-        {[
-          { client: "Jean Lucca", dest: "Cancún", val: "R$ 12.400", status: "Aprovado", color: "#22C55E" },
-          { client: "Maria Silva", dest: "Paris", val: "R$ 18.900", status: "Enviado", color: "#2563EB" },
-          { client: "Carlos Souza", dest: "Orlando", val: "R$ 8.750", status: "Rascunho", color: "#64748B" },
-        ].map((r, i) => (
-          <div key={i} className="lp-mockup__row">
-            <span className="lp-mockup__row-client">{r.client}</span>
-            <span className="lp-mockup__row-dest">{r.dest}</span>
-            <span className="lp-mockup__row-val">{r.val}</span>
-            <span className="lp-mockup__row-badge" style={{ background: `${r.color}22`, color: r.color }}>{r.status}</span>
-          </div>
-        ))}
+        </div>
+        <div className="lp-mockup__metrics">
+          {[
+            { label: "Faturamento", value: "R$ 47.200" },
+            { label: "Orçamentos", value: "23" },
+            { label: "Conversão", value: "89%" },
+          ].map(m => (
+            <div key={m.label} className="lp-mockup__metric">
+              <span className="lp-mockup__metric-label">{m.label}</span>
+              <span className="lp-mockup__metric-value">{m.value}</span>
+            </div>
+          ))}
+        </div>
+        <div className="lp-mockup__table">
+          {[
+            { client: "Rafael Andrade", dest: "Cancún", val: "R$ 12.400", status: "Aprovado", color: "#22C55E" },
+            { client: "Maria Silva", dest: "Paris", val: "R$ 18.900", status: "Enviado", color: "#2563EB" },
+            { client: "Carlos Souza", dest: "Orlando", val: "R$ 8.750", status: "Rascunho", color: "#64748B" },
+          ].map((r, i) => (
+            <div key={i} className="lp-mockup__row">
+              <span className="lp-mockup__row-client">{r.client}</span>
+              <span className="lp-mockup__row-dest">{r.dest}</span>
+              <span className="lp-mockup__row-val">{r.val}</span>
+              <span className="lp-mockup__row-badge" style={{ background: `${r.color}22`, color: r.color }}>{r.status}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -261,7 +271,7 @@ function HowItWorks() {
     <section id="como-funciona" className="lp-section lp-section--alt" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section__title">Do cadastro ao <span className="lp-gradient-text">fechamento</span></h2>
-        <div className="lp-steps">
+         <div className="lp-steps">
           <div className="lp-steps__line" />
           {steps.map((s, i) => (
             <div
@@ -269,8 +279,8 @@ function HowItWorks() {
               className={`lp-step ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              <span className="lp-step__number">{s.n}</span>
               <div className="lp-step__dot" />
+              <span className="lp-step__number">{s.n}</span>
               <h3 className="lp-step__title">{s.title}</h3>
               <p className="lp-step__desc">{s.desc}</p>
             </div>
@@ -432,9 +442,11 @@ function FinalSection() {
                 { icon: TrendingUp, value: "+30%", label: "Aumento na taxa de conversão de vendas" },
                 { icon: Users, value: "100+", label: "Agências ativas na plataforma" },
               ].map((p) => (
-                <div key={p.value} className="lp-cta-proof">
-                  <p.icon size={20} className="lp-cta-proof__icon" />
-                  <span className="lp-cta-proof__value">{p.value}</span>
+              <div key={p.value} className="lp-cta-proof">
+                  <div className="lp-cta-proof__head">
+                    <p.icon size={20} className="lp-cta-proof__icon" />
+                    <span className="lp-cta-proof__value">{p.value}</span>
+                  </div>
                   <span className="lp-cta-proof__label">{p.label}</span>
                 </div>
               ))}
