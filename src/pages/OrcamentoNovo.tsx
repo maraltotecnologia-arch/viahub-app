@@ -27,6 +27,14 @@ interface Item {
   taxa_fixa: number;
   quantidade: number;
   observacao?: string;
+  partida_data?: string;
+  partida_hora?: string;
+  chegada_data?: string;
+  chegada_hora?: string;
+  checkin_data?: string;
+  checkin_hora?: string;
+  checkout_data?: string;
+  checkout_hora?: string;
 }
 
 const tiposServico = ["Aéreo", "Hotel", "Pacote", "Passeio", "Seguro", "Transfer"];
