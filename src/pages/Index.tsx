@@ -41,11 +41,27 @@ const steps = [
 ];
 
 const plans = [
-  { name: "Starter", price: "R$397", per: "/mês", feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "Relatórios básicos"] },
-  { name: "Starter+", price: "R$197", per: "/mês + 1,5%", feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "Relatórios básicos"] },
-  { name: "Pro", price: "R$697", per: "/mês", popular: true, feats: ["Usuários ilimitados", "Pipeline Kanban", "Relatórios avançados", "Templates de orçamento", "Suporte prioritário"] },
-  { name: "Pro+", price: "R$297", per: "/mês + 1,2%", feats: ["Usuários ilimitados", "Pipeline Kanban", "Relatórios avançados", "Templates de orçamento", "Suporte prioritário"] },
-  { name: "White Label", price: "R$1.997", per: "/mês", feats: ["Marca própria", "Tudo do Pro", "Domínio personalizado", "Logo e cores customizadas", "Onboarding dedicado"] },
+  {
+    name: "Starter", price: "a partir de R$197", per: "/mês", popular: false, whitelabel: false,
+    desc: "*com comissão de 1,5% sobre vendas confirmadas",
+    altPrice: "ou R$397/mês sem comissão",
+    feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos"],
+    cta: "Começar grátis", ctaLink: "/cadastro",
+  },
+  {
+    name: "Pro", price: "a partir de R$297", per: "/mês", popular: true, whitelabel: false,
+    desc: "*com comissão de 1,2% sobre vendas confirmadas",
+    altPrice: "ou R$697/mês sem comissão",
+    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações (em breve)", "Suporte prioritário"],
+    cta: "Começar grátis", ctaLink: "/cadastro",
+  },
+  {
+    name: "White Label", price: "R$1.997", per: "/mês", popular: false, whitelabel: true,
+    desc: "Para agências que querem o sistema com a própria marca",
+    altPrice: "",
+    feats: ["Tudo do Pro", "Marca e logo próprias", "Domínio personalizado", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
+    cta: "Falar com consultor", ctaLink: "mailto:suporte@viahub.app",
+  },
 ];
 
 const testimonials = [
@@ -263,24 +279,15 @@ function HowItWorks() {
 /* ─── Plans ─── */
 function Plans() {
   const { ref, visible } = useInView();
-  const row1 = plans.filter(p => ["Starter", "Pro", "White Label"].includes(p.name));
-  const row2 = plans.filter(p => ["Starter+", "Pro+"].includes(p.name));
   return (
     <section id="planos" className="lp-section" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section__title">Planos para cada <span className="lp-gradient-text">momento</span></h2>
         <p className="lp-section__subtitle">14 dias grátis em qualquer plano. Sem cartão de crédito.</p>
-        <div className="lp-plans-scroll">
-          <div className="lp-plans-grid">
-            {row1.map((p, i) => (
-              <PlanCard key={p.name} p={p} i={i} visible={visible} />
-            ))}
-          </div>
-          <div className="lp-plans-row2">
-            {row2.map((p, i) => (
-              <PlanCard key={p.name} p={p} i={i + 3} visible={visible} />
-            ))}
-          </div>
+        <div className="lp-plans-grid">
+          {plans.map((p, i) => (
+            <PlanCard key={p.name} p={p} i={i} visible={visible} />
+          ))}
         </div>
       </div>
     </section>
@@ -288,9 +295,10 @@ function Plans() {
 }
 
 function PlanCard({ p, i, visible }: { p: typeof plans[number]; i: number; visible: boolean }) {
+  const isExternal = p.ctaLink.startsWith("mailto:");
   return (
     <div
-      className={`lp-plan-card ${p.popular ? "lp-plan-card--popular" : ""} ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
+      className={`lp-plan-card ${p.popular ? "lp-plan-card--popular" : ""} ${p.whitelabel ? "lp-plan-card--whitelabel" : ""} ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
       style={{ animationDelay: `${i * 80}ms` }}
     >
       {p.popular && <span className="lp-plan-card__badge">Mais popular</span>}
@@ -299,18 +307,30 @@ function PlanCard({ p, i, visible }: { p: typeof plans[number]; i: number; visib
         <span className="lp-plan-card__amount">{p.price}</span>
         <span className="lp-plan-card__per">{p.per}</span>
       </div>
+      <p className="lp-plan-card__desc">{p.desc}</p>
+      {p.altPrice && <p className="lp-plan-card__alt-price">{p.altPrice}</p>}
       <ul className="lp-plan-card__feats">
         {p.feats.map(f => (
           <li key={f}><Check size={14} className="lp-plan-card__check" /> {f}</li>
         ))}
       </ul>
-      <Link
-        to="/cadastro"
-        className={`lp-btn ${p.popular ? "lp-btn--primary" : "lp-btn--ghost"}`}
-        style={{ width: "100%", justifyContent: "center" }}
-      >
-        Começar grátis
-      </Link>
+      {isExternal ? (
+        <a
+          href={p.ctaLink}
+          className="lp-btn lp-btn--ghost"
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {p.cta}
+        </a>
+      ) : (
+        <Link
+          to={p.ctaLink}
+          className={`lp-btn ${p.popular ? "lp-btn--primary" : "lp-btn--ghost"}`}
+          style={{ width: "100%", justifyContent: "center" }}
+        >
+          {p.cta}
+        </Link>
+      )}
     </div>
   );
 }

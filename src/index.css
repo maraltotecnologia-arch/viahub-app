@@ -774,9 +774,9 @@ body[data-viahub-scope="auth"] label {
   .lp-section { padding: 120px 0; }
 }
 .lp-section--alt {
-  background: rgba(255,255,255,0.015);
-  border-top: 1px solid var(--lp-border);
-  border-bottom: 1px solid var(--lp-border);
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
 }
 .lp-section__title {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -799,15 +799,7 @@ body[data-viahub-scope="auth"] label {
   margin-right: auto;
 }
 
-/* Decorative line */
-.lp-section--alt::before {
-  content: '';
-  display: block;
-  width: 80px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--lp-blue), transparent);
-  margin: 0 auto 0;
-}
+/* Decorative line — disabled */
 
 /* ── Feature cards ── */
 .lp-features-grid {
@@ -930,49 +922,22 @@ body[data-viahub-scope="auth"] label {
 }
 
 /* ── Plans ── */
-.lp-plans-scroll {
-  overflow-x: visible;
-  padding-bottom: 8px;
-}
 .lp-plans-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 24px;
 }
 @media (min-width: 768px) {
-  .lp-plans-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .lp-plan-card--popular {
-    grid-column: 1 / -1;
-  }
-}
-@media (min-width: 1024px) {
   .lp-plans-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .lp-plan-card--popular {
-    grid-column: auto;
-  }
 }
-.lp-plans-row2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-  margin-top: 16px;
+.lp-plan-card--whitelabel {
+  border-color: rgba(139,92,246,0.3) !important;
 }
-@media (min-width: 768px) {
-  .lp-plans-row2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (min-width: 1024px) {
-  .lp-plans-row2 {
-    grid-template-columns: repeat(2, 1fr);
-    max-width: 66.666%;
-    margin-left: auto;
-    margin-right: auto;
-  }
+.lp-plan-card--whitelabel:hover {
+  border-color: rgba(139,92,246,0.5) !important;
+  box-shadow: 0 0 24px rgba(139,92,246,0.1);
 }
 .lp-plan-card {
   background: rgba(255,255,255,0.03) !important;
@@ -991,10 +956,30 @@ body[data-viahub-scope="auth"] label {
   box-shadow: 0 0 24px rgba(37,99,235,0.08);
 }
 .lp-plan-card--popular {
-  border-color: transparent !important;
+  border: 1px solid transparent !important;
   background: rgba(37,99,235,0.06) !important;
-  border-image: linear-gradient(135deg, #2563EB, #06B6D4) 1;
-  border-image-slice: 1;
+  background-clip: padding-box !important;
+  position: relative;
+  border-radius: 12px;
+  box-shadow: 0 0 24px rgba(37,99,235,0.1);
+}
+.lp-plan-card--popular::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #2563EB, #06B6D4);
+  z-index: -1;
+}
+.lp-plan-card__desc {
+  font-size: 12px;
+  color: var(--lp-text2) !important;
+  line-height: 1.5;
+}
+.lp-plan-card__alt-price {
+  font-size: 13px;
+  color: var(--lp-muted) !important;
+  margin-top: -8px;
 }
 .lp-plan-card__badge {
   position: absolute;
