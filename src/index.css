@@ -325,3 +325,42 @@ body {
     @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
   }
 }
+
+/* Global dark mode fixes — inputs, cards, labels */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-input) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] [class*="card"],
+[data-theme="dark"] [class*="Card"] {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] label {
+  color: var(--text-secondary) !important;
+}
+
+/* Cliente selecionado badge no dark mode */
+[data-theme="dark"] .viahub-cliente-selecionado {
+  background: rgba(37,99,235,0.2) !important;
+  border: 1px solid rgba(37,99,235,0.4) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Force login page to remain unaffected */
+body[data-viahub-scope="auth"] input,
+body[data-viahub-scope="auth"] label {
+  background-color: revert !important;
+  color: revert !important;
+  border-color: revert !important;
+}
