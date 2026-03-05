@@ -401,7 +401,7 @@ body[data-viahub-scope="auth"] label {
   --lp-cyan: #06B6D4;
   background: var(--lp-deep);
   color: var(--lp-text);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
@@ -470,7 +470,7 @@ body[data-viahub-scope="auth"] label {
   height: 64px;
 }
 .lp-logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 22px;
   background: linear-gradient(135deg, #2563EB, #06B6D4);
@@ -551,7 +551,7 @@ body[data-viahub-scope="auth"] label {
   padding: 0 20px;
   height: 40px;
   border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 500;
   font-size: 14px;
   text-decoration: none;
@@ -611,7 +611,7 @@ body[data-viahub-scope="auth"] label {
   color: var(--lp-cyan) !important;
 }
 .lp-hero__title {
-  font-family: 'Syne', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 800;
   font-size: 44px;
   line-height: 1.08;
@@ -691,7 +691,7 @@ body[data-viahub-scope="auth"] label {
   border-bottom: 1px solid var(--lp-border);
 }
 .lp-mockup__logo {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   font-size: 14px;
   color: var(--lp-text) !important;
@@ -779,7 +779,7 @@ body[data-viahub-scope="auth"] label {
   border-bottom: 1px solid var(--lp-border);
 }
 .lp-section__title {
-  font-family: 'Syne', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 700;
   font-size: 36px;
   text-align: center;
@@ -844,7 +844,7 @@ body[data-viahub-scope="auth"] label {
   color: var(--lp-blue) !important;
 }
 .lp-feature-card__title {
-  font-family: 'DM Sans', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 600;
   font-size: 17px;
   color: var(--lp-text) !important;
@@ -898,7 +898,7 @@ body[data-viahub-scope="auth"] label {
 }
 .lp-step { text-align: center; position: relative; }
 .lp-step__number {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 56px;
   color: rgba(37,99,235,0.12) !important;
@@ -931,20 +931,47 @@ body[data-viahub-scope="auth"] label {
 
 /* ── Plans ── */
 .lp-plans-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-x: visible;
   padding-bottom: 8px;
 }
 .lp-plans-grid {
   display: grid;
-  grid-template-columns: repeat(5, 220px);
-  gap: 12px;
-  min-width: max-content;
+  grid-template-columns: 1fr;
+  gap: 16px;
 }
-@media (min-width: 1200px) {
+@media (min-width: 768px) {
   .lp-plans-grid {
-    grid-template-columns: repeat(5, 1fr);
-    min-width: unset;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lp-plan-card--popular {
+    grid-column: 1 / -1;
+  }
+}
+@media (min-width: 1024px) {
+  .lp-plans-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .lp-plan-card--popular {
+    grid-column: auto;
+  }
+}
+.lp-plans-row2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (min-width: 768px) {
+  .lp-plans-row2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1024px) {
+  .lp-plans-row2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 66.666%;
+    margin-left: auto;
+    margin-right: auto;
   }
 }
 .lp-plan-card {
@@ -988,7 +1015,7 @@ body[data-viahub-scope="auth"] label {
 }
 .lp-plan-card__price { display: flex; align-items: baseline; gap: 4px; }
 .lp-plan-card__amount {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 28px;
   color: var(--lp-text) !important;
@@ -1071,7 +1098,7 @@ body[data-viahub-scope="auth"] label {
   box-shadow: 0 0 60px rgba(37,99,235,0.06);
 }
 .lp-cta-card__title {
-  font-family: 'Syne', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 700;
   font-size: 32px;
   color: var(--lp-text) !important;
