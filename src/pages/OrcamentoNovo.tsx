@@ -753,6 +753,47 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
                 <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item))}</div></div>
               </div>
+              {/* Conditional date/time fields by service type */}
+              {(item.tipo === "Aéreo" || item.tipo === "Transfer") && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Partida (data)</Label>
+                    <DatePickerInput value={item.partida_data || ""} onChange={(v) => updateItem(item.id, "partida_data" as any, v)} placeholder="Data partida" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Partida (hora)</Label>
+                    <Input type="time" value={item.partida_hora || ""} onChange={(e) => updateItem(item.id, "partida_hora" as any, e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Chegada (data)</Label>
+                    <DatePickerInput value={item.chegada_data || ""} onChange={(v) => updateItem(item.id, "chegada_data" as any, v)} placeholder="Data chegada" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Chegada (hora)</Label>
+                    <Input type="time" value={item.chegada_hora || ""} onChange={(e) => updateItem(item.id, "chegada_hora" as any, e.target.value)} />
+                  </div>
+                </div>
+              )}
+              {(item.tipo === "Hotel" || item.tipo === "Pacote") && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Check-in (data)</Label>
+                    <DatePickerInput value={item.checkin_data || ""} onChange={(v) => updateItem(item.id, "checkin_data" as any, v)} placeholder="Data check-in" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Check-in (hora)</Label>
+                    <Input type="time" value={item.checkin_hora || ""} onChange={(e) => updateItem(item.id, "checkin_hora" as any, e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Check-out (data)</Label>
+                    <DatePickerInput value={item.checkout_data || ""} onChange={(v) => updateItem(item.id, "checkout_data" as any, v)} placeholder="Data check-out" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Check-out (hora)</Label>
+                    <Input type="time" value={item.checkout_hora || ""} onChange={(e) => updateItem(item.id, "checkout_hora" as any, e.target.value)} />
+                  </div>
+                </div>
+              )}
               <div className="space-y-1">
                 <Label className="text-xs">Observação do item</Label>
                 <Textarea
