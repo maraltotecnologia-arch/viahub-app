@@ -151,19 +151,35 @@ function SuperadminDashboard() {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["superadmin-metrics"],
     queryFn: async () => {
-      const [agenciasRes, orcamentosRes] = await Promise.all([
-        supabase.from("agencias").select("plano, ativo"),
+      const [agenciasRes, orcamentosRes, pagosRes] = await Promise.all([
+        supabase.from("agencias").select("id, plano, ativo"),
         supabase.from("orcamentos").select("valor_final, criado_em").gte("criado_em", startOfMonth),
+        supabase.from("orcamentos").select("valor_final, agencia_id, criado_em").eq("status", "pago").gte("criado_em", startOfMonth),
       ]);
       if (agenciasRes.error) throw agenciasRes.error;
       if (orcamentosRes.error) throw orcamentosRes.error;
-      const agenciasAtivas = agenciasRes.data?.filter((a) => a.ativo) ?? [];
+      if (pagosRes.error) throw pagosRes.error;
+      const agenciasAtivas = agenciasRes.data?.filter((a) => a.ativo !== false) ?? [];
       const orcamentos = orcamentosRes.data ?? [];
+      const pagos = pagosRes.data ?? [];
+
+      const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter_a"] || 0), 0);
+
+      // Build volume by agency for commission
+      const volumeByAgencia: Record<string, number> = {};
+      pagos.forEach((o) => {
+        if (o.agencia_id) volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
+      });
+      const mrrComissoes = agenciasAtivas.reduce((sum, a) => {
+        const taxa = COMISSAO_MAP[a.plano || "starter_a"] || 0;
+        return sum + (volumeByAgencia[a.id] || 0) * taxa;
+      }, 0);
+
       return {
         totalAgencias: agenciasAtivas.length,
         totalOrcamentos: orcamentos.length,
         volumeTotal: orcamentos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0),
-        mrr: agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || ""] || 0), 0),
+        mrr: mrrMensalidades + mrrComissoes,
       };
     },
   });
