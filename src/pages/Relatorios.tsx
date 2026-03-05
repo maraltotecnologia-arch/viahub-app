@@ -11,7 +11,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { CalendarIcon, Download, Filter, BarChart2 } from "lucide-react";
+import { CalendarIcon, Download, Filter, BarChart2, BadgeCheck, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -141,6 +141,13 @@ export default function Relatorios() {
   const totalComissoes = filteredData.reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
   const ticketMedio = filteredData.length > 0 ? faturamentoBruto / filteredData.length : 0;
   const totalOrcamentos = filteredData.length;
+
+  // Payment metrics
+  const pagos = filteredData.filter((o) => o.status === "pago");
+  const totalRecebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
+  const ticketMedioRecebido = pagos.length > 0 ? totalRecebido / pagos.length : 0;
+  const aprovadosTotal = filteredData.filter((o) => ["aprovado", "emitido", "pago"].includes(o.status || "")).reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
+  const percentConvertidoCaixa = aprovadosTotal > 0 ? Math.round((totalRecebido / aprovadosTotal) * 100) : 0;
 
   // Bar chart data
   const barData = useMemo(() => {
@@ -324,6 +331,41 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total de Orçamentos</CardTitle></CardHeader>
               <CardContent><p className="text-2xl font-bold">{totalOrcamentos}</p></CardContent>
+            </Card>
+          </div>
+
+          {/* PAYMENT CARDS */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                  <BadgeCheck className="h-4 w-4 text-green-600" /> Total Recebido
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-green-600">{fmt(totalRecebido)}</p>
+                <p className="text-xs text-muted-foreground mt-1">confirmado pelos agentes</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-blue-600" /> Ticket Médio Recebido
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{fmt(ticketMedioRecebido)}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                  <PieChartIcon className="h-4 w-4 text-cyan-600" /> % Convertido em Caixa
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold">{percentConvertidoCaixa}%</p>
+              </CardContent>
             </Card>
           </div>
 
