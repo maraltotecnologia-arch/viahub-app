@@ -19,9 +19,9 @@ import { validarTelefone, validarCNPJ } from "@/lib/validators";
 
 const planos = [
   { value: "starter_a", label: "Starter — R$397/mês" },
-  { value: "starter_b", label: "Starter + Comissão — R$197/mês + 1,5%" },
+  { value: "starter_b", label: "Starter — R$197/mês (com encargos operacionais)" },
   { value: "pro_a", label: "Pro — R$697/mês" },
-  { value: "pro_b", label: "Pro + Comissão — R$297/mês + 1,2%" },
+  { value: "pro_b", label: "Pro — R$297/mês (com encargos operacionais)" },
   { value: "white_label", label: "Elite — R$1.997/mês" },
 ];
 

@@ -17,9 +17,9 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
   starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
-  starter_b: { label: "Starter + Comissão", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
+  starter_b: { label: "Starter", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
   pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-  pro_b: { label: "Pro + Comissão", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
+  pro_b: { label: "Pro", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
   agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
@@ -172,7 +172,7 @@ export default function AdminAgencias() {
       <Tabs defaultValue="agencias">
         <TabsList>
           <TabsTrigger value="agencias">Agências</TabsTrigger>
-          <TabsTrigger value="comissoes">Comissões</TabsTrigger>
+          <TabsTrigger value="comissoes">Receita Variável</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agencias">
@@ -286,7 +286,7 @@ export default function AdminAgencias() {
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Comissões</CardTitle>
+                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Receita Variável</CardTitle>
                   <Percent className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrrComissoes)}</div></CardContent>
@@ -325,9 +325,9 @@ export default function AdminAgencias() {
                       <TableHead>Plano</TableHead>
                       <TableHead className="text-right">Mensalidade</TableHead>
                       <TableHead className="text-right">Volume pago</TableHead>
-                      <TableHead className="text-right">Taxa</TableHead>
-                      <TableHead className="text-right">Comissão</TableHead>
-                      <TableHead className="text-right">Total estimado</TableHead>
+                       <TableHead className="text-right">Taxa op.</TableHead>
+                       <TableHead className="text-right">Receita variável</TableHead>
+                       <TableHead className="text-right">Total estimado</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
