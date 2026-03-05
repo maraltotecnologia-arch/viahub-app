@@ -115,11 +115,12 @@ export default function AdminAgenciaDetalhe() {
     queryKey: ["admin-agencia-metrics", id],
     enabled: !!id && isSuperadmin,
     queryFn: async () => {
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+      const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
 
       const { data: orcamentos } = await supabase
         .from("orcamentos")
-        .select("id, valor_final, criado_em, status, pago_em")
+        .select("id, valor_final, criado_em, atualizado_em, status, pago_em")
         .eq("agencia_id", id!);
 
       const { count: clienteCount } = await supabase
@@ -127,14 +128,21 @@ export default function AdminAgenciaDetalhe() {
         .select("id", { count: "exact", head: true })
         .eq("agencia_id", id!);
 
+      const startISO = startOfMonth.toISOString();
       const totalOrcamentos = orcamentos?.length ?? 0;
-      const orcamentosMes = orcamentos?.filter((o) => o.criado_em && o.criado_em >= startOfMonth).length ?? 0;
+      const orcamentosMes = orcamentos?.filter((o) => o.criado_em && o.criado_em >= startISO).length ?? 0;
       const valorMes = orcamentos
-        ?.filter((o) => o.criado_em && o.criado_em >= startOfMonth)
+        ?.filter((o) => o.criado_em && o.criado_em >= startISO)
         .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
 
       const volumePagoMes = orcamentos
-        ?.filter((o) => o.status === "pago" && o.pago_em && o.pago_em >= startOfMonth)
+        ?.filter((o) => {
+          if (o.status !== "pago") return false;
+          const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
+          if (!dataRef) return false;
+          const d = new Date(dataRef);
+          return d >= startOfMonth && d <= endOfMonth;
+        })
         .reduce((s, o) => s + (Number(o.valor_final) || 0), 0) ?? 0;
 
       return {
