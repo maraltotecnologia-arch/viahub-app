@@ -11,7 +11,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { CalendarIcon, Download, Filter, BarChart2, BadgeCheck, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
+import { CalendarIcon, Download, Filter, BarChart2, BadgeCheck, TrendingUp, PieChart as PieChartIcon, FileDown } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,10 @@ import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import SortableTableHead from "@/components/SortableTableHead";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import { pdf } from "@react-pdf/renderer";
+import RelatorioPDFDocument from "@/components/pdf/RelatorioPDFDocument";
+import type { RelatorioPDFProps } from "@/components/pdf/RelatorioPDFDocument";
+import { toast } from "sonner";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
