@@ -61,6 +61,21 @@ export default function Relatorios() {
   const [customEnd, setCustomEnd] = useState<Date | undefined>();
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const { data: agenciaData } = useQuery({
+    queryKey: ["agencia-relatorio", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("nome_fantasia, logo_url")
+        .eq("id", agenciaId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleSort = (campo: string, direcao: "asc" | "desc") => {
     setOrdenacao({ campo, direcao });
