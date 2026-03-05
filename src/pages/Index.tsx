@@ -375,6 +375,14 @@ function Testimonials() {
 }
 
 /* ─── CTA Final ─── */
+const assuntoOptions = [
+  "Quero conhecer o sistema",
+  "Dúvidas sobre planos",
+  "Quero falar com um consultor",
+  "Suporte técnico",
+  "Outro",
+];
+
 /* ─── Final Section (CTA + Form side by side) ─── */
 function FinalSection() {
   const { ref, visible } = useInView();
