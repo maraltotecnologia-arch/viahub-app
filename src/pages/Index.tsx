@@ -29,7 +29,7 @@ const features = [
   { icon: LayoutList, title: "Pipeline de Vendas", desc: "Do rascunho ao pagamento, visualize cada etapa da sua venda." },
   { icon: Users, title: "CRM de Clientes", desc: "Tags, múltiplos contatos e histórico completo de cada cliente." },
   { icon: BarChart3, title: "Relatórios Financeiros", desc: "Faturamento real, taxa de conversão e performance da equipe." },
-  { icon: Sparkles, title: "IA para Cotações", desc: "Em breve: descreva a viagem e receba um orçamento completo em segundos.", badge: "Em breve" },
+  { icon: Sparkles, title: "IA para Cotações", desc: "Descreva a viagem e receba um orçamento completo com preços reais das consolidadoras em segundos." },
   { icon: Bell, title: "Alertas e Follow-up", desc: "Nunca perca um prazo. Alertas automáticos no momento certo." },
 ];
 
@@ -52,7 +52,7 @@ const plans = [
     name: "Pro", price: "a partir de R$297", per: "/mês", popular: true, whitelabel: false,
     desc: "*com comissão de 1,2% sobre vendas confirmadas",
     altPrice: "ou R$697/mês sem comissão",
-    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações (em breve)", "Suporte prioritário"],
+    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
@@ -159,7 +159,7 @@ function Hero() {
     <section className="lp-hero">
       <div className="lp-container lp-hero__inner">
         <div className="lp-hero__badge lp-stagger" style={{ animationDelay: "100ms" }}>
-          <span>✦ Orçamento com IA em breve</span>
+          <span>✦ Orçamento inteligente com IA</span>
         </div>
         <h1 className="lp-hero__title lp-stagger" style={{ animationDelay: "200ms" }}>
           Sua agência de viagens<br />no <span className="lp-gradient-text">próximo nível</span>
