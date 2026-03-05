@@ -408,19 +408,36 @@ body[data-viahub-scope="auth"] label {
 }
 
 /* Reset landing page elements from global dark overrides */
-.viahub-landing input,
-.viahub-landing textarea,
-.viahub-landing select,
-.viahub-landing label,
 .viahub-landing h1,
 .viahub-landing h2,
 .viahub-landing h3,
+.viahub-landing h4,
 .viahub-landing p,
 .viahub-landing span,
-.viahub-landing button {
-  color: inherit !important;
-  background-color: inherit !important;
-  border-color: inherit !important;
+.viahub-landing label,
+.viahub-landing li,
+.viahub-landing div,
+.viahub-landing button,
+.viahub-landing a {
+  background-color: transparent !important;
+}
+/* Restore specific backgrounds that are intentional */
+.viahub-landing .lp-btn--primary,
+.viahub-landing .lp-feature-card__icon,
+.viahub-landing .lp-badge-cyan,
+.viahub-landing .lp-plan-card__badge,
+.viahub-landing .lp-hero__badge span,
+.viahub-landing .lp-step__dot,
+.viahub-landing .lp-mockup,
+.viahub-landing .lp-mockup__metric,
+.viahub-landing .lp-mockup__row-badge,
+.viahub-landing .lp-feature-card,
+.viahub-landing .lp-plan-card,
+.viahub-landing .lp-plan-card--popular,
+.viahub-landing .lp-plan-card--whitelabel,
+.viahub-landing .lp-testimonial-card,
+.viahub-landing .lp-cta-card {
+  background-color: unset !important;
 }
 
 /* Orbs */
@@ -956,20 +973,32 @@ body[data-viahub-scope="auth"] label {
   box-shadow: 0 0 24px rgba(37,99,235,0.08);
 }
 .lp-plan-card--popular {
-  border: 1px solid transparent !important;
-  background: rgba(37,99,235,0.06) !important;
-  background-clip: padding-box !important;
-  position: relative;
+  background: #111827 !important;
+  border: 2px solid #2563EB !important;
   border-radius: 12px;
-  box-shadow: 0 0 24px rgba(37,99,235,0.1);
+  box-shadow: 0 0 32px rgba(37,99,235,0.2);
+  position: relative;
 }
-.lp-plan-card--popular::before {
-  content: '';
-  position: absolute;
-  inset: -1px;
-  border-radius: 13px;
-  background: linear-gradient(135deg, #2563EB, #06B6D4);
-  z-index: -1;
+.lp-plan-card--popular .lp-plan-card__name {
+  color: #F1F5F9 !important;
+}
+.lp-plan-card--popular .lp-plan-card__amount {
+  color: #F1F5F9 !important;
+}
+.lp-plan-card--popular .lp-plan-card__per {
+  color: #94A3B8 !important;
+}
+.lp-plan-card--popular .lp-plan-card__desc {
+  color: #94A3B8 !important;
+}
+.lp-plan-card--popular .lp-plan-card__alt-price {
+  color: #64748B !important;
+}
+.lp-plan-card--popular .lp-plan-card__feats li {
+  color: #CBD5E1 !important;
+}
+.lp-plan-card--popular .lp-plan-card__check {
+  color: #06B6D4 !important;
 }
 .lp-plan-card__desc {
   font-size: 12px;
