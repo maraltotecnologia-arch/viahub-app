@@ -111,9 +111,7 @@ export default function Index() {
       <hr className="lp-section-divider" />
       <Testimonials />
       <hr className="lp-section-divider" />
-      <CTAFinal />
-      <hr className="lp-section-divider" />
-      <ContactForm />
+      <FinalSection />
       <Footer />
     </div>
   );
