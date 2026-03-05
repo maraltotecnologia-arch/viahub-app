@@ -264,25 +264,20 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-metrics", agenciaId],
     queryFn: async () => {
-      const [orcRes, pagosRes] = await Promise.all([
-        supabase.from("orcamentos").select("status, valor_final, lucro_bruto, criado_em")
-          .eq("agencia_id", agenciaId).gte("criado_em", startOfMonth),
-        supabase.from("orcamentos").select("valor_final, pago_em")
-          .eq("agencia_id", agenciaId).eq("status", "pago").gte("pago_em", startOfMonth),
-      ]);
-      if (orcRes.error) throw orcRes.error;
-      if (pagosRes.error) throw pagosRes.error;
-      const orcamentos = orcRes.data ?? [];
-      const pagos = pagosRes.data ?? [];
+      const { data, error } = await supabase
+        .from("orcamentos").select("status, valor_final, lucro_bruto, criado_em")
+        .eq("agencia_id", agenciaId).gte("criado_em", startOfMonth);
+      if (error) throw error;
+      const orcamentos = data ?? [];
       const total = orcamentos.length;
       const valorTotal = orcamentos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
-      const pagosNoMes = orcamentos.filter((o) => o.status === "pago").length;
-      const conversao = total > 0 ? Math.round((pagosNoMes / total) * 100) : 0;
+      const pagos = orcamentos.filter((o) => o.status === "pago");
+      const pagosCount = pagos.length;
+      const conversao = total > 0 ? Math.round((pagosCount / total) * 100) : 0;
       const comissao = orcamentos
         .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
         .reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
       const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
-      const pagosCount = pagos.length;
       return { total, valorTotal, conversao, comissao, recebido, pagosCount };
     },
   });
