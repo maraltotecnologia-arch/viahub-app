@@ -33,29 +33,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
 
-      if (event === "SIGNED_IN" && session?.user) {
-        // Log access asynchronously — don't block auth flow
-        try {
-          const { data: usuario } = await supabase
+      if (_event === "SIGNED_IN" && session?.user) {
+        // Fire-and-forget — never block auth flow
+        const userId = session.user.id;
+        const email = session.user.email;
+        Promise.resolve(
+          supabase
             .from("usuarios")
             .select("nome, cargo, agencia_id")
-            .eq("id", session.user.id)
-            .maybeSingle();
-
-          if (usuario?.agencia_id) {
-            await supabase.from("logs_acesso" as any).insert({
-              usuario_id: session.user.id,
-              agencia_id: usuario.agencia_id,
-              usuario_nome: usuario.nome || session.user.email,
-              cargo: usuario.cargo || "agente",
-            } as any);
-          }
-        } catch {
-          // silently ignore logging errors
-        }
+            .eq("id", userId)
+            .maybeSingle()
+        ).then(({ data: usuario }) => {
+            if (usuario?.agencia_id) {
+              (supabase as any).from("logs_acesso").insert({
+                usuario_id: userId,
+                agencia_id: usuario.agencia_id,
+                usuario_nome: usuario.nome || email,
+                cargo: usuario.cargo || "agente",
+              }).then(() => {});
+            }
+          })
+          .catch(() => {});
       }
     });
 
