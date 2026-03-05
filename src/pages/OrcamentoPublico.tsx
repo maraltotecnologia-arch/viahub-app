@@ -209,7 +209,7 @@ export default function OrcamentoPublico() {
             {agencia?.telefone ? ` · ${agencia.telefone}` : ""}
           </p>
           <p className="text-xs text-[#94A3B8] mt-1">
-            Gerado por ViaHub · viahub.com.br
+            Gerado por ViaHub · viahub.app
           </p>
           <p className="text-xs text-[#94A3B8] mt-1">
             <a href={`${window.location.origin}/termos`} target="_blank" rel="noopener noreferrer" className="hover:underline">Termos de Uso</a>
