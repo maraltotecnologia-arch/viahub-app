@@ -276,9 +276,8 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       const pagos = pagosRes.data ?? [];
       const total = orcamentos.length;
       const valorTotal = orcamentos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
-      const enviados = orcamentos.filter((o) => o.status === "enviado").length;
-      const aprovados = orcamentos.filter((o) => o.status === "aprovado").length;
-      const conversao = enviados > 0 ? Math.round((aprovados / enviados) * 100) : 0;
+      const pagosNoMes = orcamentos.filter((o) => o.status === "pago").length;
+      const conversao = total > 0 ? Math.round((pagosNoMes / total) * 100) : 0;
       const comissao = orcamentos
         .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
         .reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
