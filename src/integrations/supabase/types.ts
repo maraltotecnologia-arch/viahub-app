@@ -311,6 +311,7 @@ export type Database = {
           detalhes: Json | null
           id: string
           markup_percentual: number | null
+          observacao: string | null
           orcamento_id: string
           quantidade: number | null
           taxa_fixa: number | null
@@ -323,6 +324,7 @@ export type Database = {
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
+          observacao?: string | null
           orcamento_id: string
           quantidade?: number | null
           taxa_fixa?: number | null
@@ -335,6 +337,7 @@ export type Database = {
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
+          observacao?: string | null
           orcamento_id?: string
           quantidade?: number | null
           taxa_fixa?: number | null

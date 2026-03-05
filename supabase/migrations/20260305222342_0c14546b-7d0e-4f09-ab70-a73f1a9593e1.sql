@@ -1,0 +1,1 @@
+ALTER TABLE public.itens_orcamento ADD COLUMN observacao TEXT DEFAULT NULL;

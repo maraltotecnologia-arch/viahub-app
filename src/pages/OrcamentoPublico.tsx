@@ -210,7 +210,12 @@ export default function OrcamentoPublico() {
                       {item.tipo}
                       {(item.quantidade ?? 1) > 1 ? ` (x${item.quantidade})` : ""}
                     </td>
-                    <td className="py-3 px-4 text-[#64748B]">{item.descricao || "-"}</td>
+                    <td className="py-3 px-4 text-[#64748B]">
+                      <div>{item.descricao || "-"}</div>
+                      {item.observacao && (
+                        <div className="text-xs text-[#9CA3AF] mt-1">{item.observacao}</div>
+                      )}
+                    </td>
                     <td className="py-3 px-4 text-right text-[#0F172A] font-semibold whitespace-nowrap" style={{ fontSize: 16 }}>
                       {fmt(Number(item.valor_final) || 0)}
                     </td>
