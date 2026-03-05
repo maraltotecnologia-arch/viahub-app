@@ -11,7 +11,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from "@/components/ui/table";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { CalendarIcon, Download, Filter, BarChart2, BadgeCheck, TrendingUp, PieChart as PieChartIcon } from "lucide-react";
+import { CalendarIcon, Download, Filter, BarChart2, BadgeCheck, TrendingUp, PieChart as PieChartIcon, FileDown } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,10 @@ import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import SortableTableHead from "@/components/SortableTableHead";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import { pdf } from "@react-pdf/renderer";
+import RelatorioPDFDocument from "@/components/pdf/RelatorioPDFDocument";
+import type { RelatorioPDFProps } from "@/components/pdf/RelatorioPDFDocument";
+import { toast } from "sonner";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -57,6 +61,21 @@ export default function Relatorios() {
   const [customEnd, setCustomEnd] = useState<Date | undefined>();
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const { data: agenciaData } = useQuery({
+    queryKey: ["agencia-relatorio", agenciaId],
+    enabled: !!agenciaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("agencias")
+        .select("nome_fantasia, logo_url")
+        .eq("id", agenciaId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleSort = (campo: string, direcao: "asc" | "desc") => {
     setOrdenacao({ campo, direcao });
@@ -212,6 +231,58 @@ export default function Relatorios() {
     URL.revokeObjectURL(url);
   };
 
+  // PDF Export
+  const exportarPDF = async () => {
+    if (!agenciaData) { toast.error("Dados da agência não carregados"); return; }
+    setGeneratingPdf(true);
+    try {
+      const filtroParts: string[] = [];
+      const periodoLabel = PERIODOS.find((p) => p.value === appliedFilters.periodo)?.label || appliedFilters.periodo;
+      if (appliedFilters.periodo !== "este_mes") filtroParts.push(`Período: ${periodoLabel}`);
+      if (appliedFilters.tipos.length > 0) filtroParts.push(`Tipos: ${appliedFilters.tipos.join(", ")}`);
+      if (appliedFilters.status !== "Todos") filtroParts.push(`Status: ${appliedFilters.status}`);
+
+      const pdfData: RelatorioPDFProps = {
+        agenciaNome: agenciaData.nome_fantasia || "Agência",
+        logoUrl: agenciaData.logo_url,
+        periodoLabel,
+        dateStart: format(dateRange.start, "dd/MM/yyyy"),
+        dateEnd: format(dateRange.end, "dd/MM/yyyy"),
+        filtrosTexto: filtroParts.length > 0 ? filtroParts.join(" · ") : undefined,
+        faturamentoBruto,
+        totalComissoes,
+        ticketMedio,
+        totalOrcamentos,
+        totalRecebido,
+        ticketMedioRecebido,
+        percentConvertidoCaixa,
+        orcamentos: filteredData.map((o) => ({
+          numero_orcamento: o.numero_orcamento,
+          cliente_nome: o.cliente_nome,
+          tipos_servico: o.tipos_servico,
+          valor_final: Number(o.valor_final) || 0,
+          status: o.status || "rascunho",
+          criado_em: o.criado_em,
+        })),
+      };
+
+      const blob = await pdf(<RelatorioPDFDocument data={pdfData} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const nomeAgencia = (agenciaData.nome_fantasia || "agencia").toLowerCase().replace(/\s+/g, "-").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      link.href = url;
+      link.download = `relatorio-${nomeAgencia}-${format(new Date(), "MM-yyyy")}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("PDF gerado com sucesso!");
+    } catch (e) {
+      console.error("Erro ao gerar PDF:", e);
+      toast.error("Erro ao gerar PDF");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   const toggleTipo = (tipo: string) => {
     setTiposFiltro((prev) => prev.includes(tipo) ? prev.filter((t) => t !== tipo) : [...prev, tipo]);
   };
@@ -220,9 +291,14 @@ export default function Relatorios() {
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Relatórios Financeiros</h2>
-        <Button variant="outline" onClick={exportarCSV} disabled={filteredData.length === 0}>
-          <Download className="h-4 w-4 mr-2" /> Exportar CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={exportarPDF} disabled={filteredData.length === 0 || generatingPdf}>
+            <FileDown className="h-4 w-4 mr-2" /> {generatingPdf ? "Gerando..." : "Exportar PDF"}
+          </Button>
+          <Button variant="outline" onClick={exportarCSV} disabled={filteredData.length === 0}>
+            <Download className="h-4 w-4 mr-2" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       {/* FILTERS */}
