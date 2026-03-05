@@ -340,8 +340,9 @@ body {
   color: var(--text-muted) !important;
 }
 
-[data-theme="dark"] [class*="card"],
-[data-theme="dark"] [class*="Card"] {
+/* Scope card dark overrides to authenticated app only */
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="card"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="Card"] {
   background-color: var(--bg-card) !important;
   border-color: var(--border-color) !important;
 }
