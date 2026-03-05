@@ -399,6 +399,51 @@ export type Database = {
           },
         ]
       }
+      logs_acesso: {
+        Row: {
+          agencia_id: string
+          cargo: string | null
+          criado_em: string
+          id: string
+          ip: string | null
+          usuario_id: string
+          usuario_nome: string | null
+        }
+        Insert: {
+          agencia_id: string
+          cargo?: string | null
+          criado_em?: string
+          id?: string
+          ip?: string | null
+          usuario_id: string
+          usuario_nome?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          cargo?: string | null
+          criado_em?: string
+          id?: string
+          ip?: string | null
+          usuario_id?: string
+          usuario_nome?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_acesso_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_acesso_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metas_agentes: {
         Row: {
           agencia_id: string
