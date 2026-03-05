@@ -213,7 +213,7 @@ export default function Relatorios() {
 
   // CSV Export
   const exportarCSV = () => {
-    const headers = ["Data", "Nº Orçamento", "Cliente", "Valor Final", "Comissão", "Margem %", "Status"];
+    const headers = ["Data", "Nº Orçamento", "Cliente", "Valor Final", "Lucro Bruto", "Margem %", "Status"];
     const rows = filteredData.map((o) => [
       o.criado_em ? format(new Date(o.criado_em), "dd/MM/yyyy") : "-",
       o.numero_orcamento || "-",
@@ -413,7 +413,7 @@ export default function Relatorios() {
               <CardContent><p className="text-2xl font-bold">{fmt(faturamentoBruto)}</p></CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total de Comissões</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Lucro Bruto</CardTitle></CardHeader>
               <CardContent><p className="text-2xl font-bold text-primary">{fmt(totalComissoes)}</p></CardContent>
             </Card>
             <Card>
@@ -483,7 +483,7 @@ export default function Relatorios() {
             </Card>
 
             <Card>
-              <CardHeader><CardTitle className="text-base">Comissão por Tipo de Serviço</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Lucro por Tipo de Serviço</CardTitle></CardHeader>
               <CardContent>
                 {pieData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
@@ -515,7 +515,7 @@ export default function Relatorios() {
                       <TableHead>Cliente</TableHead>
                       <TableHead>Tipo</TableHead>
                       <SortableTableHead label="Valor Final" field="valor_final" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
-                      <SortableTableHead label="Comissão" field="lucro_bruto" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
+                      <SortableTableHead label="Lucro" field="lucro_bruto" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
                       <SortableTableHead label="Margem %" field="margem_percentual" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} className="text-right" />
                       <TableHead>Status</TableHead>
                     </TableRow>
