@@ -183,6 +183,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           taxa_fixa: Number(i.taxa_fixa) || 0,
           quantidade: i.quantidade || 1,
           observacao: (i as any).observacao || "",
+          partida_data: (i as any).partida_data || "",
+          partida_hora: (i as any).partida_hora || "",
+          chegada_data: (i as any).chegada_data || "",
+          chegada_hora: (i as any).chegada_hora || "",
+          checkin_data: (i as any).checkin_data || "",
+          checkin_hora: (i as any).checkin_hora || "",
+          checkout_data: (i as any).checkout_data || "",
+          checkout_hora: (i as any).checkout_hora || "",
         }))
       );
       setInitialized(true);
@@ -392,6 +400,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
         observacao: i.observacao || null,
+        partida_data: i.partida_data || null,
+        partida_hora: i.partida_hora || null,
+        chegada_data: i.chegada_data || null,
+        chegada_hora: i.chegada_hora || null,
+        checkin_data: i.checkin_data || null,
+        checkin_hora: i.checkin_hora || null,
+        checkout_data: i.checkout_data || null,
+        checkout_hora: i.checkout_hora || null,
       } as any));
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
@@ -502,6 +518,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
         observacao: i.observacao || null,
+        partida_data: i.partida_data || null,
+        partida_hora: i.partida_hora || null,
+        chegada_data: i.chegada_data || null,
+        chegada_hora: i.chegada_hora || null,
+        checkin_data: i.checkin_data || null,
+        checkin_hora: i.checkin_hora || null,
+        checkout_data: i.checkout_data || null,
+        checkout_hora: i.checkout_hora || null,
       } as any));
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
