@@ -21,6 +21,7 @@ export interface OrcamentoPDFData {
     descricao?: string | null;
     valor_final?: number | null;
     quantidade?: number | null;
+    observacao?: string | null;
   }[];
   agencia: {
     nome_fantasia: string;
@@ -129,7 +130,10 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
                   {(item.quantidade ?? 1) > 1 ? ` (x${item.quantidade})` : ""}
                 </td>
                 <td style={{ padding: 12, fontSize: 12, color: "#374151", border: "1px solid #E5E7EB" }}>
-                  {item.descricao || "-"}
+                  <div>{item.descricao || "-"}</div>
+                  {item.observacao && (
+                    <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: 4 }}>{item.observacao}</div>
+                  )}
                 </td>
                 <td style={{ padding: 12, textAlign: "right", fontSize: 13, color: "#111827", fontWeight: 500, border: "1px solid #E5E7EB" }}>
                   {fmt(Number(item.valor_final) || 0)}

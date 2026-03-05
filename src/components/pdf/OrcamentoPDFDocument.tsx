@@ -296,7 +296,12 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
           {itens.map((item, idx) => (
             <View key={idx} style={idx % 2 === 0 ? s.tableRow : s.tableRowAlt}>
               <Text style={s.tdService}>{item.tipo}</Text>
-              <Text style={s.tdDesc}>{item.descricao || "-"}</Text>
+              <View style={s.tdDesc}>
+                <Text>{item.descricao || "-"}</Text>
+                {(item as any).observacao && (
+                  <Text style={{ fontSize: 8, color: "#9CA3AF", marginTop: 3 }}>{(item as any).observacao}</Text>
+                )}
+              </View>
               <Text style={s.tdValue}>{fmt(Number(item.valor_final) || 0)}</Text>
             </View>
           ))}
