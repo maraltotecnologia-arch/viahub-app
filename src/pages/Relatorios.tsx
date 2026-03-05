@@ -23,6 +23,8 @@ import { pdf } from "@react-pdf/renderer";
 import RelatorioPDFDocument from "@/components/pdf/RelatorioPDFDocument";
 import type { RelatorioPDFProps } from "@/components/pdf/RelatorioPDFDocument";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import RelatorioAgentes from "@/components/relatorios/RelatorioAgentes";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -290,7 +292,21 @@ export default function Relatorios() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Relatórios Financeiros</h2>
+        <h2 className="text-2xl font-bold">Relatórios</h2>
+      </div>
+
+      <Tabs defaultValue="financeiro" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="financeiro">Financeiro</TabsTrigger>
+          <TabsTrigger value="agentes">Por Agente</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="agentes">
+          <RelatorioAgentes />
+        </TabsContent>
+
+        <TabsContent value="financeiro">
+      <div className="flex items-center justify-end">
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportarPDF} disabled={filteredData.length === 0 || generatingPdf}>
             <FileDown className="h-4 w-4 mr-2" /> {generatingPdf ? "Gerando..." : "Exportar PDF"}
@@ -549,6 +565,8 @@ export default function Relatorios() {
           </Card>
         </>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
