@@ -340,13 +340,11 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
-  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i) * planoMultiplier, 0);
+  const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i), 0);
   const acrescimo = formaPagamento === "credito" ? valorFinalBase * (acrescimoCartao / 100) : 0;
   const valorFinal = valorFinalBase + acrescimo;
-  const plano = agenciaData?.plano;
-  const lucroReal = calcularLucroReal(valorFinal, custoTotal, plano);
+  const lucroReal = valorFinal - custoTotal;
   const margemReal = custoTotal > 0 ? (lucroReal / custoTotal) * 100 : 0;
-  const taxaEmbutida = getTaxaEmbutida(valorFinal, plano);
   const todosMargemZero = isMargemZero(itens.map(i => ({ valor_custo: i.valor_custo, valor_final: calcValorFinal(i), markup_percentual: i.markup_percentual })));
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -421,7 +419,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i) * planoMultiplier,
+        valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
@@ -473,7 +471,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             });
           } else {
             const oldVal = Number(old.valor_final) || 0;
-            const newVal = calcValorFinal(item) * planoMultiplier;
+            const newVal = calcValorFinal(item);
             if (Math.abs(oldVal - newVal) > 0.01) {
               await registrarHistorico({
                 orcamento_id: orcamentoId!,
@@ -539,7 +537,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         valor_custo: i.valor_custo,
         markup_percentual: i.markup_percentual,
         taxa_fixa: i.taxa_fixa,
-        valor_final: calcValorFinal(i) * planoMultiplier,
+        valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,

@@ -345,31 +345,25 @@ export default function AdminAgenciaDetalhe() {
       </Card>
 
       {(() => {
-        const plano = agencia.plano || "starter_a";
+        const plano = agencia.plano || "starter";
         const mensalidade = planoPreco[plano] || 0;
-        const taxa = planoComissao[plano] || 0;
-        const volumePago = metrics?.volumePagoMes ?? 0;
-        const comissao = volumePago * taxa;
+        const statusPgto = (agencia as any).status_pagamento || "ativo";
         return (
           <Card>
-            <CardHeader><CardTitle className="text-lg">Receita Estimada (mês atual)</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Mensalidade</CardTitle></CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Mensalidade fixa</p>
                   <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Volume pago</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(volumePago)}</p>
+                  <p className="text-sm text-muted-foreground">Status pagamento</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{statusPgto.charAt(0).toUpperCase() + statusPgto.slice(1)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Taxa operacional embutida ({taxa > 0 ? `${(taxa * 100).toFixed(1)}% embutido nos orçamentos` : "—"})</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(comissao)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total estimado</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade + comissao)}</p>
+                  <p className="text-sm text-muted-foreground">Volume pago (mês)</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(metrics?.volumePagoMes ?? 0)}</p>
                 </div>
               </div>
             </CardContent>
