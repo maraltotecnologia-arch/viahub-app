@@ -121,7 +121,7 @@ export default function AppLayout() {
             </div>
           </header>
           <main
-            className="flex-1 p-4 md:p-6 overflow-auto"
+            className="flex-1 flex flex-col p-4 md:p-6 overflow-auto"
             style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
           >
             <Outlet />

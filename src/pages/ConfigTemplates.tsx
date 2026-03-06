@@ -49,15 +49,17 @@ export default function ConfigTemplates() {
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-32 w-full" /></div>;
 
   return (
-    <div className="space-y-6 max-w-3xl animate-fade-in">
+    <div className="space-y-6 max-w-3xl animate-fade-in flex-1 flex flex-col">
       <h2 className="text-2xl font-bold">Templates de Orçamento</h2>
 
       {(!templates || templates.length === 0) ? (
-        <EmptyState
-          icon={<FileText className="h-9 w-9" />}
-          title="Nenhum template salvo"
-          description="Salve um orçamento como template para reutilizá-lo rapidamente"
-        />
+        <div className="flex-1 flex flex-col">
+          <EmptyState
+            icon={<FileText className="h-9 w-9" />}
+            title="Nenhum template salvo"
+            description="Salve um orçamento como template para reutilizá-lo rapidamente"
+          />
+        </div>
       ) : (
         <div className="space-y-3">
           {templates.map((t: any) => {
