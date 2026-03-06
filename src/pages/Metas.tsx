@@ -31,8 +31,8 @@ function getProgressColor(pct: number) {
 }
 
 function getStatusBadge(pct: number) {
-  if (pct >= 100) return <Badge className="bg-green-100 text-green-700 border-green-200">Meta atingida 🎯</Badge>;
-  if (pct > 0) return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Em andamento</Badge>;
+  if (pct >= 100) return <Badge variant="success">Meta atingida 🎯</Badge>;
+  if (pct > 0) return <Badge variant="info">Em andamento</Badge>;
   return <Badge variant="secondary">Sem progresso</Badge>;
 }
 

@@ -9,6 +9,7 @@ import useUserRole from "@/hooks/useUserRole";
 import NotificacoesDropdown from "@/components/NotificacoesDropdown";
 import { useTheme } from "@/contexts/ThemeContext";
 import GlobalSearch from "@/components/GlobalSearch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
   Superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
@@ -53,6 +54,7 @@ export default function AppLayout() {
   }, []);
 
   return (
+    <TooltipProvider delayDuration={300}>
     <SidebarProvider>
       <div
         className="min-h-screen flex w-full"
@@ -68,9 +70,14 @@ export default function AppLayout() {
               backdropFilter: "blur(12px)",
             }}
           >
-            <SidebarTrigger className="shrink-0" title="Recolher menu">
-              {isMobile && <Menu className="h-5 w-5" />}
-            </SidebarTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarTrigger className="shrink-0">
+                  {isMobile && <Menu className="h-5 w-5" />}
+                </SidebarTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Recolher menu</TooltipContent>
+            </Tooltip>
             <div className="ml-auto flex items-center gap-3">
               <GlobalSearch />
               {!isMobile && (
@@ -79,25 +86,38 @@ export default function AppLayout() {
                   {cargoLabel && <CargoBadge cargo={cargoLabel} />}
                 </>
               )}
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg transition-all duration-200"
-                style={{
-                  background: "var(--bg-hover)",
-                  color: "var(--text-secondary)",
-                  border: "1px solid var(--border-color)",
-                }}
-                title={theme === "dark" ? "Modo claro" : "Modo escuro"}
-              >
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              <NotificacoesDropdown />
-              <div
-                className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm"
-                title="Meu perfil"
-              >
-                {initials}
-              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleTheme}
+                    className="p-2 rounded-lg transition-all duration-200"
+                    style={{
+                      background: "var(--bg-hover)",
+                      color: "var(--text-secondary)",
+                      border: "1px solid var(--border-color)",
+                    }}
+                  >
+                    {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Alternar tema</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span><NotificacoesDropdown /></span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">Notificações</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div
+                    className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm cursor-default"
+                  >
+                    {initials}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{displayName}</TooltipContent>
+              </Tooltip>
             </div>
           </header>
           <main
@@ -109,5 +129,6 @@ export default function AppLayout() {
         </div>
       </div>
     </SidebarProvider>
+    </TooltipProvider>
   );
 }

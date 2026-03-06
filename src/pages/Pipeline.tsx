@@ -106,8 +106,8 @@ export default function Pipeline() {
               key={col.id}
               className="min-w-0 flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
               style={{
-                background: isDropActive ? "#EFF6FF" : "transparent",
-                border: isDropActive ? "2px dashed #2563EB" : "2px dashed transparent",
+                background: isDropActive ? "hsl(var(--primary) / 0.1)" : "transparent",
+                border: isDropActive ? "2px dashed hsl(var(--primary))" : "2px dashed transparent",
               }}
               onDragOver={(e) => { e.preventDefault(); setDropTarget(col.id); }}
               onDragLeave={() => setDropTarget(null)}
