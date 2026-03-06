@@ -17,6 +17,7 @@ export type Database = {
       agencias: {
         Row: {
           ativo: boolean | null
+          atualizado_em: string | null
           cnpj: string | null
           criado_em: string | null
           email: string | null
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           ativo?: boolean | null
+          atualizado_em?: string | null
           cnpj?: string | null
           criado_em?: string | null
           email?: string | null
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           ativo?: boolean | null
+          atualizado_em?: string | null
           cnpj?: string | null
           criado_em?: string | null
           email?: string | null
