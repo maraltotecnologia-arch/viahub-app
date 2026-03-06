@@ -1,9 +1,26 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildEmailHtml } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+async function enviarEmailNaoBloqueante(to: string, subject: string, html: string, type: string) {
+  try {
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendKey) { console.error("[signup-agencia] RESEND_API_KEY ausente"); return; }
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: "ViaHub <noreply@viahub.app>", to: [to], subject, html }),
+    });
+    if (!res.ok) console.error(`[signup-agencia] Email error (${type}):`, await res.text());
+    else console.log(`[signup-agencia] Email enviado: ${type} -> ${to}`);
+  } catch (e) {
+    console.error(`[signup-agencia] Erro email (${type}):`, (e as Error).message);
+  }
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -18,7 +35,6 @@ Deno.serve(async (req) => {
 
     const { email, password, nome_agencia, nome_admin, telefone, cnpj, plano } = await req.json();
 
-    // Validations
     if (!email || !password || !nome_agencia || !nome_admin || !telefone || !plano) {
       return new Response(JSON.stringify({ error: "Campos obrigatórios não preenchidos" }), {
         status: 400,
@@ -73,7 +89,6 @@ Deno.serve(async (req) => {
       .single();
 
     if (agenciaError || !agencia) {
-      // Rollback: delete auth user
       await supabaseAdmin.auth.admin.deleteUser(userId);
       return new Response(JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || "") }), {
         status: 500,
@@ -94,7 +109,6 @@ Deno.serve(async (req) => {
       });
 
     if (usuarioError) {
-      // Rollback: delete agencia and auth user
       await supabaseAdmin.from("agencias").delete().eq("id", agencia.id);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       return new Response(JSON.stringify({ error: "Erro ao criar perfil: " + usuarioError.message }), {
@@ -103,11 +117,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send confirmation email
+    // Send confirmation email via Supabase Auth
     await supabaseAdmin.auth.admin.generateLink({
       type: "signup",
       email,
     });
+
+    // Send welcome email via Resend (non-blocking)
+    const welcomeHtml = buildEmailHtml({
+      title: "Sua agência foi cadastrada com sucesso!",
+      body: `
+        <p>Olá <strong>${nome_admin}</strong>,</p>
+        <p>Sua agência <strong>${nome_agencia}</strong> já está ativa no ViaHub.</p>
+        <p>Após confirmar seu email, você terá acesso completo à plataforma para gerenciar orçamentos, clientes e muito mais.</p>
+        <p style="margin-top:16px;color:#6B7280;font-size:13px">Precisa de ajuda? Entre em contato: <a href="mailto:suporte@viahub.app" style="color:#2563EB">suporte@viahub.app</a></p>
+      `,
+      ctaText: "Acessar minha conta",
+      ctaUrl: "https://viahub.app/login",
+    });
+
+    // Fire-and-forget: don't await or block
+    enviarEmailNaoBloqueante(email, "Bem-vindo ao ViaHub! Confirme seu acesso", welcomeHtml, "welcome");
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

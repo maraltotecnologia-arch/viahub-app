@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { buildEmailHtml } from "../_shared/email-html.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +28,7 @@ Deno.serve(async (req) => {
     // 1. Find the orcamento by token
     const { data: orc, error: findErr } = await supabase
       .from("orcamentos")
-      .select("id, agencia_id, status, numero_orcamento")
+      .select("id, agencia_id, status, numero_orcamento, valor_final")
       .eq("token_publico", token)
       .maybeSingle();
 
@@ -79,6 +80,48 @@ Deno.serve(async (req) => {
       agencia_id: orc.agencia_id,
       destinatario: "admins",
     });
+
+    // 5. Send email to agency admin (non-blocking)
+    try {
+      const { data: admin } = await supabase
+        .from("usuarios")
+        .select("email, nome")
+        .eq("agencia_id", orc.agencia_id)
+        .eq("cargo", "admin")
+        .eq("ativo", true)
+        .limit(1)
+        .maybeSingle();
+
+      if (admin?.email) {
+        const valorFormatado = (orc.valor_final || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+        const dataAprovacao = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+
+        const html = buildEmailHtml({
+          title: "Um orçamento foi aprovado!",
+          body: `
+            <p>O cliente <strong>${trimmedName}</strong> aprovou o orçamento <strong>${orc.numero_orcamento || ""}</strong> no valor de <strong>${valorFormatado}</strong> em ${dataAprovacao}.</p>
+          `,
+          ctaText: "Ver orçamento",
+          ctaUrl: `https://viahub.app/orcamentos/${orc.id}`,
+        });
+
+        const resendKey = Deno.env.get("RESEND_API_KEY");
+        if (resendKey) {
+          fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${resendKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              from: "ViaHub <noreply@viahub.app>",
+              to: [admin.email],
+              subject: `✅ Orçamento ${orc.numero_orcamento || ""} aprovado pelo cliente!`,
+              html,
+            }),
+          }).catch((e) => console.error("[aprovar] Email error:", e.message));
+        }
+      }
+    } catch (emailErr) {
+      console.error("[aprovar] Erro ao enviar email:", (emailErr as Error).message);
+    }
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
