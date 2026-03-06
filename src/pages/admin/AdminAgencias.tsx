@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Plus, DollarSign, Activity, Percent } from "lucide-react";
+import { Building2, Plus, DollarSign, Activity } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,27 +14,15 @@ import useUserRole from "@/hooks/useUserRole";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
-  starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
-  starter_b: { label: "Starter", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
-  pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-  pro_b: { label: "Pro", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
-  agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+  starter: { label: "Starter", color: "bg-muted text-muted-foreground" },
+  pro: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
+  elite: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
 const planoPreco: Record<string, number> = {
-  starter_a: 397,
-  starter_b: 197,
-  pro_a: 697,
-  pro_b: 297,
-  agency_c: 1997,
-};
-
-const planoComissao: Record<string, number> = {
-  starter_a: 0,
-  starter_b: 0.015,
-  pro_a: 0,
-  pro_b: 0.012,
-  agency_c: 0,
+  starter: 397,
+  pro: 697,
+  elite: 1997,
 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -70,17 +57,15 @@ export default function AdminAgencias() {
   const { isSuperadmin, loading: roleLoading } = useUserRole();
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
-  const [periodo, setPeriodo] = useState("mes_atual");
+  
 
   const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
     const map: Record<string, React.CSSProperties> = {
-      starter_a: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
-      starter_b: { background: "rgba(14,165,233,0.25)", color: "#7DD3FC", border: "1px solid rgba(14,165,233,0.4)" },
-      pro_a: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
-      pro_b: { background: "rgba(29,78,216,0.25)", color: "#BFDBFE", border: "1px solid rgba(29,78,216,0.4)" },
-      agency_c: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+      starter: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
+      pro: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      elite: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
     };
-    return map[plano] ?? map.starter_a;
+    return map[plano] ?? map.starter;
   };
 
   useEffect(() => {
@@ -103,25 +88,7 @@ export default function AdminAgencias() {
     },
   });
 
-  const { start: periodoStart, end: periodoEnd } = useMemo(() => getPeriodRange(periodo), [periodo]);
-
-  const { data: orcamentosPagos } = useQuery({
-    queryKey: ["admin-comissoes-orcamentos", periodo],
-    enabled: isSuperadmin,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orcamentos")
-        .select("agencia_id, valor_final, pago_em, atualizado_em, criado_em")
-        .eq("status", "pago");
-      if (error) throw error;
-      return data?.filter((o) => {
-        const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
-        if (!dataRef) return false;
-        const d = new Date(dataRef);
-        return d >= periodoStart && d <= periodoEnd;
-      }) ?? [];
-    },
-  });
+  
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
@@ -142,22 +109,7 @@ export default function AdminAgencias() {
   const ativas = agencias?.filter((a) => a.ativo !== false).length ?? 0;
   const mrr = agencias
     ?.filter((a) => a.ativo !== false)
-    .reduce((s, a) => s + (planoPreco[a.plano || "starter_a"] || 0), 0) ?? 0;
-
-  // Commission calculations
-  const volumeByAgencia: Record<string, number> = {};
-  orcamentosPagos?.forEach((o) => {
-    volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
-  });
-
-  const mrrMensalidades = mrr;
-  const mrrComissoes = agencias
-    ?.filter((a) => a.ativo !== false)
-    .reduce((s, a) => {
-      const taxa = planoComissao[a.plano || "starter_a"] || 0;
-      const vol = volumeByAgencia[a.id] || 0;
-      return s + vol * taxa;
-    }, 0) ?? 0;
+    .reduce((s, a) => s + (planoPreco[a.plano || "starter"] || 0), 0) ?? 0;
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -171,7 +123,7 @@ export default function AdminAgencias() {
       <Tabs defaultValue="agencias">
         <TabsList>
           <TabsTrigger value="agencias">Agências</TabsTrigger>
-          <TabsTrigger value="comissoes">Receita Variável</TabsTrigger>
+          <TabsTrigger value="mensalidades">Mensalidades</TabsTrigger>
         </TabsList>
 
         <TabsContent value="agencias">
@@ -220,7 +172,7 @@ export default function AdminAgencias() {
                     </TableHeader>
                     <TableBody>
                       {agencias?.map((a) => {
-                        const plano = planoConfig[a.plano || "starter_a"] || planoConfig.starter_a;
+                        const plano = planoConfig[a.plano || "starter"] || planoConfig.starter;
                         return (
                           <TableRow key={a.id}>
                             <TableCell className="font-medium">{a.nome_fantasia}</TableCell>
@@ -228,7 +180,7 @@ export default function AdminAgencias() {
                             <TableCell>
                               <span
                                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${!isDark ? plano.color : ""}`}
-                                style={isDark ? planoBadgeDarkStyle(a.plano || "starter_a") : undefined}
+                                style={isDark ? planoBadgeDarkStyle(a.plano || "starter") : undefined}
                               >
                                 {plano.label}
                               </span>
@@ -289,46 +241,23 @@ export default function AdminAgencias() {
           </div>
         </TabsContent>
 
-        <TabsContent value="comissoes">
+        <TabsContent value="mensalidades">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Mensalidades</CardTitle>
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrrMensalidades)}</div></CardContent>
+                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
               </Card>
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Receita Variável</CardTitle>
-                  <Percent className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrrComissoes)}</div></CardContent>
+                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
               </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Total</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrrMensalidades + mrrComissoes)}</div></CardContent>
-              </Card>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-muted-foreground">Período:</span>
-              <Select value={periodo} onValueChange={setPeriodo}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mes_atual">Mês atual</SelectItem>
-                  <SelectItem value="mes_anterior">Mês anterior</SelectItem>
-                  <SelectItem value="ultimos_3">Últimos 3 meses</SelectItem>
-                  <SelectItem value="ultimos_6">Últimos 6 meses</SelectItem>
-                  <SelectItem value="este_ano">Este ano</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <Card>
@@ -339,20 +268,23 @@ export default function AdminAgencias() {
                       <TableHead>Agência</TableHead>
                       <TableHead>Plano</TableHead>
                       <TableHead className="text-right">Mensalidade</TableHead>
-                      <TableHead className="text-right">Volume pago</TableHead>
-                       <TableHead className="text-right">Taxa op.</TableHead>
-                       <TableHead className="text-right">Receita variável</TableHead>
-                       <TableHead className="text-right">Total estimado</TableHead>
+                      <TableHead>Status Pgto</TableHead>
+                      <TableHead>Próx. Vencimento</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {agencias?.filter((a) => a.ativo !== false).map((a) => {
-                      const plano = a.plano || "starter_a";
-                      const planoInfo = planoConfig[plano] || planoConfig.starter_a;
+                      const plano = a.plano || "starter";
+                      const planoInfo = planoConfig[plano] || planoConfig.starter;
                       const mensalidade = planoPreco[plano] || 0;
-                      const taxa = planoComissao[plano] || 0;
-                      const volume = volumeByAgencia[a.id] || 0;
-                      const comissao = volume * taxa;
+                      const statusPgto = (a as any).status_pagamento || "ativo";
+                      const proxVenc = (a as any).data_proximo_vencimento;
+                      const statusColor: Record<string, string> = {
+                        ativo: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+                        inadimplente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+                        bloqueado: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+                        cancelado: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300",
+                      };
                       return (
                         <TableRow key={a.id}>
                           <TableCell className="font-medium">{a.nome_fantasia}</TableCell>
@@ -365,16 +297,20 @@ export default function AdminAgencias() {
                             </span>
                           </TableCell>
                           <TableCell className="text-right">{fmt(mensalidade)}</TableCell>
-                          <TableCell className="text-right">{fmt(volume)}</TableCell>
-                          <TableCell className="text-right">{taxa > 0 ? `${(taxa * 100).toFixed(1)}%` : "—"}</TableCell>
-                          <TableCell className="text-right">{fmt(comissao)}</TableCell>
-                          <TableCell className="text-right font-medium">{fmt(mensalidade + comissao)}</TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[statusPgto] || statusColor.ativo}`}>
+                              {statusPgto.charAt(0).toUpperCase() + statusPgto.slice(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground text-sm">
+                            {proxVenc ? new Date(proxVenc).toLocaleDateString("pt-BR") : "—"}
+                          </TableCell>
                         </TableRow>
                       );
                     })}
                     {(!agencias || agencias.filter((a) => a.ativo !== false).length === 0) && (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                           Nenhuma agência ativa
                         </TableCell>
                       </TableRow>

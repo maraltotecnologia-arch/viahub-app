@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useAuth } from "@/contexts/AuthContext";
 import useUserRole from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { getTaxaEmbutida } from "@/lib/profit-utils";
+
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAlertas from "@/hooks/useAlertas";
@@ -16,11 +16,7 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const MRR_MAP: Record<string, number> = {
-  starter_a: 397, starter_b: 197, pro_a: 697, pro_b: 297, agency_c: 1997,
-};
-
-const COMISSAO_MAP: Record<string, number> = {
-  starter_a: 0, starter_b: 0.015, pro_a: 0, pro_b: 0.012, agency_c: 0,
+  starter: 397, pro: 697, elite: 1997,
 };
 
 export default function Dashboard() {
@@ -255,15 +251,8 @@ function SuperadminDashboard() {
         return new Date(dataRef) >= new Date(startOfMonth);
       });
 
-      const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter_a"] || 0), 0);
-      const volumeByAgencia: Record<string, number> = {};
-      pagos.forEach((o) => {
-        if (o.agencia_id) volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
-      });
-      const mrrComissoes = agenciasAtivas.reduce((sum, a) => {
-        const taxa = COMISSAO_MAP[a.plano || "starter_a"] || 0;
-        return sum + (volumeByAgencia[a.id] || 0) * taxa;
-      }, 0);
+      const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter"] || 0), 0);
+      const mrrComissoes = 0;
 
       // Churn: agencies deactivated this month
       const churnAtual = allAgencias.filter((a) => a.ativo === false && a.atualizado_em && new Date(a.atualizado_em) >= new Date(startOfMonth)).length;
@@ -390,7 +379,7 @@ function SuperadminDashboard() {
   ];
 
   const medalhas = ["🥇", "🥈", "🥉"];
-  const planoLabel: Record<string, string> = { starter_a: "Starter A", starter_b: "Starter B", pro_a: "Pro A", pro_b: "Pro B", agency_c: "Elite" };
+  const planoLabel: Record<string, string> = { starter: "Starter", pro: "Pro", elite: "Elite" };
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -580,17 +569,25 @@ function SuperadminDashboard() {
 
 /* ===== AGENCY DASHBOARD ===== */
 function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
+  const navigate = useNavigate();
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
-  // Fetch agency plan to deduct embedded tax from profit
+  // Fetch agency info including payment status
   const { data: agenciaInfo } = useQuery({
     queryKey: ["agencia-plano-dashboard", agenciaId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("agencias").select("plano").eq("id", agenciaId).maybeSingle();
+      const { data, error } = await supabase.from("agencias").select("plano, status_pagamento").eq("id", agenciaId).maybeSingle();
       if (error) throw error;
       return data;
     },
   });
+
+  // Redirect if blocked
+  useEffect(() => {
+    if (agenciaInfo?.status_pagamento === "bloqueado") {
+      navigate("/pagamento-pendente", { replace: true });
+    }
+  }, [agenciaInfo, navigate]);
 
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-metrics", agenciaId, agenciaInfo?.plano],
@@ -606,13 +603,11 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       const pagosCount = pagos.length;
       const conversao = total > 0 ? Math.round((pagosCount / total) * 100) : 0;
       const plano = agenciaInfo?.plano;
-      // Deduct embedded operational tax from agency profit
       const comissao = orcamentos
         .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
         .reduce((s, o) => {
           const lucro = Number(o.lucro_bruto) || 0;
-          const taxa = getTaxaEmbutida(Number(o.valor_final) || 0, plano);
-          return s + Math.max(lucro - taxa, 0);
+          return s + Math.max(lucro, 0);
         }, 0);
       const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
       return { total, valorTotal, conversao, comissao, recebido, pagosCount };

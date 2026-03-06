@@ -19,35 +19,21 @@ import { useTheme } from "@/contexts/ThemeContext";
 import LogsAcessoAgencia from "@/components/admin/LogsAcessoAgencia";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
-  starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
-  starter_b: { label: "Starter", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
-  pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-  pro_b: { label: "Pro", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
-  agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+  starter: { label: "Starter", color: "bg-muted text-muted-foreground" },
+  pro: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
+  elite: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
 const planos = [
-  { value: "starter_a", label: "Starter" },
-  { value: "starter_b", label: "Starter (taxa operacional)" },
-  { value: "pro_a", label: "Pro" },
-  { value: "pro_b", label: "Pro (taxa operacional)" },
-  { value: "agency_c", label: "Elite" },
+  { value: "starter", label: "Starter" },
+  { value: "pro", label: "Pro" },
+  { value: "elite", label: "Elite" },
 ];
 
 const planoPreco: Record<string, number> = {
-  starter_a: 397,
-  starter_b: 197,
-  pro_a: 697,
-  pro_b: 297,
-  agency_c: 1997,
-};
-
-const planoComissao: Record<string, number> = {
-  starter_a: 0,
-  starter_b: 0.015,
-  pro_a: 0,
-  pro_b: 0.012,
-  agency_c: 0,
+  starter: 397,
+  pro: 697,
+  elite: 1997,
 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -65,13 +51,11 @@ export default function AdminAgenciaDetalhe() {
 
   const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
     const map: Record<string, React.CSSProperties> = {
-      starter_a: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
-      starter_b: { background: "rgba(14,165,233,0.25)", color: "#7DD3FC", border: "1px solid rgba(14,165,233,0.4)" },
-      pro_a: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
-      pro_b: { background: "rgba(29,78,216,0.25)", color: "#BFDBFE", border: "1px solid rgba(29,78,216,0.4)" },
-      agency_c: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+      starter: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
+      pro: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      elite: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
     };
-    return map[plano] ?? map.starter_a;
+    return map[plano] ?? map.starter;
   };
 
   useEffect(() => {
@@ -206,7 +190,7 @@ export default function AdminAgenciaDetalhe() {
     return <div className="p-6 text-muted-foreground">Agência não encontrada</div>;
   }
 
-  const planoInfo = planoConfig[agencia.plano || "starter_a"] || planoConfig.starter_a;
+  const planoInfo = planoConfig[agencia.plano || "starter"] || planoConfig.starter;
   const tempoCliente = agencia.criado_em
     ? Math.floor((Date.now() - new Date(agencia.criado_em).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
@@ -222,7 +206,7 @@ export default function AdminAgenciaDetalhe() {
           <h2 className="text-2xl font-bold">{agencia.nome_fantasia}</h2>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${!isDark ? planoInfo.color : ""}`}
-            style={isDark ? planoBadgeDarkStyle(agencia.plano || "starter_a") : undefined}
+            style={isDark ? planoBadgeDarkStyle(agencia.plano || "starter") : undefined}
           >
             {planoInfo.label}
           </span>
@@ -309,7 +293,7 @@ export default function AdminAgenciaDetalhe() {
             <div className="space-y-2">
               <Label>Plano</Label>
               {editing ? (
-                <Select value={form.plano || "starter_a"} onValueChange={(v) => setForm({ ...form, plano: v })}>
+                <Select value={form.plano || "starter"} onValueChange={(v) => setForm({ ...form, plano: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {planos.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
@@ -361,31 +345,25 @@ export default function AdminAgenciaDetalhe() {
       </Card>
 
       {(() => {
-        const plano = agencia.plano || "starter_a";
+        const plano = agencia.plano || "starter";
         const mensalidade = planoPreco[plano] || 0;
-        const taxa = planoComissao[plano] || 0;
-        const volumePago = metrics?.volumePagoMes ?? 0;
-        const comissao = volumePago * taxa;
+        const statusPgto = (agencia as any).status_pagamento || "ativo";
         return (
           <Card>
-            <CardHeader><CardTitle className="text-lg">Receita Estimada (mês atual)</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-lg">Mensalidade</CardTitle></CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Mensalidade fixa</p>
                   <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Volume pago</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(volumePago)}</p>
+                  <p className="text-sm text-muted-foreground">Status pagamento</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{statusPgto.charAt(0).toUpperCase() + statusPgto.slice(1)}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Taxa operacional embutida ({taxa > 0 ? `${(taxa * 100).toFixed(1)}% embutido nos orçamentos` : "—"})</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(comissao)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Total estimado</p>
-                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mensalidade + comissao)}</p>
+                  <p className="text-sm text-muted-foreground">Volume pago (mês)</p>
+                  <p className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(metrics?.volumePagoMes ?? 0)}</p>
                 </div>
               </div>
             </CardContent>

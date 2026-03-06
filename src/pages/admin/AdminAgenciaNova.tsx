@@ -13,11 +13,9 @@ import useUserRole from "@/hooks/useUserRole";
 import { validarCNPJ, validarTelefone } from "@/lib/validators";
 
 const planos = [
-  { value: "starter_a", label: "Starter — R$397/mês" },
-  { value: "starter_b", label: "Starter — R$197/mês + taxa op. 1,5%" },
-  { value: "pro_a", label: "Pro — R$697/mês" },
-  { value: "pro_b", label: "Pro — R$297/mês + taxa op. 1,2%" },
-  { value: "agency_c", label: "Elite — R$1.997/mês" },
+  { value: "starter", label: "Starter — R$397/mês" },
+  { value: "pro", label: "Pro — R$697/mês" },
+  { value: "elite", label: "Elite — R$1.997/mês" },
 ];
 
 function gerarSenha() {
@@ -36,7 +34,7 @@ export default function AdminAgenciaNova() {
   const [cnpj, setCnpj] = useState("");
   const [emailAgencia, setEmailAgencia] = useState("");
   const [telefone, setTelefone] = useState("");
-  const [plano, setPlano] = useState("starter_a");
+  const [plano, setPlano] = useState("starter");
   const [emailAdmin, setEmailAdmin] = useState("");
   const [senha, setSenha] = useState(gerarSenha());
   const [enviarWhatsapp, setEnviarWhatsapp] = useState(false);
@@ -101,7 +99,7 @@ export default function AdminAgenciaNova() {
           cnpj: cnpj || null,
           email: emailAgencia,
           telefone: telefone || null,
-          plano: plano || "starter_a",
+          plano: plano || "starter",
           onboarding_completo: false,
           ativo: true,
         })

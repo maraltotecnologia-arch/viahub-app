@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
-import { getTaxaEmbutida } from "@/lib/profit-utils";
+
 import SortableTableHead from "@/components/SortableTableHead";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import { pdf } from "@react-pdf/renderer";
@@ -163,8 +163,7 @@ export default function Relatorios() {
   const faturamentoBruto = filteredData.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
   const totalComissoes = filteredData.reduce((s, o) => {
     const lucro = Number(o.lucro_bruto) || 0;
-    const taxa = getTaxaEmbutida(Number(o.valor_final) || 0, plano);
-    return s + Math.max(lucro - taxa, 0);
+    return s + Math.max(lucro, 0);
   }, 0);
   const ticketMedio = filteredData.length > 0 ? faturamentoBruto / filteredData.length : 0;
   const totalOrcamentos = filteredData.length;

@@ -529,11 +529,9 @@ export default function OrcamentoDetalhe() {
           </Card>
 
           {(() => {
-            const plano = agencia?.plano;
             const vf = Number(orc.valor_final) || 0;
-            const lucroReal = calcularLucroReal(vf, custoTotal, plano);
+            const lucroReal = Math.max(vf - custoTotal, 0);
             const margemReal = custoTotal > 0 ? (lucroReal / custoTotal) * 100 : 0;
-            const taxa = getTaxaEmbutida(vf, plano);
             return (
               <>
                 <Card className="border-primary/30">
@@ -545,7 +543,7 @@ export default function OrcamentoDetalhe() {
                       <div><p className="text-xs text-muted-foreground">Margem</p><p className="text-lg font-bold">{margemReal.toFixed(1)}%</p></div>
                     </div>
                     <p className="text-[11px] text-muted-foreground mt-3 text-left">
-                      Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxa > 0 ? ` (${fmt(taxa)})` : ""}
+                      Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
                     </p>
                   </CardContent>
                 </Card>
@@ -555,7 +553,7 @@ export default function OrcamentoDetalhe() {
                   <Alert variant="default" className="border-warning/50 bg-warning/10">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     <AlertDescription className="text-sm text-warning">
-                      Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+                      Este orçamento está com margem 0 de lucro. O valor será repassado integralmente ao fornecedor.
                     </AlertDescription>
                   </Alert>
                 )}

@@ -181,6 +181,21 @@ Deno.serve(async (req) => {
       console.log("[signup-agencia] [STEP 4 OK] OTP enviado com sucesso para:", email);
     }
 
+    // Step 5: Create Asaas subscription (non-blocking)
+    console.log("[signup-agencia] [STEP 5] Criando assinatura Asaas...");
+    try {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+      await fetch(`${supabaseUrl}/functions/v1/asaas-criar-cliente`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseAnonKey}` },
+        body: JSON.stringify({ agencia_id: agencia.id }),
+      });
+      console.log("[signup-agencia] [STEP 5 OK] Assinatura Asaas iniciada");
+    } catch (e) {
+      console.error("[signup-agencia] [STEP 5 AVISO] Erro Asaas (não bloqueante):", (e as Error).message);
+    }
+
     console.log("[signup-agencia] ========== SUCESSO - Cadastro completo ==========");
 
     return new Response(JSON.stringify({ success: true }), {

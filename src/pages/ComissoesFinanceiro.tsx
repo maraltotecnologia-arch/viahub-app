@@ -9,15 +9,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DollarSign, FileText, Percent, Download } from "lucide-react";
+import { DollarSign, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 
-const planoComissao: Record<string, number> = {
-  starter_a: 0,
-  starter_b: 0.015,
-  pro_a: 0,
-  pro_b: 0.012,
-  agency_c: 0,
+const planoPreco: Record<string, number> = {
+  starter: 397,
+  pro: 697,
+  elite: 1997,
 };
 
 const periodos = [
@@ -62,66 +60,61 @@ export default function ComissoesFinanceiro() {
 
   const { start, end } = useMemo(() => getDateRange(periodo), [periodo]);
 
-  const { data: agencia } = useQuery({
-    queryKey: ["agencia-plano", agenciaId],
-    enabled: !!agenciaId,
+  const { data: agencias, isLoading } = useQuery({
+    queryKey: ["comissoes-agencias"],
+    enabled: isSuperadmin,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agencias")
-        .select("plano")
-        .eq("id", agenciaId!)
-        .single();
+        .select("id, nome_fantasia, plano, status_pagamento, data_proximo_vencimento")
+        .eq("ativo", true)
+        .order("nome_fantasia");
       if (error) throw error;
       return data;
     },
   });
 
-  const taxa = planoComissao[agencia?.plano || "starter_a"] || 0;
-
-  const { data: orcamentos, isLoading } = useQuery({
-    queryKey: ["comissoes-orcamentos", agenciaId, periodo],
-    enabled: !!agenciaId,
+  const { data: pagamentos } = useQuery({
+    queryKey: ["comissoes-pagamentos", periodo],
+    enabled: isSuperadmin,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("orcamentos")
-        .select("id, numero_orcamento, valor_final, pago_em, atualizado_em, criado_em, status, cliente_id, clientes(nome)")
-        .eq("agencia_id", agenciaId!)
-        .eq("status", "pago");
+        .from("asaas_pagamentos")
+        .select("*")
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  const filtered = useMemo(() => {
-    if (!orcamentos) return [];
-    return orcamentos.filter((o) => {
-      const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
-      if (!dataRef) return false;
-      const d = new Date(dataRef);
+  const filteredPagamentos = useMemo(() => {
+    if (!pagamentos) return [];
+    return pagamentos.filter((p) => {
+      const d = new Date(p.pago_em || p.created_at);
       return d >= start && d <= end;
     });
-  }, [orcamentos, start, end]);
+  }, [pagamentos, start, end]);
 
-  const totalRecebido = filtered.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
-  const totalComissao = totalRecebido * taxa;
+  const totalRecebido = filteredPagamentos
+    .filter(p => p.status === "RECEIVED" || p.status === "CONFIRMED")
+    .reduce((s, p) => s + (Number(p.valor) || 0), 0);
+
+  const mrrEstimado = agencias?.reduce((s, a) => s + (planoPreco[a.plano || "starter"] || 0), 0) ?? 0;
 
   const handleExportCSV = () => {
-    if (!filtered.length) { toast.info("Nenhum dado para exportar"); return; }
-    const header = "Nº Orçamento;Cliente;Valor Pago;Taxa Op. (%);Valor Taxa Op.;Data Pagamento";
-    const rows = filtered.map((o) => {
-      const clienteNome = (o as any).clientes?.nome || "—";
-      const val = Number(o.valor_final) || 0;
-      const comVal = val * taxa;
-      const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
-      const dataFmt = dataRef ? new Date(dataRef).toLocaleDateString("pt-BR") : "—";
-      return `${o.numero_orcamento || "—"};${clienteNome};${val.toFixed(2)};${(taxa * 100).toFixed(1)}%;${comVal.toFixed(2)};${dataFmt}`;
+    if (!agencias?.length) { toast.info("Nenhum dado para exportar"); return; }
+    const header = "Agência;Plano;Mensalidade;Status Pagamento;Próx. Vencimento";
+    const rows = agencias.map((a) => {
+      const mensalidade = planoPreco[a.plano || "starter"] || 0;
+      const proxVenc = a.data_proximo_vencimento ? new Date(a.data_proximo_vencimento).toLocaleDateString("pt-BR") : "—";
+      return `${a.nome_fantasia};${a.plano || "starter"};${mensalidade.toFixed(2)};${(a as any).status_pagamento || "ativo"};${proxVenc}`;
     });
     const csv = [header, ...rows].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `receita_operacional_${periodo}.csv`;
+    a.download = `mensalidades_${periodo}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -136,7 +129,7 @@ export default function ComissoesFinanceiro() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Receita Operacional</h2>
+        <h2 className="text-2xl font-bold">Mensalidades</h2>
         <div className="flex gap-2">
           <Select value={periodo} onValueChange={setPeriodo}>
             <SelectTrigger className="w-[200px]">
@@ -157,28 +150,24 @@ export default function ComissoesFinanceiro() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Recebido</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">MRR Estimado</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent><div className="text-2xl font-bold">{fmt(mrrEstimado)}</div></CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Recebido no Período</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent><div className="text-2xl font-bold">{fmt(totalRecebido)}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Taxa Operacional Gerada</CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{fmt(totalComissao)}</div>
-            {taxa > 0 && <p className="text-xs text-muted-foreground mt-1">Encargo operacional embutido</p>}
-            {taxa === 0 && <p className="text-xs text-muted-foreground mt-1">Plano sem taxa operacional</p>}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Orçamentos Pagos</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Agências Ativas</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent><div className="text-2xl font-bold">{filtered.length}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold">{agencias?.length ?? 0}</div></CardContent>
         </Card>
       </div>
 
@@ -192,35 +181,44 @@ export default function ComissoesFinanceiro() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nº Orçamento</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead className="text-right">Valor Pago</TableHead>
-                  <TableHead className="text-right">Taxa Op.</TableHead>
-                  <TableHead>Data Pgto</TableHead>
+                  <TableHead>Agência</TableHead>
+                  <TableHead>Plano</TableHead>
+                  <TableHead className="text-right">Mensalidade</TableHead>
+                  <TableHead>Status Pgto</TableHead>
+                  <TableHead>Próx. Vencimento</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((o) => {
-                  const val = Number(o.valor_final) || 0;
-                  const comVal = val * taxa;
-                  const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
-                  const clienteNome = (o as any).clientes?.nome || "—";
+                {agencias?.map((a) => {
+                  const mensalidade = planoPreco[a.plano || "starter"] || 0;
+                  const statusPgto = (a as any).status_pagamento || "ativo";
+                  const proxVenc = a.data_proximo_vencimento;
+                  const statusColor: Record<string, string> = {
+                    ativo: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+                    inadimplente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
+                    bloqueado: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
+                    cancelado: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300",
+                  };
                   return (
-                    <TableRow key={o.id}>
-                      <TableCell className="font-medium">{o.numero_orcamento || "—"}</TableCell>
-                      <TableCell>{clienteNome}</TableCell>
-                      <TableCell className="text-right">{fmt(val)}</TableCell>
-                      <TableCell className="text-right">{taxa > 0 ? fmt(comVal) : "—"}</TableCell>
+                    <TableRow key={a.id}>
+                      <TableCell className="font-medium">{a.nome_fantasia}</TableCell>
+                      <TableCell className="capitalize">{a.plano || "starter"}</TableCell>
+                      <TableCell className="text-right">{fmt(mensalidade)}</TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusColor[statusPgto] || statusColor.ativo}`}>
+                          {statusPgto.charAt(0).toUpperCase() + statusPgto.slice(1)}
+                        </span>
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {dataRef ? new Date(dataRef).toLocaleDateString("pt-BR") : "—"}
+                        {proxVenc ? new Date(proxVenc).toLocaleDateString("pt-BR") : "—"}
                       </TableCell>
                     </TableRow>
                   );
                 })}
-                {filtered.length === 0 && (
+                {(!agencias || agencias.length === 0) && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground py-6">
-                      Nenhum orçamento pago no período
+                      Nenhuma agência ativa
                     </TableCell>
                   </TableRow>
                 )}

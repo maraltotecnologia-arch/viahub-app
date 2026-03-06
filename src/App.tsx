@@ -30,6 +30,7 @@ import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import Metas from "./pages/Metas";
 import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
+import PagamentoPendente from "./pages/PagamentoPendente";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
@@ -66,6 +67,7 @@ function AppRoutes() {
       <Route path="/verificar-email" element={<VerificarEmail />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
+      <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
