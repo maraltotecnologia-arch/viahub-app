@@ -86,14 +86,16 @@ export default function Pipeline() {
 
   return (
     <TooltipProvider>
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-6 animate-fade-in-up flex-1 flex flex-col">
       <h2 className="text-2xl font-bold">Pipeline</h2>
       {(!orcamentos || orcamentos.length === 0) ? (
-        <EmptyState
-          icon={<LayoutGrid className="h-9 w-9" />}
-          title="Pipeline vazio"
-          description="Seus orçamentos aparecerão aqui conforme forem criados"
-        />
+        <div className="flex-1 flex flex-col">
+          <EmptyState
+            icon={<LayoutGrid className="h-9 w-9" />}
+            title="Pipeline vazio"
+            description="Seus orçamentos aparecerão aqui conforme forem criados"
+          />
+        </div>
       ) : (
       <div className="flex flex-col md:flex-row gap-3 pb-4">
         {statusConfig.map((col) => {
