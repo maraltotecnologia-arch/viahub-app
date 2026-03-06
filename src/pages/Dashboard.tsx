@@ -569,15 +569,25 @@ function SuperadminDashboard() {
 
 /* ===== AGENCY DASHBOARD ===== */
 function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
+  const navigate = useNavigate();
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
-  // Fetch agency plan to deduct embedded tax from profit
+  // Fetch agency info including payment status
   const { data: agenciaInfo } = useQuery({
     queryKey: ["agencia-plano-dashboard", agenciaId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("agencias").select("plano").eq("id", agenciaId).maybeSingle();
+      const { data, error } = await supabase.from("agencias").select("plano, status_pagamento").eq("id", agenciaId).maybeSingle();
       if (error) throw error;
       return data;
+    },
+  });
+
+  // Redirect if blocked
+  useEffect(() => {
+    if (agenciaInfo?.status_pagamento === "bloqueado") {
+      navigate("/pagamento-pendente", { replace: true });
+    }
+  }, [agenciaInfo, navigate]);
     },
   });
 
