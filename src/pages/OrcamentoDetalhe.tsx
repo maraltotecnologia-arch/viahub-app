@@ -40,7 +40,7 @@ import HistoricoOrcamento from "@/components/orcamento/HistoricoOrcamento";
 import NotasInternas from "@/components/orcamento/NotasInternas";
 import { registrarHistorico } from "@/lib/historico-orcamento";
 import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
-import { isMargemZero } from "@/lib/profit-utils";
+import { isMargemZero, calcularLucroReal, getTaxaEmbutida } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 
@@ -503,43 +503,65 @@ export default function OrcamentoDetalhe() {
             <CardHeader><CardTitle className="text-base">Itens</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {itens?.map((item) => (
+                {itens?.map((item) => {
+                  const markup = Number(item.markup_percentual) || 0;
+                  const taxaFixa = Number(item.taxa_fixa) || 0;
+                  const detalhes: string[] = [item.tipo];
+                  if (markup > 0) { detalhes.push(`Markup: ${markup}%`); } else { detalhes.push("Sem markup"); }
+                  if (taxaFixa > 0) { detalhes.push(`Taxa: ${fmt(taxaFixa)}`); }
+                  detalhes.push(`Qtd: ${item.quantidade}`);
+                  return (
                   <div key={item.id} className="flex items-center justify-between py-3 border-b last:border-0">
                     <div>
                       <p className="font-medium text-sm">{item.descricao || item.tipo}</p>
-                      <p className="text-xs text-muted-foreground">{item.tipo} • Markup: {item.markup_percentual}% • Taxa: {fmt(Number(item.taxa_fixa) || 0)} • Qtd: {item.quantidade}</p>
+                      <p className="text-xs text-muted-foreground">{detalhes.join(" • ")}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">{fmt(Number(item.valor_final) || 0)}</p>
                       <p className="text-xs text-muted-foreground">Custo: {fmt(Number(item.valor_custo) || 0)}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 {(!itens || itens.length === 0) && <p className="text-sm text-muted-foreground text-center py-4">Nenhum item</p>}
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-primary/30">
-            <CardContent className="pt-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div><p className="text-xs text-muted-foreground">Custo Total</p><p className="text-lg font-bold">{fmt(custoTotal)}</p></div>
-                <div><p className="text-xs text-muted-foreground">Valor Final</p><p className="text-lg font-bold text-primary">{fmt(Number(orc.valor_final) || 0)}</p></div>
-                <div><p className="text-xs text-muted-foreground">Lucro</p><p className="text-lg font-bold text-success">{fmt(Number(orc.lucro_bruto) || 0)}</p></div>
-                <div><p className="text-xs text-muted-foreground">Margem</p><p className="text-lg font-bold">{Number(orc.margem_percentual || 0).toFixed(1)}%</p></div>
-              </div>
-            </CardContent>
-          </Card>
+          {(() => {
+            const plano = agencia?.plano;
+            const vf = Number(orc.valor_final) || 0;
+            const lucroReal = calcularLucroReal(vf, custoTotal, plano);
+            const margemReal = custoTotal > 0 ? (lucroReal / custoTotal) * 100 : 0;
+            const taxa = getTaxaEmbutida(vf, plano);
+            return (
+              <>
+                <Card className="border-primary/30">
+                  <CardContent className="pt-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div><p className="text-xs text-muted-foreground">Custo Total</p><p className="text-lg font-bold">{fmt(custoTotal)}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Valor Final</p><p className="text-lg font-bold text-primary">{fmt(vf)}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Lucro</p><p className="text-lg font-bold text-success">{fmt(lucroReal)}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Margem</p><p className="text-lg font-bold">{margemReal.toFixed(1)}%</p></div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-3 text-left">
+                      Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxa > 0 ? ` (${fmt(taxa)})` : ""}
+                    </p>
+                  </CardContent>
+                </Card>
 
-          {/* Zero-margin warning — internal only */}
-          {itens && itens.length > 0 && isMargemZero(itens) && (
-            <Alert variant="default" className="border-warning/50 bg-warning/10">
-              <AlertTriangle className="h-4 w-4 text-warning" />
-              <AlertDescription className="text-sm text-warning">
-                ⚠️ Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
-              </AlertDescription>
-            </Alert>
-          )}
+                {/* Zero-margin warning — internal only */}
+                {itens && itens.length > 0 && isMargemZero(itens) && (
+                  <Alert variant="default" className="border-warning/50 bg-warning/10">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-sm text-warning">
+                      ⚠️ Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </>
+            );
+          })()}
 
           {/* PDF Preview */}
           <Collapsible open={showPreview} onOpenChange={setShowPreview}>

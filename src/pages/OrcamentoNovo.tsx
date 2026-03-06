@@ -18,6 +18,9 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
 import DatePickerInput from "@/components/ui/DatePickerInput";
 import { getPlanoMultiplier } from "@/lib/plan-commission";
+import { calcularLucroReal, getTaxaEmbutida, isMargemZero } from "@/lib/profit-utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface Item {
   id: string;
@@ -340,8 +343,11 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i) * planoMultiplier, 0);
   const acrescimo = formaPagamento === "credito" ? valorFinalBase * (acrescimoCartao / 100) : 0;
   const valorFinal = valorFinalBase + acrescimo;
-  const lucro = valorFinal - custoTotal;
-  const margem = custoTotal > 0 ? (lucro / custoTotal) * 100 : 0;
+  const plano = agenciaData?.plano;
+  const lucroReal = calcularLucroReal(valorFinal, custoTotal, plano);
+  const margemReal = custoTotal > 0 ? (lucroReal / custoTotal) * 100 : 0;
+  const taxaEmbutida = getTaxaEmbutida(valorFinal, plano);
+  const todosMargemZero = isMargemZero(itens.map(i => ({ valor_custo: i.valor_custo, valor_final: calcValorFinal(i), markup_percentual: i.markup_percentual })));
 
   const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -394,8 +400,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           status: enviar ? "enviado" : existingOrc?.status || "rascunho",
           valor_custo: custoTotal,
           valor_final: valorFinal,
-          lucro_bruto: lucro,
-          margem_percentual: Number(margem.toFixed(2)),
+          lucro_bruto: valorFinal - custoTotal,
+          margem_percentual: Number(((custoTotal > 0 ? ((valorFinal - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
           moeda,
           validade: validade || null,
           observacoes,
@@ -512,8 +518,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           status: enviar ? "enviado" : "rascunho",
           valor_custo: custoTotal,
           valor_final: valorFinal,
-          lucro_bruto: lucro,
-          margem_percentual: Number(margem.toFixed(2)),
+          lucro_bruto: valorFinal - custoTotal,
+          margem_percentual: Number(((custoTotal > 0 ? ((valorFinal - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
           moeda,
           validade: validade || null,
           observacoes,
@@ -857,12 +863,25 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div><p className="text-xs text-muted-foreground">Custo Total</p><p className="text-lg font-bold">{fmt(custoTotal)}</p></div>
             <div><p className="text-xs text-muted-foreground">Valor Final</p><p className="text-lg font-bold text-primary">{fmt(valorFinal)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Lucro Bruto</p><p className="text-lg font-bold text-success">{fmt(lucro)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Margem %</p><p className="text-lg font-bold">{margem.toFixed(1)}%</p></div>
+            <div><p className="text-xs text-muted-foreground">Lucro</p><p className="text-lg font-bold text-success">{fmt(lucroReal)}</p></div>
+            <div><p className="text-xs text-muted-foreground">Margem</p><p className="text-lg font-bold">{margemReal.toFixed(1)}%</p></div>
           </div>
           {acrescimo > 0 && <p className="text-xs text-muted-foreground mt-3">Inclui acréscimo de cartão: {fmt(acrescimo)}</p>}
+          <p className="text-[11px] text-muted-foreground mt-3">
+            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaEmbutida > 0 ? ` (${fmt(taxaEmbutida)})` : ""}
+          </p>
         </CardContent>
       </Card>
+
+      {/* Zero-margin warning — internal only */}
+      {todosMargemZero && itens.length > 0 && (
+        <Alert variant="default" className="border-warning/50 bg-warning/10">
+          <AlertTriangle className="h-4 w-4 text-warning" />
+          <AlertDescription className="text-sm text-warning">
+            ⚠️ Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Ações */}
       <div className="flex gap-3 justify-end pb-6">
