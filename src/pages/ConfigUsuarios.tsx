@@ -101,7 +101,7 @@ export default function ConfigUsuarios() {
           Authorization: `Bearer ${session.session?.access_token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ email: addForm.email, password: addForm.senha }),
+        body: JSON.stringify({ email: addForm.email, password: addForm.senha, nome: addForm.nome }),
       });
 
       const result = await res.json();
