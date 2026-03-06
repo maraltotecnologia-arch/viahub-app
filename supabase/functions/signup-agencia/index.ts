@@ -165,21 +165,21 @@ Deno.serve(async (req) => {
 
     console.log("[signup-agencia] [STEP 3 OK] Perfil do usuário criado com sucesso");
 
-    // Send welcome email via Resend (non-blocking)
-    console.log("[signup-agencia] [STEP 4] Disparando email de boas-vindas (non-blocking)...");
-    const welcomeHtml = buildEmailHtml({
-      title: "Sua agência foi cadastrada com sucesso!",
-      body: `
-        <p>Olá <strong>${nome_admin}</strong>,</p>
-        <p>Sua agência <strong>${nome_agencia}</strong> já está ativa no ViaHub.</p>
-        <p>Após confirmar seu email, você terá acesso completo à plataforma para gerenciar orçamentos, clientes e muito mais.</p>
-        <p style="margin-top:16px;color:#6B7280;font-size:13px">Precisa de ajuda? Entre em contato: <a href="mailto:suporte@viahub.app" style="color:#2563EB">suporte@viahub.app</a></p>
-      `,
-      ctaText: "Acessar minha conta",
-      ctaUrl: "https://viahub.app/login",
+    // Step 4: Send OTP for email confirmation (instead of welcome email)
+    console.log("[signup-agencia] [STEP 4] Disparando OTP de confirmação...");
+    const { error: otpError } = await supabaseAdmin.auth.signInWithOtp({
+      email: email,
+      options: {
+        shouldCreateUser: false,
+      },
     });
 
-    enviarEmailNaoBloqueante(email, "Bem-vindo ao ViaHub! Confirme seu acesso", welcomeHtml, "welcome");
+    if (otpError) {
+      console.error("[signup-agencia] [STEP 4 AVISO] Erro ao enviar OTP:", otpError.message);
+      // Non-blocking: user can resend from the verification page
+    } else {
+      console.log("[signup-agencia] [STEP 4 OK] OTP enviado com sucesso para:", email);
+    }
 
     console.log("[signup-agencia] ========== SUCESSO - Cadastro completo ==========");
 

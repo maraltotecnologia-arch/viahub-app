@@ -741,6 +741,7 @@ export type Database = {
           cargo: string | null
           criado_em: string | null
           email: string | null
+          email_confirmado: boolean | null
           id: string
           nome: string | null
         }
@@ -750,6 +751,7 @@ export type Database = {
           cargo?: string | null
           criado_em?: string | null
           email?: string | null
+          email_confirmado?: boolean | null
           id: string
           nome?: string | null
         }
@@ -759,6 +761,7 @@ export type Database = {
           cargo?: string | null
           criado_em?: string | null
           email?: string | null
+          email_confirmado?: boolean | null
           id?: string
           nome?: string | null
         }

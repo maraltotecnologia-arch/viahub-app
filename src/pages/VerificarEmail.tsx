@@ -9,7 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 export default function VerificarEmail() {
   const [searchParams] = useSearchParams();
   const emailParam = searchParams.get("email") || "";
-  const tipo = searchParams.get("tipo") || "email"; // "email" | "recuperacao"
+  const tipo = searchParams.get("tipo") || "email"; // "email" | "recuperacao" | "confirmacao_cadastro"
 
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,7 +66,7 @@ export default function VerificarEmail() {
       });
 
       if (otpError) {
-        setError("Código inválido ou expirado. Tente novamente.");
+        setError("Código inválido ou expirado. Solicite um novo código.");
         setLoading(false);
         return;
       }
@@ -74,6 +74,44 @@ export default function VerificarEmail() {
       if (data.session) {
         if (tipo === "recuperacao") {
           navigate("/redefinir-senha", { replace: true });
+        } else if (tipo === "confirmacao_cadastro") {
+          // Mark email as confirmed
+          await supabase
+            .from("usuarios")
+            .update({ email_confirmado: true } as any)
+            .eq("email", emailParam);
+
+          // Send welcome email
+          try {
+            await supabase.functions.invoke("enviar-email", {
+              body: { tipo: "boas_vindas", email: emailParam },
+            });
+          } catch {
+            // Non-blocking
+          }
+
+          // Check onboarding status
+          const { data: usuario } = await supabase
+            .from("usuarios")
+            .select("agencia_id")
+            .eq("email", emailParam)
+            .single();
+
+          if (usuario?.agencia_id) {
+            const { data: agencia } = await supabase
+              .from("agencias")
+              .select("onboarding_completo")
+              .eq("id", usuario.agencia_id)
+              .single();
+
+            if (agencia && !agencia.onboarding_completo) {
+              navigate("/onboarding", { replace: true });
+            } else {
+              navigate("/dashboard", { replace: true });
+            }
+          } else {
+            navigate("/dashboard", { replace: true });
+          }
         } else {
           navigate("/dashboard", { replace: true });
         }
@@ -122,7 +160,7 @@ export default function VerificarEmail() {
         </div>
 
         <div className="mb-8 text-center">
-          <h2 className="text-2xl font-bold text-[#0F172A]">Verifique seu email</h2>
+          <h2 className="text-2xl font-bold text-[#0F172A]">Confirme seu email</h2>
           <p className="text-sm text-[#64748B] mt-2">
             Enviamos um código de 6 dígitos para{" "}
             <span className="font-medium text-[#0F172A]">{maskedEmail}</span>
@@ -181,7 +219,7 @@ export default function VerificarEmail() {
             to="/login"
             className="inline-flex items-center gap-1.5 text-sm text-[#2563EB] hover:underline"
           >
-            <ArrowLeft className="h-4 w-4" /> Usar outro email
+            <ArrowLeft className="h-4 w-4" /> Voltar ao início
           </Link>
         </div>
       </div>
