@@ -16,11 +16,7 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const MRR_MAP: Record<string, number> = {
-  starter_a: 397, starter_b: 197, pro_a: 697, pro_b: 297, agency_c: 1997,
-};
-
-const COMISSAO_MAP: Record<string, number> = {
-  starter_a: 0, starter_b: 0.015, pro_a: 0, pro_b: 0.012, agency_c: 0,
+  starter: 397, pro: 697, elite: 1997,
 };
 
 export default function Dashboard() {
@@ -255,15 +251,8 @@ function SuperadminDashboard() {
         return new Date(dataRef) >= new Date(startOfMonth);
       });
 
-      const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter_a"] || 0), 0);
-      const volumeByAgencia: Record<string, number> = {};
-      pagos.forEach((o) => {
-        if (o.agencia_id) volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
-      });
-      const mrrComissoes = agenciasAtivas.reduce((sum, a) => {
-        const taxa = COMISSAO_MAP[a.plano || "starter_a"] || 0;
-        return sum + (volumeByAgencia[a.id] || 0) * taxa;
-      }, 0);
+      const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter"] || 0), 0);
+      const mrrComissoes = 0;
 
       // Churn: agencies deactivated this month
       const churnAtual = allAgencias.filter((a) => a.ativo === false && a.atualizado_em && new Date(a.atualizado_em) >= new Date(startOfMonth)).length;
@@ -390,7 +379,7 @@ function SuperadminDashboard() {
   ];
 
   const medalhas = ["🥇", "🥈", "🥉"];
-  const planoLabel: Record<string, string> = { starter_a: "Starter A", starter_b: "Starter B", pro_a: "Pro A", pro_b: "Pro B", agency_c: "Elite" };
+  const planoLabel: Record<string, string> = { starter: "Starter", pro: "Pro", elite: "Elite" };
 
   return (
     <div className="space-y-6 animate-fade-in-up">

@@ -190,7 +190,7 @@ export default function AdminAgenciaDetalhe() {
     return <div className="p-6 text-muted-foreground">Agência não encontrada</div>;
   }
 
-  const planoInfo = planoConfig[agencia.plano || "starter_a"] || planoConfig.starter_a;
+  const planoInfo = planoConfig[agencia.plano || "starter"] || planoConfig.starter;
   const tempoCliente = agencia.criado_em
     ? Math.floor((Date.now() - new Date(agencia.criado_em).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
@@ -206,7 +206,7 @@ export default function AdminAgenciaDetalhe() {
           <h2 className="text-2xl font-bold">{agencia.nome_fantasia}</h2>
           <span
             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${!isDark ? planoInfo.color : ""}`}
-            style={isDark ? planoBadgeDarkStyle(agencia.plano || "starter_a") : undefined}
+            style={isDark ? planoBadgeDarkStyle(agencia.plano || "starter") : undefined}
           >
             {planoInfo.label}
           </span>
@@ -293,7 +293,7 @@ export default function AdminAgenciaDetalhe() {
             <div className="space-y-2">
               <Label>Plano</Label>
               {editing ? (
-                <Select value={form.plano || "starter_a"} onValueChange={(v) => setForm({ ...form, plano: v })}>
+                <Select value={form.plano || "starter"} onValueChange={(v) => setForm({ ...form, plano: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {planos.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}

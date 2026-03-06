@@ -99,7 +99,7 @@ export default function AdminAgenciaNova() {
           cnpj: cnpj || null,
           email: emailAgencia,
           telefone: telefone || null,
-          plano: plano || "starter_a",
+          plano: plano || "starter",
           onboarding_completo: false,
           ativo: true,
         })
