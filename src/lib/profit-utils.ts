@@ -1,32 +1,22 @@
 /**
- * Calculates the real agency profit by subtracting the embedded operational tax.
- * The tax belongs to ViaHub, not the agency.
+ * Calculates agency profit: simple valor_final - custo.
  */
 export function calcularLucroReal(
   valorFinal: number,
   valorCusto: number,
-  plano: string | null | undefined
+  _plano?: string | null | undefined
 ): number {
-  const lucroBruto = valorFinal - valorCusto;
-  const taxa = getTaxaEmbutida(valorFinal, plano);
-  return Math.max(lucroBruto - taxa, 0);
+  return Math.max(valorFinal - valorCusto, 0);
 }
 
 /**
- * Returns the embedded operational tax amount for a given valor_final.
+ * No embedded tax — all plans are fixed-fee now.
  */
 export function getTaxaEmbutida(
-  valorFinal: number,
-  plano: string | null | undefined
+  _valorFinal: number,
+  _plano?: string | null | undefined
 ): number {
-  switch (plano) {
-    case "starter_b":
-      return valorFinal - valorFinal / 1.015;
-    case "pro_b":
-      return valorFinal - valorFinal / 1.012;
-    default:
-      return 0;
-  }
+  return 0;
 }
 
 /**

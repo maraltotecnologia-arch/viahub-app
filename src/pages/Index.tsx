@@ -42,24 +42,24 @@ const steps = [
 
 const plans = [
   {
-    name: "Starter", price: "R$197", per: "/mês", popular: false, whitelabel: false,
+    name: "Starter", price: "R$397", per: "/mês", popular: false, whitelabel: false,
     desc: "",
-    altPrice: "ou R$397/mês sem encargos operacionais",
-    feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos", "Encargos operacionais calculados automaticamente"],
+    altPrice: "",
+    feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos", "Suporte por email"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
-    name: "Pro", price: "R$297", per: "/mês", popular: true, whitelabel: false,
+    name: "Pro", price: "R$697", per: "/mês", popular: true, whitelabel: false,
     desc: "",
-    altPrice: "ou R$697/mês sem encargos operacionais",
-    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário", "Encargos operacionais calculados automaticamente"],
+    altPrice: "",
+    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
     name: "Elite", price: "R$1.997", per: "/mês", popular: false, whitelabel: true,
     desc: "Para agências que querem o sistema com a própria marca",
     altPrice: "",
-    feats: ["Tudo do Pro", "Marca e logo próprias", "Domínio personalizado", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
+    feats: ["Tudo do Pro", "Usuários ilimitados", "Marca e logo próprias", "Domínio personalizado", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
     cta: "Falar com consultor", ctaLink: "mailto:suporte@viahub.app",
   },
 ];
