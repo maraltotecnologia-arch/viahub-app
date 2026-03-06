@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
-import { } from "@/lib/profit-utils";
+
 import SortableTableHead from "@/components/SortableTableHead";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import { pdf } from "@react-pdf/renderer";

@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useAuth } from "@/contexts/AuthContext";
 import useUserRole from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { } from "@/lib/profit-utils";
+
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAlertas from "@/hooks/useAlertas";
