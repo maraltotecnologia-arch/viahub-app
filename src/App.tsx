@@ -63,6 +63,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+      <Route path="/verificar-email" element={<VerificarEmail />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
       <Route element={<AppLayout />}>
