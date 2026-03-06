@@ -136,8 +136,15 @@ export default function Cadastro() {
         return;
       }
 
-      setSucesso(true);
+      // Send OTP for email verification
+      await supabase.auth.signInWithOtp({
+        email: email.trim().toLowerCase(),
+        options: { shouldCreateUser: false },
+      });
+
       setLoading(false);
+      // Redirect to OTP verification page
+      navigate(`/verificar-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     } catch {
       toast({ title: "Erro", description: "Erro inesperado. Tente novamente.", variant: "destructive" });
       setLoading(false);
