@@ -555,7 +555,7 @@ export default function OrcamentoDetalhe() {
                   <Alert variant="default" className="border-warning/50 bg-warning/10">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     <AlertDescription className="text-sm text-warning">
-                      ⚠️ Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+                      Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
                     </AlertDescription>
                   </Alert>
                 )}
