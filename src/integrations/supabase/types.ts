@@ -16,10 +16,14 @@ export type Database = {
     Tables: {
       agencias: {
         Row: {
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
           ativo: boolean | null
           atualizado_em: string | null
           cnpj: string | null
           criado_em: string | null
+          data_bloqueio: string | null
+          data_proximo_vencimento: string | null
           email: string | null
           horario_funcionamento: Json | null
           id: string
@@ -27,13 +31,18 @@ export type Database = {
           nome_fantasia: string
           onboarding_completo: boolean | null
           plano: string | null
+          status_pagamento: string | null
           telefone: string | null
         }
         Insert: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           ativo?: boolean | null
           atualizado_em?: string | null
           cnpj?: string | null
           criado_em?: string | null
+          data_bloqueio?: string | null
+          data_proximo_vencimento?: string | null
           email?: string | null
           horario_funcionamento?: Json | null
           id?: string
@@ -41,13 +50,18 @@ export type Database = {
           nome_fantasia: string
           onboarding_completo?: boolean | null
           plano?: string | null
+          status_pagamento?: string | null
           telefone?: string | null
         }
         Update: {
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
           ativo?: boolean | null
           atualizado_em?: string | null
           cnpj?: string | null
           criado_em?: string | null
+          data_bloqueio?: string | null
+          data_proximo_vencimento?: string | null
           email?: string | null
           horario_funcionamento?: Json | null
           id?: string
@@ -55,9 +69,66 @@ export type Database = {
           nome_fantasia?: string
           onboarding_completo?: boolean | null
           plano?: string | null
+          status_pagamento?: string | null
           telefone?: string | null
         }
         Relationships: []
+      }
+      asaas_pagamentos: {
+        Row: {
+          agencia_id: string
+          asaas_payment_id: string | null
+          boleto_linha_digitavel: string | null
+          boleto_url: string | null
+          created_at: string | null
+          forma_pagamento: string | null
+          id: string
+          pago_em: string | null
+          pix_copia_cola: string | null
+          pix_qr_code: string | null
+          status: string | null
+          valor: number | null
+          vencimento: string | null
+        }
+        Insert: {
+          agencia_id: string
+          asaas_payment_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_url?: string | null
+          created_at?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          pago_em?: string | null
+          pix_copia_cola?: string | null
+          pix_qr_code?: string | null
+          status?: string | null
+          valor?: number | null
+          vencimento?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          asaas_payment_id?: string | null
+          boleto_linha_digitavel?: string | null
+          boleto_url?: string | null
+          created_at?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          pago_em?: string | null
+          pix_copia_cola?: string | null
+          pix_qr_code?: string | null
+          status?: string | null
+          valor?: number | null
+          vencimento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asaas_pagamentos_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes: {
         Row: {
