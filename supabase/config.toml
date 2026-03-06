@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.aprovar-orcamento-publico]
 verify_jwt = false
+
+[functions.enviar-email]
+verify_jwt = false
+
+[functions.signup-agencia]
+verify_jwt = false
+
+[functions.relatorio-semanal]
+verify_jwt = false
