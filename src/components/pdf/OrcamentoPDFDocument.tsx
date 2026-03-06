@@ -317,6 +317,20 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
           </View>
         </View>
 
+        {/* Nota de taxas abaixo do total */}
+        {(() => {
+          const totalVal = Number(orcamento.valor_final) || total;
+          const plano = agencia.plano;
+          const mult = plano === "starter_b" ? 1.015 : plano === "pro_b" ? 1.012 : null;
+          const taxaValor = mult ? totalVal - totalVal / mult : null;
+          const taxaTexto = taxaValor != null ? ` (${fmt(taxaValor)})` : "";
+          return (
+            <Text style={{ fontSize: 8, color: "#888888", marginTop: 4, textAlign: "right" }}>
+              Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaTexto}
+            </Text>
+          );
+        })()}
+
         {/* RODAPÉ DA TABELA */}
         <View style={s.tableFooter}>
           <View style={s.decoLine} />

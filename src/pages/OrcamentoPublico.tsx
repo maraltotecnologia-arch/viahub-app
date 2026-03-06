@@ -50,7 +50,7 @@ export default function OrcamentoPublico() {
           *,
           clientes(nome, email, telefone),
           itens_orcamento(*),
-          agencias(nome_fantasia, telefone, email, logo_url, cnpj)
+          agencias(nome_fantasia, telefone, email, logo_url, cnpj, plano)
         `)
         .eq("token_publico", token!)
         .maybeSingle();
@@ -212,6 +212,20 @@ export default function OrcamentoPublico() {
             <span className="font-bold text-lg">{fmt(Number(orc.valor_final) || total)}</span>
           </div>
         </div>
+
+        {/* Nota de taxas */}
+        {(() => {
+          const totalVal = Number(orc.valor_final) || total;
+          const plano = agencia?.plano;
+          const mult = plano === "starter_b" ? 1.015 : plano === "pro_b" ? 1.012 : null;
+          const taxaValor = mult ? totalVal - totalVal / mult : null;
+          const taxaTexto = taxaValor != null ? ` (${fmt(taxaValor)})` : "";
+          return (
+            <p className="text-[10px] text-[#888888] text-right mt-1">
+              Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaTexto}
+            </p>
+          );
+        })()}
 
         {/* Payment & notes */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">

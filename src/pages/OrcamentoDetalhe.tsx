@@ -124,7 +124,7 @@ export default function OrcamentoDetalhe() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agencias")
-        .select("nome_fantasia, email, telefone, logo_url, horario_funcionamento")
+        .select("nome_fantasia, email, telefone, logo_url, horario_funcionamento, plano")
         .eq("id", agenciaId!)
         .maybeSingle();
       if (error) throw error;
