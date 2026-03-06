@@ -131,7 +131,19 @@ export default function Cadastro() {
 
       if (res.error || res.data?.error) {
         const msg = res.data?.error || res.error?.message || "Erro ao criar conta";
-        toast({ title: "Erro", description: msg, variant: "destructive" });
+        const newErrors: FieldErrors = {};
+
+        if (msg.includes("CNPJ já está cadastrado")) {
+          newErrors.cnpj = msg;
+        } else if (msg.includes("email já está cadastrado")) {
+          newErrors.email = msg;
+        } else {
+          toast({ title: "Erro", description: msg, variant: "destructive" });
+        }
+
+        if (Object.keys(newErrors).length > 0) {
+          setErrors((prev) => ({ ...prev, ...newErrors }));
+        }
         setLoading(false);
         return;
       }

@@ -78,8 +78,8 @@ Deno.serve(async (req) => {
     const existing = existingUsers?.users?.find((u) => u.email === email);
     if (existing) {
       console.log("[signup-agencia] Email já cadastrado:", email);
-      return new Response(JSON.stringify({ error: "Este email já está cadastrado" }), {
-        status: 409,
+      return new Response(JSON.stringify({ error: "Este email já está cadastrado no ViaHub." }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -122,6 +122,15 @@ Deno.serve(async (req) => {
       console.error("[signup-agencia] [STEP 2 FALHOU] Erro ao criar agência:", agenciaError?.message, agenciaError);
       console.log("[signup-agencia] Rollback: deletando usuário auth", userId);
       await supabaseAdmin.auth.admin.deleteUser(userId);
+
+      // CNPJ duplicado
+      if (agenciaError?.code === "23505" && agenciaError?.message?.includes("cnpj")) {
+        return new Response(JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       return new Response(JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || ""), details: agenciaError }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
