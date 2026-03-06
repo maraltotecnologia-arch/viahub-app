@@ -28,14 +28,27 @@ export default function RecuperarSenha() {
     setError("");
     setLoading(true);
 
+    // Check if email exists before sending reset
+    const { data } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (!data) {
+      // Show generic message regardless
+      setSent(true);
+      setLoading(false);
+      return;
+    }
+
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/redefinir-senha`,
+      redirectTo: 'https://viahub.app/redefinir-senha',
     });
 
     if (resetError) {
-      setError("Email não encontrado. Verifique e tente novamente.");
-      setLoading(false);
-      return;
+      // Still show generic message
+      console.error("Reset error:", resetError);
     }
 
     setSent(true);
@@ -57,7 +70,7 @@ export default function RecuperarSenha() {
         {sent ? (
           <div className="rounded-xl bg-emerald-50 border border-emerald-200 p-5 text-center">
             <p className="text-sm text-emerald-700 font-medium">
-              Email enviado! Verifique sua caixa de entrada e clique no link para redefinir sua senha.
+              Se este email estiver cadastrado, você receberá as instruções em breve. Verifique sua caixa de entrada.
             </p>
           </div>
         ) : (

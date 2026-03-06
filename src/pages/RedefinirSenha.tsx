@@ -13,6 +13,11 @@ export default function RedefinirSenha() {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [ready, setReady] = useState(false);
+  const [sessionError, setSessionError] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'light');
@@ -23,9 +28,41 @@ export default function RedefinirSenha() {
       document.documentElement.style.removeProperty('--bg-primary');
     };
   }, []);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
-  const { toast } = useToast();
+
+  useEffect(() => {
+    // Listen for PASSWORD_RECOVERY event from Supabase Auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        setReady(true);
+      }
+    });
+
+    // Also check if we already have a session (e.g. hash was already processed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        // Check URL hash for recovery type
+        const hash = window.location.hash;
+        if (hash.includes('type=recovery') || hash.includes('access_token')) {
+          setReady(true);
+        } else {
+          // User has a session but not from recovery — still allow if they navigated here
+          setReady(true);
+        }
+      } else {
+        // No session and no recovery token — check hash
+        const hash = window.location.hash;
+        if (!hash.includes('access_token')) {
+          // No token at all, wait a moment for auth state change
+          const timeout = setTimeout(() => {
+            if (!ready) setSessionError(true);
+          }, 3000);
+          return () => clearTimeout(timeout);
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,8 +88,51 @@ export default function RedefinirSenha() {
 
     toast({ title: "Senha alterada com sucesso!" });
     setLoading(false);
+    await supabase.auth.signOut();
     setTimeout(() => navigate("/login", { replace: true }), 2000);
   };
+
+  if (sessionError) {
+    return (
+      <AuthLayout>
+        <div className="animate-fade-in text-center">
+          <div className="md:hidden text-center mb-6">
+            <h1 className="text-3xl font-bold text-[#0F172A]">Via<span className="font-extrabold">Hub</span></h1>
+          </div>
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-[#0F172A]">Link expirado</h2>
+            <p className="text-sm text-[#64748B] mt-3">
+              Este link de redefinição de senha é inválido ou já expirou. Solicite um novo link.
+            </p>
+          </div>
+          <Link to="/recuperar-senha">
+            <Button
+              className="w-full h-12 rounded-xl font-semibold text-[15px] text-white"
+              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
+            >
+              Solicitar novo link
+            </Button>
+          </Link>
+          <div className="mt-6 text-center">
+            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-[#2563EB] hover:underline">
+              <ArrowLeft className="h-4 w-4" /> Voltar ao login
+            </Link>
+          </div>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <AuthLayout>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-8 w-8 rounded-full border-[3px] border-gray-200 border-t-[#2563EB] animate-spin" />
+          <p className="text-[#64748B] text-sm mt-4">Verificando link...</p>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>
