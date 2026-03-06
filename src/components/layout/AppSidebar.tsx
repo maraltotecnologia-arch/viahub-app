@@ -164,8 +164,8 @@ export function AppSidebar() {
                   <Settings className="h-5 w-5 shrink-0" />
                   <span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" />
                 </CollapsibleTrigger>
-                <CollapsibleContent className="bg-transparent">
-                  <SidebarGroupContent>
+                <CollapsibleContent>
+                  <SidebarGroupContent className="bg-transparent">
                     <SidebarMenu>
                       {configItems.map((item) => (
                         <SidebarMenuItem key={item.title}>

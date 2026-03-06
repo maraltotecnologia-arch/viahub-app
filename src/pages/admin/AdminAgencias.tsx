@@ -235,16 +235,26 @@ export default function AdminAgencias() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Switch
-                                  checked={a.ativo !== false}
-                                  onCheckedChange={(checked) => toggleMutation.mutate({ id: a.id, ativo: checked })}
-                                  className={a.ativo !== false ? "data-[state=checked]:bg-green-500" : "data-[state=unchecked]:bg-red-500"}
-                                />
-                                <span className={`text-xs font-medium ${a.ativo !== false ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                                  {a.ativo !== false ? "Ativo" : "Inativo"}
-                                </span>
-                              </div>
+                              <button
+                                className="flex items-center gap-2"
+                                onClick={() => toggleMutation.mutate({ id: a.id, ativo: a.ativo === false })}
+                              >
+                                {a.ativo !== false ? (
+                                  <>
+                                    <div className="w-10 h-6 bg-green-500 rounded-full relative">
+                                      <div className="w-4 h-4 bg-white rounded-full absolute right-1 top-1" />
+                                    </div>
+                                    <span className="text-green-600 dark:text-green-400 text-sm font-medium">Ativo</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="w-10 h-6 bg-red-500 rounded-full relative">
+                                      <div className="w-4 h-4 bg-white rounded-full absolute left-1 top-1" />
+                                    </div>
+                                    <span className="text-red-600 dark:text-red-400 text-sm font-medium">Inativo</span>
+                                  </>
+                                )}
+                              </button>
                             </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
                               {a.criado_em ? new Date(a.criado_em).toLocaleDateString("pt-BR") : "—"}
