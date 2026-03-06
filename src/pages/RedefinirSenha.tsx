@@ -30,34 +30,42 @@ export default function RedefinirSenha() {
   }, []);
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event from Supabase Auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' && session) {
         setReady(true);
+        setSessionError(false);
       }
     });
 
-    // Also check if we already have a session (e.g. hash was already processed)
+    // Check hash for recovery token
+    const hash = window.location.hash;
+    if (hash && (hash.includes('type=recovery') || hash.includes('access_token'))) {
+      // Supabase client auto-processes the hash — wait for onAuthStateChange
+      const timeout = setTimeout(() => {
+        // If still not ready after 4s, try getSession as fallback
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            setReady(true);
+          } else {
+            setSessionError(true);
+          }
+        });
+      }, 4000);
+      return () => {
+        clearTimeout(timeout);
+        subscription.unsubscribe();
+      };
+    }
+
+    // No hash at all — check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Check URL hash for recovery type
-        const hash = window.location.hash;
-        if (hash.includes('type=recovery') || hash.includes('access_token')) {
-          setReady(true);
-        } else {
-          // User has a session but not from recovery — still allow if they navigated here
-          setReady(true);
-        }
+        setReady(true);
       } else {
-        // No session and no recovery token — check hash
-        const hash = window.location.hash;
-        if (!hash.includes('access_token')) {
-          // No token at all, wait a moment for auth state change
-          const timeout = setTimeout(() => {
-            if (!ready) setSessionError(true);
-          }, 3000);
-          return () => clearTimeout(timeout);
-        }
+        const timeout = setTimeout(() => {
+          setSessionError(true);
+        }, 3000);
+        return () => clearTimeout(timeout);
       }
     });
 

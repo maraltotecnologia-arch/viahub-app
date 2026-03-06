@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthLayout from "@/components/AuthLayout";
+import { getBaseUrl } from "@/lib/url-utils";
 
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
@@ -28,29 +29,27 @@ export default function RecuperarSenha() {
     setError("");
     setLoading(true);
 
+    const trimmedEmail = email.toLowerCase().trim();
+
     // Check if email exists before sending reset
     const { data } = await supabase
       .from('usuarios')
       .select('id')
-      .eq('email', email)
+      .eq('email', trimmedEmail)
       .maybeSingle();
 
-    if (!data) {
-      // Show generic message regardless
-      setSent(true);
-      setLoading(false);
-      return;
+    if (data) {
+      // Only send reset if email exists
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+        redirectTo: `${getBaseUrl()}/redefinir-senha`,
+      });
+
+      if (resetError) {
+        console.error("Reset error:", resetError);
+      }
     }
 
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://viahub.app/redefinir-senha',
-    });
-
-    if (resetError) {
-      // Still show generic message
-      console.error("Reset error:", resetError);
-    }
-
+    // Always show generic message
     setSent(true);
     setLoading(false);
   };
