@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import useNotificacoes, { type Notificacao } from "@/hooks/useNotificacoes";
 
 const tipoConfig: Record<string, { icon: typeof Info; colorClass: string }> = {
-  info: { icon: Info, colorClass: "text-primary" },
-  warning: { icon: AlertTriangle, colorClass: "text-warning" },
-  manutencao: { icon: Wrench, colorClass: "text-accent" },
-  cobranca: { icon: CreditCard, colorClass: "text-success" },
+  info: { icon: Info, colorClass: "text-blue-600 dark:text-blue-400" },
+  warning: { icon: AlertTriangle, colorClass: "text-yellow-600 dark:text-yellow-400" },
+  manutencao: { icon: Wrench, colorClass: "text-orange-600 dark:text-orange-400" },
+  cobranca: { icon: CreditCard, colorClass: "text-green-600 dark:text-green-400" },
 };
 
 function NotificacaoItem({ n, onRead }: { n: Notificacao; onRead: () => void }) {
