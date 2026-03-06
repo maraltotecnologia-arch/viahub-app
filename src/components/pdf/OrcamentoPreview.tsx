@@ -37,6 +37,7 @@ export interface OrcamentoPDFData {
     email?: string | null;
     telefone?: string | null;
     logo_url?: string | null;
+    plano?: string | null;
   };
   logoDims?: { width: number; height: number };
 }
@@ -164,6 +165,22 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
             TOTAL: {fmt(Number(orcamento.valor_final) || total)}
           </div>
         </div>
+
+        {/* Nota de taxas */}
+        {(() => {
+          const totalVal = Number(orcamento.valor_final) || total;
+          const plano = agencia.plano;
+          const mult = plano === "starter_b" ? 1.015 : plano === "pro_b" ? 1.012 : null;
+          const taxaValor = mult ? totalVal - totalVal / mult : null;
+          const taxaTexto = taxaValor != null ? ` (${fmt(taxaValor)})` : "";
+          return (
+            <div style={{ textAlign: "right", marginTop: 4 }}>
+              <span style={{ fontSize: 8, color: "#888888" }}>
+                Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaTexto}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Decorative diagonal lines - center left */}
         <div style={{ position: "absolute", left: 0, top: 650 }}>
