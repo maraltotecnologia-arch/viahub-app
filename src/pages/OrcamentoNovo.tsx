@@ -866,7 +866,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </div>
           {acrescimo > 0 && <p className="text-xs text-muted-foreground mt-3">Inclui acréscimo de cartão: {fmt(acrescimo)}</p>}
           <p className="text-[11px] text-muted-foreground mt-3">
-            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaEmbutida > 0 ? ` (${fmt(taxaEmbutida)})` : ""}
+            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
           </p>
         </CardContent>
       </Card>
@@ -876,7 +876,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         <Alert variant="default" className="border-warning/50 bg-warning/10">
           <AlertTriangle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm text-warning">
-            Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+            Este orçamento está com margem 0 de lucro. O valor será repassado integralmente ao fornecedor.
           </AlertDescription>
         </Alert>
       )}
