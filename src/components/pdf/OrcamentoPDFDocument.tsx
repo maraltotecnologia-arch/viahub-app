@@ -318,18 +318,9 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
         </View>
 
         {/* Nota de taxas abaixo do total */}
-        {(() => {
-          const totalVal = Number(orcamento.valor_final) || total;
-          const plano = agencia.plano;
-          const mult = plano === "starter_b" ? 1.015 : plano === "pro_b" ? 1.012 : null;
-          const taxaValor = mult ? totalVal - totalVal / mult : null;
-          const taxaTexto = taxaValor != null ? ` (${fmt(taxaValor)})` : "";
-          return (
-            <Text style={{ fontSize: 8, color: "#888888", marginTop: 4, textAlign: "right" }}>
-              Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaTexto}
-            </Text>
-          );
-        })()}
+        <Text style={{ fontSize: 8, color: "#888888", marginTop: 4, textAlign: "right" }}>
+          Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
+        </Text>
 
         {/* RODAPÉ DA TABELA */}
         <View style={s.tableFooter}>
@@ -370,7 +361,7 @@ const OrcamentoPDFDocument: React.FC<Props> = ({ data }) => {
         {/* RODAPÉ FIXO (em todas as páginas) */}
         <View fixed style={s.footer}>
           <Text style={{ fontSize: 7, color: "#94A3B8", marginBottom: 6, textAlign: "center" }}>
-            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.
+            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
           </Text>
           <Text style={s.footerLine1}>
             Orçamento emitido por {agencia.nome_fantasia || ""}, válido conforme data informada neste documento. Sujeito a alteração de valores sem aviso prévio conforme Termos e Condições, consulte o seu agente de viagens para mais informações.

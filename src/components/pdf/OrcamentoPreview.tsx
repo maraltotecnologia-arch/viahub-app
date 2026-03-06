@@ -167,20 +167,11 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
         </div>
 
         {/* Nota de taxas */}
-        {(() => {
-          const totalVal = Number(orcamento.valor_final) || total;
-          const plano = agencia.plano;
-          const mult = plano === "starter_b" ? 1.015 : plano === "pro_b" ? 1.012 : null;
-          const taxaValor = mult ? totalVal - totalVal / mult : null;
-          const taxaTexto = taxaValor != null ? ` (${fmt(taxaValor)})` : "";
-          return (
-            <div style={{ textAlign: "right", marginTop: 4 }}>
-              <span style={{ fontSize: 8, color: "#888888" }}>
-                Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.{taxaTexto}
-              </span>
-            </div>
-          );
-        })()}
+        <div style={{ textAlign: "right", marginTop: 4 }}>
+          <span style={{ fontSize: 8, color: "#888888" }}>
+            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
+          </span>
+        </div>
 
         {/* Decorative diagonal lines - center left */}
         <div style={{ position: "absolute", left: 0, top: 650 }}>
@@ -224,7 +215,7 @@ const OrcamentoPreview = forwardRef<HTMLDivElement, { data: OrcamentoPDFData }>(
         {/* RODAPÉ */}
         <div style={{ position: "absolute", bottom: 24, left: 48, right: 48, textAlign: "center" as const }}>
           <div style={{ fontSize: 8, color: "#94A3B8", marginBottom: 6 }}>
-            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.
+            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
           </div>
           <div style={{ fontSize: 9, color: "#9CA3AF" }}>
             {agencia.nome_fantasia}
