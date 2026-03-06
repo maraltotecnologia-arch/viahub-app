@@ -53,7 +53,7 @@ export default function ConfigTemplates() {
       <h2 className="text-2xl font-bold">Templates de Orçamento</h2>
 
       {(!templates || templates.length === 0) ? (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex items-center justify-center">
           <EmptyState
             icon={<FileText className="h-9 w-9" />}
             title="Nenhum template salvo"
