@@ -6,7 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useAuth } from "@/contexts/AuthContext";
 import useUserRole from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { getTaxaEmbutida } from "@/lib/profit-utils";
+import { } from "@/lib/profit-utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAlertas from "@/hooks/useAlertas";
@@ -606,13 +606,11 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       const pagosCount = pagos.length;
       const conversao = total > 0 ? Math.round((pagosCount / total) * 100) : 0;
       const plano = agenciaInfo?.plano;
-      // Deduct embedded operational tax from agency profit
       const comissao = orcamentos
         .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
         .reduce((s, o) => {
           const lucro = Number(o.lucro_bruto) || 0;
-          const taxa = getTaxaEmbutida(Number(o.valor_final) || 0, plano);
-          return s + Math.max(lucro - taxa, 0);
+          return s + Math.max(lucro, 0);
         }, 0);
       const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
       return { total, valorTotal, conversao, comissao, recebido, pagosCount };

@@ -289,7 +289,7 @@ export default function OrcamentoPublico() {
       <footer className="border-t border-[#E2E8F0] mt-12 print:mt-4">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center">
           <p className="text-[10px] text-[#94A3B8] mb-3">
-            Os valores apresentados já incluem todas as taxas de embarque, turismo, serviço e encargos operacionais aplicáveis.
+            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
           </p>
           <p className="text-xs text-[#94A3B8]">
             {agencia?.nome_fantasia}
