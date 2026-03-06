@@ -56,7 +56,7 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function ComissoesFinanceiro() {
   const navigate = useNavigate();
-  const { isAdmin, isFinanceiro, loading: roleLoading } = useUserRole();
+  const { isSuperadmin, loading: roleLoading } = useUserRole();
   const agenciaId = useAgenciaId();
   const [periodo, setPeriodo] = useState("mes_atual");
 
