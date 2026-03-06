@@ -588,8 +588,6 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       navigate("/pagamento-pendente", { replace: true });
     }
   }, [agenciaInfo, navigate]);
-    },
-  });
 
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["dashboard-metrics", agenciaId, agenciaInfo?.plano],
