@@ -15,27 +15,15 @@ import useUserRole from "@/hooks/useUserRole";
 import { useTheme } from "@/contexts/ThemeContext";
 
 const planoConfig: Record<string, { label: string; color: string }> = {
-  starter_a: { label: "Starter", color: "bg-muted text-muted-foreground" },
-  starter_b: { label: "Starter", color: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300" },
-  pro_a: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
-  pro_b: { label: "Pro", color: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
-  agency_c: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
+  starter: { label: "Starter", color: "bg-muted text-muted-foreground" },
+  pro: { label: "Pro", color: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
+  elite: { label: "Elite", color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
 };
 
 const planoPreco: Record<string, number> = {
-  starter_a: 397,
-  starter_b: 197,
-  pro_a: 697,
-  pro_b: 297,
-  agency_c: 1997,
-};
-
-const planoComissao: Record<string, number> = {
-  starter_a: 0,
-  starter_b: 0.015,
-  pro_a: 0,
-  pro_b: 0.012,
-  agency_c: 0,
+  starter: 397,
+  pro: 697,
+  elite: 1997,
 };
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -74,13 +62,11 @@ export default function AdminAgencias() {
 
   const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
     const map: Record<string, React.CSSProperties> = {
-      starter_a: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
-      starter_b: { background: "rgba(14,165,233,0.25)", color: "#7DD3FC", border: "1px solid rgba(14,165,233,0.4)" },
-      pro_a: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
-      pro_b: { background: "rgba(29,78,216,0.25)", color: "#BFDBFE", border: "1px solid rgba(29,78,216,0.4)" },
-      agency_c: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
+      starter: { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" },
+      pro: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
+      elite: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
     };
-    return map[plano] ?? map.starter_a;
+    return map[plano] ?? map.starter;
   };
 
   useEffect(() => {
@@ -142,22 +128,7 @@ export default function AdminAgencias() {
   const ativas = agencias?.filter((a) => a.ativo !== false).length ?? 0;
   const mrr = agencias
     ?.filter((a) => a.ativo !== false)
-    .reduce((s, a) => s + (planoPreco[a.plano || "starter_a"] || 0), 0) ?? 0;
-
-  // Commission calculations
-  const volumeByAgencia: Record<string, number> = {};
-  orcamentosPagos?.forEach((o) => {
-    volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
-  });
-
-  const mrrMensalidades = mrr;
-  const mrrComissoes = agencias
-    ?.filter((a) => a.ativo !== false)
-    .reduce((s, a) => {
-      const taxa = planoComissao[a.plano || "starter_a"] || 0;
-      const vol = volumeByAgencia[a.id] || 0;
-      return s + vol * taxa;
-    }, 0) ?? 0;
+    .reduce((s, a) => s + (planoPreco[a.plano || "starter"] || 0), 0) ?? 0;
 
   return (
     <div className="space-y-6 animate-fade-in-up">
