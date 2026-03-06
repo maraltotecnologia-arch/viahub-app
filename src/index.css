@@ -129,7 +129,8 @@ body {
 }
 
 [data-theme="dark"] body[data-viahub-scope="app"] .select-content,
-[data-theme="dark"] body[data-viahub-scope="app"] [data-state="open"] {
+[data-theme="dark"] body[data-viahub-scope="app"] [data-radix-select-content],
+[data-theme="dark"] body[data-viahub-scope="app"] [cmdk-root][data-state="open"] {
   background-color: var(--bg-card);
   border-color: var(--border-color);
   color: var(--text-primary);

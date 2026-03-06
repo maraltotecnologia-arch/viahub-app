@@ -164,7 +164,7 @@ export function AppSidebar() {
                   <Settings className="h-5 w-5 shrink-0" />
                   <span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" />
                 </CollapsibleTrigger>
-                <CollapsibleContent>
+                <CollapsibleContent className="bg-transparent data-[state=open]:bg-transparent">
                   <SidebarGroupContent className="bg-transparent">
                     <SidebarMenu>
                       {configItems.map((item) => (
@@ -198,7 +198,7 @@ export function AppSidebar() {
                 </p>
               </div>
             )}
-            <SidebarGroupContent className="rounded-lg mx-2 py-1">
+            <SidebarGroupContent className="bg-transparent rounded-lg mx-2 py-1">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
