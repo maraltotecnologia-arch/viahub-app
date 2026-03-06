@@ -128,8 +128,9 @@ export default function ComissoesFinanceiro() {
 
   if (roleLoading) return <div className="p-6"><Skeleton className="h-64 w-full" /></div>;
 
-  if (!isAdmin && !isFinanceiro) {
-    toast.error("Acesso não autorizado");
+  const { isSuperadmin } = useUserRole();
+
+  if (!isSuperadmin) {
     navigate("/dashboard", { replace: true });
     return null;
   }
