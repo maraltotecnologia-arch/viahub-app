@@ -148,15 +148,9 @@ export default function Cadastro() {
         return;
       }
 
-      // Send OTP for email verification
-      await supabase.auth.signInWithOtp({
-        email: email.trim().toLowerCase(),
-        options: { shouldCreateUser: false },
-      });
-
       setLoading(false);
-      // Redirect to OTP verification page
-      navigate(`/verificar-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+      // OTP already sent by edge function, redirect to verification page
+      navigate(`/verificar-email?email=${encodeURIComponent(email.trim().toLowerCase())}&tipo=confirmacao_cadastro`);
     } catch {
       toast({ title: "Erro", description: "Erro inesperado. Tente novamente.", variant: "destructive" });
       setLoading(false);
