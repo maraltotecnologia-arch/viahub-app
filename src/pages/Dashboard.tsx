@@ -399,11 +399,15 @@ function SuperadminDashboard() {
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      {/* Linha 1 — Métricas operacionais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} />
         ))}
+      </div>
 
+      {/* Linha 2 — Métricas de performance */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxa de Conversão Média */}
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
           <CardContent className="p-6">
