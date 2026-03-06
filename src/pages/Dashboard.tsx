@@ -223,20 +223,31 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
 
 /* ===== SUPERADMIN DASHBOARD ===== */
 function SuperadminDashboard() {
-  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString();
+  const endOfPrevMonth = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999).toISOString();
+  const [rankingPeriodo, setRankingPeriodo] = useState<"atual" | "anterior" | "3meses">("atual");
+
+  const getRankingStart = () => {
+    if (rankingPeriodo === "anterior") return startOfPrevMonth;
+    if (rankingPeriodo === "3meses") return new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
+    return startOfMonth;
+  };
 
   const { data: metrics, isLoading: metricsLoading } = useQuery({
     queryKey: ["superadmin-metrics"],
     queryFn: async () => {
       const [agenciasRes, orcamentosRes, pagosRes] = await Promise.all([
-        supabase.from("agencias").select("id, plano, ativo"),
+        supabase.from("agencias").select("id, plano, ativo, atualizado_em"),
         supabase.from("orcamentos").select("valor_final, criado_em").gte("criado_em", startOfMonth),
         supabase.from("orcamentos").select("valor_final, agencia_id, pago_em, atualizado_em, criado_em").eq("status", "pago"),
       ]);
       if (agenciasRes.error) throw agenciasRes.error;
       if (orcamentosRes.error) throw orcamentosRes.error;
       if (pagosRes.error) throw pagosRes.error;
-      const agenciasAtivas = agenciasRes.data?.filter((a) => a.ativo !== false) ?? [];
+      const allAgencias = agenciasRes.data ?? [];
+      const agenciasAtivas = allAgencias.filter((a) => a.ativo !== false);
       const orcamentos = orcamentosRes.data ?? [];
       const pagos = (pagosRes.data ?? []).filter((o) => {
         const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
@@ -245,8 +256,6 @@ function SuperadminDashboard() {
       });
 
       const mrrMensalidades = agenciasAtivas.reduce((sum, a) => sum + (MRR_MAP[a.plano || "starter_a"] || 0), 0);
-
-      // Build volume by agency for commission
       const volumeByAgencia: Record<string, number> = {};
       pagos.forEach((o) => {
         if (o.agencia_id) volumeByAgencia[o.agencia_id] = (volumeByAgencia[o.agencia_id] || 0) + (Number(o.valor_final) || 0);
@@ -256,12 +265,91 @@ function SuperadminDashboard() {
         return sum + (volumeByAgencia[a.id] || 0) * taxa;
       }, 0);
 
+      // Churn: agencies deactivated this month
+      const churnAtual = allAgencias.filter((a) => a.ativo === false && a.atualizado_em && new Date(a.atualizado_em) >= new Date(startOfMonth)).length;
+      const churnAnterior = allAgencias.filter((a) => a.ativo === false && a.atualizado_em && new Date(a.atualizado_em) >= new Date(startOfPrevMonth) && new Date(a.atualizado_em) <= new Date(endOfPrevMonth)).length;
+
       return {
         totalAgencias: agenciasAtivas.length,
         totalOrcamentos: orcamentos.length,
         volumeTotal: orcamentos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0),
         mrr: mrrMensalidades + mrrComissoes,
+        churnAtual,
+        churnAnterior,
       };
+    },
+  });
+
+  // Conversion rate: current + previous month
+  const { data: conversaoData, isLoading: conversaoLoading } = useQuery({
+    queryKey: ["superadmin-conversao"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orcamentos")
+        .select("status, criado_em")
+        .gte("criado_em", startOfPrevMonth);
+      if (error) throw error;
+      const orcamentos = data ?? [];
+      const mesAtual = orcamentos.filter((o) => new Date(o.criado_em!) >= new Date(startOfMonth));
+      const mesAnterior = orcamentos.filter((o) => new Date(o.criado_em!) >= new Date(startOfPrevMonth) && new Date(o.criado_em!) <= new Date(endOfPrevMonth));
+      const calcConv = (list: typeof orcamentos) => {
+        if (list.length === 0) return 0;
+        const convertidos = list.filter((o) => ["aprovado", "emitido", "pago"].includes(o.status || "")).length;
+        return (convertidos / list.length) * 100;
+      };
+      return { atual: calcConv(mesAtual), anterior: calcConv(mesAnterior) };
+    },
+  });
+
+  // Ranking + Anomalies
+  const { data: rankingData, isLoading: rankingLoading } = useQuery({
+    queryKey: ["superadmin-ranking", rankingPeriodo],
+    queryFn: async () => {
+      const rankStart = getRankingStart();
+      const [pagosRes, agenciasRes, anomaliasRes] = await Promise.all([
+        supabase.from("orcamentos").select("agencia_id, valor_final, pago_em, atualizado_em, criado_em").eq("status", "pago"),
+        supabase.from("agencias").select("id, nome_fantasia, plano").eq("ativo", true),
+        supabase.from("orcamentos").select("agencia_id, status").gte("criado_em", startOfMonth).in("status", ["aprovado", "emitido", "pago"]),
+      ]);
+      if (pagosRes.error) throw pagosRes.error;
+      if (agenciasRes.error) throw agenciasRes.error;
+
+      const agMap = new Map((agenciasRes.data ?? []).map((a) => [a.id, a]));
+      const pagos = (pagosRes.data ?? []).filter((o) => {
+        const d = o.pago_em || o.atualizado_em || o.criado_em;
+        return d && new Date(d) >= new Date(rankStart);
+      });
+
+      // Ranking
+      const byAgencia: Record<string, { qtd: number; valor: number }> = {};
+      pagos.forEach((o) => {
+        if (!o.agencia_id) return;
+        if (!byAgencia[o.agencia_id]) byAgencia[o.agencia_id] = { qtd: 0, valor: 0 };
+        byAgencia[o.agencia_id].qtd++;
+        byAgencia[o.agencia_id].valor += Number(o.valor_final) || 0;
+      });
+      const ranking = Object.entries(byAgencia)
+        .map(([id, d]) => ({ id, nome: agMap.get(id)?.nome_fantasia || "—", plano: agMap.get(id)?.plano || "—", ...d }))
+        .sort((a, b) => b.valor - a.valor)
+        .slice(0, 10);
+
+      // Anomalies: agencies with 3+ approved but 0 paid this month
+      const anomalias: { id: string; nome: string; aprovados: number; pagos: number }[] = [];
+      const anomData = anomaliasRes.data ?? [];
+      const anomByAgencia: Record<string, { aprovados: number; pagos: number }> = {};
+      anomData.forEach((o) => {
+        if (!o.agencia_id) return;
+        if (!anomByAgencia[o.agencia_id]) anomByAgencia[o.agencia_id] = { aprovados: 0, pagos: 0 };
+        if (o.status === "aprovado" || o.status === "emitido") anomByAgencia[o.agencia_id].aprovados++;
+        if (o.status === "pago") anomByAgencia[o.agencia_id].pagos++;
+      });
+      Object.entries(anomByAgencia).forEach(([id, d]) => {
+        if (d.aprovados >= 3 && d.pagos === 0) {
+          anomalias.push({ id, nome: agMap.get(id)?.nome_fantasia || "—", ...d });
+        }
+      });
+
+      return { ranking, anomalias };
     },
   });
 
@@ -289,12 +377,20 @@ function SuperadminDashboard() {
     },
   });
 
+  const convAtual = conversaoData?.atual ?? 0;
+  const convAnterior = conversaoData?.anterior ?? 0;
+  const convDiff = convAtual - convAnterior;
+  const churnDiff = (metrics?.churnAtual ?? 0) - (metrics?.churnAnterior ?? 0);
+
   const metricCards = [
     { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-100 text-blue-600" },
     { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-100 text-violet-600" },
     { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600" },
     { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600" },
   ];
+
+  const medalhas = ["🥇", "🥈", "🥉"];
+  const planoLabel: Record<string, string> = { starter_a: "Starter A", starter_b: "Starter B", pro_a: "Pro A", pro_b: "Pro B", agency_c: "Elite" };
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -303,11 +399,131 @@ function SuperadminDashboard() {
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} />
         ))}
+
+        {/* Taxa de Conversão Média */}
+        <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-cyan-100 text-cyan-600">
+                <Percent className="h-[22px] w-[22px]" />
+              </div>
+              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
+            </div>
+            {conversaoLoading ? <Skeleton className="h-8 w-24" /> : (
+              <>
+                <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                  {convAtual.toFixed(1)}%
+                </p>
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: convDiff >= 0 ? "#16A34A" : "#EF4444" }}>
+                  {convDiff >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+                  {Math.abs(convDiff).toFixed(1)}% vs mês anterior
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Churn do Mês */}
+        <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-red-100 text-red-600">
+                <UserX className="h-[22px] w-[22px]" />
+              </div>
+              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
+            </div>
+            {metricsLoading ? <Skeleton className="h-8 w-24" /> : (
+              <>
+                <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                  {metrics?.churnAtual ?? 0} {(metrics?.churnAtual ?? 0) === 1 ? "agência" : "agências"}
+                </p>
+                <p className="text-xs mt-1 flex items-center gap-1" style={{ color: churnDiff <= 0 ? "#16A34A" : "#EF4444" }}>
+                  {churnDiff <= 0 ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                  {Math.abs(churnDiff)} vs mês anterior
+                </p>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Ranking de Agências */}
+      <Card className="rounded-2xl">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="text-lg">Ranking de Agências</CardTitle>
+          <div className="flex gap-1">
+            {([["atual", "Mês atual"], ["anterior", "Mês anterior"], ["3meses", "3 meses"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setRankingPeriodo(key)}
+                className={`px-3 py-1 text-xs rounded-full border transition-colors ${rankingPeriodo === key ? "bg-primary text-primary-foreground border-primary" : "bg-muted text-muted-foreground border-transparent hover:bg-muted/80"}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {rankingLoading ? <Skeleton className="h-[200px] w-full" /> : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="pb-2 pr-3 text-muted-foreground font-medium w-12">#</th>
+                    <th className="pb-2 pr-3 text-muted-foreground font-medium">Agência</th>
+                    <th className="pb-2 pr-3 text-muted-foreground font-medium">Plano</th>
+                    <th className="pb-2 pr-3 text-muted-foreground font-medium text-right">Qtd pagos</th>
+                    <th className="pb-2 text-muted-foreground font-medium text-right">Valor total pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rankingData?.ranking.map((r, i) => (
+                    <tr key={r.id} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 pr-3 text-base">{i < 3 ? medalhas[i] : i + 1}</td>
+                      <td className="py-2.5 pr-3 font-medium" style={{ color: "var(--text-primary)" }}>{r.nome}</td>
+                      <td className="py-2.5 pr-3 text-muted-foreground">{planoLabel[r.plano] || r.plano}</td>
+                      <td className="py-2.5 pr-3 text-right">{r.qtd}</td>
+                      <td className="py-2.5 text-right font-semibold" style={{ color: "var(--text-primary)" }}>{fmt(r.valor)}</td>
+                    </tr>
+                  ))}
+                  {(!rankingData?.ranking || rankingData.ranking.length === 0) && (
+                    <tr><td colSpan={5} className="py-6 text-center text-muted-foreground">Nenhum orçamento pago no período</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Anomalias de Conversão */}
+      {rankingData?.anomalias && rankingData.anomalias.length > 0 && (
+        <Card className="rounded-2xl border-warning/40">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Eye className="h-5 w-5 text-warning" /> Agências para monitorar
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">Agências com 3+ orçamentos aprovados/emitidos e nenhum pagamento registrado este mês</p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {rankingData.anomalias.map((a) => (
+                <div key={a.id} className="flex items-center justify-between py-2 border-b last:border-0">
+                  <span className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{a.nome}</span>
+                  <div className="flex gap-4 text-xs text-muted-foreground">
+                    <span>{a.aprovados} aprovados/emitidos</span>
+                    <span className="text-destructive font-medium">0 pagos</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="rounded-2xl">
