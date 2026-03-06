@@ -117,11 +117,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send confirmation email via Supabase Auth
-    await supabaseAdmin.auth.admin.generateLink({
-      type: "signup",
-      email,
-    });
+    // OTP verification is now handled client-side via signInWithOtp
+    // No need to generate a confirmation link here
 
     // Send welcome email via Resend (non-blocking)
     const welcomeHtml = buildEmailHtml({

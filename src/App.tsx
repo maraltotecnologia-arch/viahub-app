@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import useUserRole from "@/hooks/useUserRole";
 import Login from "./pages/Login";
+import VerificarEmail from "./pages/VerificarEmail";
 import Onboarding from "./pages/Onboarding";
 import RecuperarSenha from "./pages/RecuperarSenha";
 import RedefinirSenha from "./pages/RedefinirSenha";
@@ -47,6 +48,7 @@ function AppRoutes() {
         <Route path="/" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
+        <Route path="/verificar-email" element={<VerificarEmail />} />
         <Route path="/termos" element={<TermosDeUso />} />
         <Route path="/privacidade" element={<PoliticaPrivacidade />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />

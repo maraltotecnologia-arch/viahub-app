@@ -15,59 +15,47 @@ export default function RedefinirSenha() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [ready, setReady] = useState(false);
-  const [sessionError, setSessionError] = useState(false);
+  const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.documentElement.style.setProperty('--bg-primary', '#ffffff');
+    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.style.setProperty("--bg-primary", "#ffffff");
     return () => {
-      const saved = localStorage.getItem('viahub-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
-      document.documentElement.style.removeProperty('--bg-primary');
+      const saved = localStorage.getItem("viahub-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      document.documentElement.style.removeProperty("--bg-primary");
     };
   }, []);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        setReady(true);
-        setSessionError(false);
-      }
-    });
-
-    // Check hash for recovery token
-    const hash = window.location.hash;
-    if (hash && (hash.includes('type=recovery') || hash.includes('access_token'))) {
-      // Supabase client auto-processes the hash — wait for onAuthStateChange
-      const timeout = setTimeout(() => {
-        // If still not ready after 4s, try getSession as fallback
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) {
-            setReady(true);
-          } else {
-            setSessionError(true);
-          }
-        });
-      }, 4000);
-      return () => {
-        clearTimeout(timeout);
-        subscription.unsubscribe();
-      };
-    }
-
-    // No hash at all — check existing session
+    // Check if user has an active session (set by OTP verification)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setReady(true);
-      } else {
-        const timeout = setTimeout(() => {
-          setSessionError(true);
-        }, 3000);
-        return () => clearTimeout(timeout);
+      }
+      setChecking(false);
+    });
+
+    // Also listen for PASSWORD_RECOVERY event (legacy link flow fallback)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY" && session) {
+        setReady(true);
+        setChecking(false);
+      }
+      if (event === "SIGNED_IN" && session) {
+        setReady(true);
+        setChecking(false);
       }
     });
+
+    // Handle legacy hash tokens
+    const hash = window.location.hash;
+    if (hash && hash.includes("access_token")) {
+      // Supabase will auto-process — wait for onAuthStateChange
+      setTimeout(() => setChecking(false), 4000);
+    }
 
     return () => subscription.unsubscribe();
   }, []);
@@ -100,32 +88,12 @@ export default function RedefinirSenha() {
     setTimeout(() => navigate("/login", { replace: true }), 2000);
   };
 
-  if (sessionError) {
+  if (checking) {
     return (
       <AuthLayout>
-        <div className="animate-fade-in text-center">
-          <div className="md:hidden text-center mb-6">
-            <h1 className="text-3xl font-bold text-[#0F172A]">Via<span className="font-extrabold">Hub</span></h1>
-          </div>
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-[#0F172A]">Link expirado</h2>
-            <p className="text-sm text-[#64748B] mt-3">
-              Este link de redefinição de senha é inválido ou já expirou. Solicite um novo link.
-            </p>
-          </div>
-          <Link to="/recuperar-senha">
-            <Button
-              className="w-full h-12 rounded-xl font-semibold text-[15px] text-white"
-              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
-            >
-              Solicitar novo link
-            </Button>
-          </Link>
-          <div className="mt-6 text-center">
-            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-[#2563EB] hover:underline">
-              <ArrowLeft className="h-4 w-4" /> Voltar ao login
-            </Link>
-          </div>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="h-8 w-8 rounded-full border-[3px] border-gray-200 border-t-[#2563EB] animate-spin" />
+          <p className="text-[#64748B] text-sm mt-4">Verificando...</p>
         </div>
       </AuthLayout>
     );
@@ -134,9 +102,29 @@ export default function RedefinirSenha() {
   if (!ready) {
     return (
       <AuthLayout>
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="h-8 w-8 rounded-full border-[3px] border-gray-200 border-t-[#2563EB] animate-spin" />
-          <p className="text-[#64748B] text-sm mt-4">Verificando link...</p>
+        <div className="animate-fade-in text-center">
+          <div className="md:hidden text-center mb-6">
+            <h1 className="text-3xl font-bold text-[#0F172A]">Via<span className="font-extrabold">Hub</span></h1>
+          </div>
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-[#0F172A]">Sessão expirada</h2>
+            <p className="text-sm text-[#64748B] mt-3">
+              Solicite uma nova redefinição de senha para continuar.
+            </p>
+          </div>
+          <Link to="/recuperar-senha">
+            <Button
+              className="w-full h-12 rounded-xl font-semibold text-[15px] text-white"
+              style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
+            >
+              Solicitar nova redefinição
+            </Button>
+          </Link>
+          <div className="mt-6 text-center">
+            <Link to="/login" className="inline-flex items-center gap-1.5 text-sm text-[#2563EB] hover:underline">
+              <ArrowLeft className="h-4 w-4" /> Voltar ao login
+            </Link>
+          </div>
         </div>
       </AuthLayout>
     );
