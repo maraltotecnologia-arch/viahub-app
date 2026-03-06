@@ -164,7 +164,7 @@ export function AppSidebar() {
                   <Settings className="h-5 w-5 shrink-0" />
                   <span>Configurações</span><ChevronDown className="ml-auto h-3 w-3" />
                 </CollapsibleTrigger>
-                <CollapsibleContent>
+                <CollapsibleContent className="bg-transparent">
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {configItems.map((item) => (
@@ -193,12 +193,12 @@ export function AppSidebar() {
             {!collapsed && (
               <div className="px-3 py-2">
                 <Separator className="mb-2 bg-white/[0.08]" />
-                <p className={`text-[10px] uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1 ${isDark ? "text-white/30" : "text-white/40"}`}>
+                <p className="text-[10px] uppercase tracking-[1.5px] font-semibold flex items-center gap-1.5 mt-4 mb-1 px-4 pt-4 pb-1 text-blue-400/60">
                   <Shield className="h-3 w-3" /> Administração
                 </p>
               </div>
             )}
-            <SidebarGroupContent>
+            <SidebarGroupContent className="bg-white/[0.03] rounded-lg mx-2 py-1">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
@@ -209,8 +209,8 @@ export function AppSidebar() {
                         navLinkCls(isActive)
                       }
                     >
-                      <Building2 className="h-5 w-5 shrink-0" />
-                      {!collapsed && <span>Agências</span>}
+                      <Building2 className="h-5 w-5 shrink-0 text-blue-400/80" />
+                      {!collapsed && <span className="text-blue-300/80">Agências</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -223,8 +223,8 @@ export function AppSidebar() {
                         `${navLinkCls(isActive)} ${collapsed ? "relative" : ""}`
                       }
                     >
-                      <Bell className="h-5 w-5 shrink-0" />
-                      {!collapsed && <span className="flex-1">Notificações</span>}
+                      <Bell className="h-5 w-5 shrink-0 text-blue-400/80" />
+                      {!collapsed && <span className="flex-1 text-blue-300/80">Notificações</span>}
                       {!collapsed && (recentNotifCount ?? 0) > 0 && (
                         <span className="ml-auto inline-flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
                           {recentNotifCount}

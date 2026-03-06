@@ -235,10 +235,16 @@ export default function AdminAgencias() {
                               </span>
                             </TableCell>
                             <TableCell>
-                              <Switch
-                                checked={a.ativo !== false}
-                                onCheckedChange={(checked) => toggleMutation.mutate({ id: a.id, ativo: checked })}
-                              />
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={a.ativo !== false}
+                                  onCheckedChange={(checked) => toggleMutation.mutate({ id: a.id, ativo: checked })}
+                                  className={a.ativo !== false ? "data-[state=checked]:bg-green-500" : "data-[state=unchecked]:bg-red-500"}
+                                />
+                                <span className={`text-xs font-medium ${a.ativo !== false ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                                  {a.ativo !== false ? "Ativo" : "Inativo"}
+                                </span>
+                              </div>
                             </TableCell>
                             <TableCell className="text-muted-foreground text-sm">
                               {a.criado_em ? new Date(a.criado_em).toLocaleDateString("pt-BR") : "—"}
