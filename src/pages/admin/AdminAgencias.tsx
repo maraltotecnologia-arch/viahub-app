@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Plus, DollarSign, Activity, Percent } from "lucide-react";
+import { Building2, Plus, DollarSign, Activity } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,7 +58,7 @@ export default function AdminAgencias() {
   const { isSuperadmin, loading: roleLoading } = useUserRole();
   const queryClient = useQueryClient();
   const { isDark } = useTheme();
-  const [periodo, setPeriodo] = useState("mes_atual");
+  
 
   const planoBadgeDarkStyle = (plano: string): React.CSSProperties => {
     const map: Record<string, React.CSSProperties> = {
@@ -89,25 +89,7 @@ export default function AdminAgencias() {
     },
   });
 
-  const { start: periodoStart, end: periodoEnd } = useMemo(() => getPeriodRange(periodo), [periodo]);
-
-  const { data: orcamentosPagos } = useQuery({
-    queryKey: ["admin-comissoes-orcamentos", periodo],
-    enabled: isSuperadmin,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("orcamentos")
-        .select("agencia_id, valor_final, pago_em, atualizado_em, criado_em")
-        .eq("status", "pago");
-      if (error) throw error;
-      return data?.filter((o) => {
-        const dataRef = o.pago_em || o.atualizado_em || o.criado_em;
-        if (!dataRef) return false;
-        const d = new Date(dataRef);
-        return d >= periodoStart && d <= periodoEnd;
-      }) ?? [];
-    },
-  });
+  
 
   const toggleMutation = useMutation({
     mutationFn: async ({ id, ativo }: { id: string; ativo: boolean }) => {
