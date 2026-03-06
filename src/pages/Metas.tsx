@@ -193,7 +193,7 @@ export default function Metas() {
         </div>
       ) : visibleUsers.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
+          <CardContent className="flex flex-col items-center justify-center min-h-[400px] text-center text-muted-foreground">
             Nenhum agente encontrado
           </CardContent>
         </Card>

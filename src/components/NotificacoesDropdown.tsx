@@ -57,7 +57,7 @@ export default function NotificacoesDropdown() {
         </div>
         <div className="max-h-80 overflow-y-auto">
           {notificacoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-8">
+            <p className="text-sm text-muted-foreground text-center flex items-center justify-center min-h-[120px]">
               Nenhuma notificação no momento
             </p>
           ) : (

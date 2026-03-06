@@ -227,7 +227,7 @@ export default function AdminNotificacoes() {
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !notificacoes?.length ? (
-            <p className="text-center text-muted-foreground py-8">Nenhuma notificação enviada ainda.</p>
+            <p className="flex items-center justify-center min-h-[300px] text-center text-muted-foreground">Nenhuma notificação enviada ainda.</p>
           ) : (
             <Table>
               <TableHeader>
