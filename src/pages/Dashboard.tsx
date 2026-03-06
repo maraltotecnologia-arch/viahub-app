@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useAuth } from "@/contexts/AuthContext";
 import useUserRole from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { getTaxaEmbutida } from "@/lib/profit-utils";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import useAlertas from "@/hooks/useAlertas";
@@ -361,11 +362,21 @@ function SuperadminDashboard() {
 function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
 
+  // Fetch agency plan to deduct embedded tax from profit
+  const { data: agenciaInfo } = useQuery({
+    queryKey: ["agencia-plano-dashboard", agenciaId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("agencias").select("plano").eq("id", agenciaId).maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: metrics, isLoading: metricsLoading } = useQuery({
-    queryKey: ["dashboard-metrics", agenciaId],
+    queryKey: ["dashboard-metrics", agenciaId, agenciaInfo?.plano],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("orcamentos").select("status, valor_final, lucro_bruto, criado_em")
+        .from("orcamentos").select("status, valor_final, valor_custo, lucro_bruto, criado_em")
         .eq("agencia_id", agenciaId).gte("criado_em", startOfMonth);
       if (error) throw error;
       const orcamentos = data ?? [];
@@ -374,12 +385,19 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
       const pagos = orcamentos.filter((o) => o.status === "pago");
       const pagosCount = pagos.length;
       const conversao = total > 0 ? Math.round((pagosCount / total) * 100) : 0;
+      const plano = agenciaInfo?.plano;
+      // Deduct embedded operational tax from agency profit
       const comissao = orcamentos
         .filter(o => ['aprovado', 'emitido', 'pago'].includes(o.status || ''))
-        .reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
+        .reduce((s, o) => {
+          const lucro = Number(o.lucro_bruto) || 0;
+          const taxa = getTaxaEmbutida(Number(o.valor_final) || 0, plano);
+          return s + Math.max(lucro - taxa, 0);
+        }, 0);
       const recebido = pagos.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
       return { total, valorTotal, conversao, comissao, recebido, pagosCount };
     },
+    enabled: agenciaInfo !== undefined,
   });
 
   const { data: chartData, isLoading: chartLoading } = useQuery({

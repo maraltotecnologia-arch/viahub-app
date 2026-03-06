@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import useAgenciaId from "@/hooks/useAgenciaId";
+import { getTaxaEmbutida } from "@/lib/profit-utils";
 import SortableTableHead from "@/components/SortableTableHead";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import { pdf } from "@react-pdf/renderer";
@@ -71,7 +72,7 @@ export default function Relatorios() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agencias")
-        .select("nome_fantasia, logo_url")
+        .select("nome_fantasia, logo_url, plano")
         .eq("id", agenciaId!)
         .maybeSingle();
       if (error) throw error;
@@ -158,8 +159,13 @@ export default function Relatorios() {
   };
 
   // Summary cards
+  const plano = agenciaData?.plano;
   const faturamentoBruto = filteredData.reduce((s, o) => s + (Number(o.valor_final) || 0), 0);
-  const totalComissoes = filteredData.reduce((s, o) => s + (Number(o.lucro_bruto) || 0), 0);
+  const totalComissoes = filteredData.reduce((s, o) => {
+    const lucro = Number(o.lucro_bruto) || 0;
+    const taxa = getTaxaEmbutida(Number(o.valor_final) || 0, plano);
+    return s + Math.max(lucro - taxa, 0);
+  }, 0);
   const ticketMedio = filteredData.length > 0 ? faturamentoBruto / filteredData.length : 0;
   const totalOrcamentos = filteredData.length;
 

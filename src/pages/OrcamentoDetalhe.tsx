@@ -40,6 +40,9 @@ import HistoricoOrcamento from "@/components/orcamento/HistoricoOrcamento";
 import NotasInternas from "@/components/orcamento/NotasInternas";
 import { registrarHistorico } from "@/lib/historico-orcamento";
 import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
+import { isMargemZero } from "@/lib/profit-utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info", pago: "success",
@@ -527,6 +530,16 @@ export default function OrcamentoDetalhe() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Zero-margin warning — internal only */}
+          {itens && itens.length > 0 && isMargemZero(itens) && (
+            <Alert variant="default" className="border-warning/50 bg-warning/10">
+              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertDescription className="text-sm text-warning">
+                ⚠️ Este orçamento está com margem 0 de lucro. O valor será repassado integralmente, com acréscimo apenas das taxas operacionais aplicáveis ao seu plano.
+              </AlertDescription>
+            </Alert>
+          )}
 
           {/* PDF Preview */}
           <Collapsible open={showPreview} onOpenChange={setShowPreview}>
