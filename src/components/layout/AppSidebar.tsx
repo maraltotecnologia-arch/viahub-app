@@ -198,7 +198,7 @@ export function AppSidebar() {
                 </p>
               </div>
             )}
-            <SidebarGroupContent className="bg-white/[0.03] rounded-lg mx-2 py-1">
+            <SidebarGroupContent className="rounded-lg mx-2 py-1">
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
