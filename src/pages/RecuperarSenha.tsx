@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AuthLayout from "@/components/AuthLayout";
-import { getBaseUrl } from "@/lib/url-utils";
 
 export default function RecuperarSenha() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'light');
@@ -31,7 +31,7 @@ export default function RecuperarSenha() {
 
     const trimmedEmail = email.toLowerCase().trim();
 
-    // Check if email exists before sending reset
+    // Check if email exists before sending OTP
     const { data } = await supabase
       .from('usuarios')
       .select('id')
@@ -39,17 +39,19 @@ export default function RecuperarSenha() {
       .maybeSingle();
 
     if (data) {
-      // Only send reset if email exists
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
-        redirectTo: `${getBaseUrl()}/redefinir-senha`,
+      // Send OTP for password recovery
+      await supabase.auth.signInWithOtp({
+        email: trimmedEmail,
+        options: { shouldCreateUser: false },
       });
 
-      if (resetError) {
-        console.error("Reset error:", resetError);
-      }
+      setLoading(false);
+      // Redirect to OTP verification page with recovery flag
+      navigate(`/verificar-email?email=${encodeURIComponent(trimmedEmail)}&tipo=recuperacao`);
+      return;
     }
 
-    // Always show generic message
+    // Email not found — show generic message
     setSent(true);
     setLoading(false);
   };
