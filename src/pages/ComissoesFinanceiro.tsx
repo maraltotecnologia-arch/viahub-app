@@ -128,8 +128,6 @@ export default function ComissoesFinanceiro() {
 
   if (roleLoading) return <div className="p-6"><Skeleton className="h-64 w-full" /></div>;
 
-  const { isSuperadmin } = useUserRole();
-
   if (!isSuperadmin) {
     navigate("/dashboard", { replace: true });
     return null;
