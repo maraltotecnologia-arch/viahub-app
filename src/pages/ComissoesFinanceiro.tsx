@@ -56,7 +56,7 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 export default function ComissoesFinanceiro() {
   const navigate = useNavigate();
-  const { isAdmin, isFinanceiro, loading: roleLoading } = useUserRole();
+  const { isSuperadmin, loading: roleLoading } = useUserRole();
   const agenciaId = useAgenciaId();
   const [periodo, setPeriodo] = useState("mes_atual");
 
@@ -128,8 +128,7 @@ export default function ComissoesFinanceiro() {
 
   if (roleLoading) return <div className="p-6"><Skeleton className="h-64 w-full" /></div>;
 
-  if (!isAdmin && !isFinanceiro) {
-    toast.error("Acesso não autorizado");
+  if (!isSuperadmin) {
     navigate("/dashboard", { replace: true });
     return null;
   }
