@@ -16,10 +16,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const TIPO_OPTIONS = [
-  { value: "info", label: "ℹ️ Informação", icon: Info, color: "bg-blue-100 text-blue-800 dark:bg-blue-500/20 dark:text-blue-300 dark:border-blue-500/30" },
-  { value: "warning", label: "⚠️ Aviso", icon: AlertTriangle, color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-300 dark:border-yellow-500/30" },
-  { value: "manutencao", label: "🔧 Manutenção", icon: Wrench, color: "bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-500/30" },
-  { value: "cobranca", label: "💰 Cobrança", icon: DollarSign, color: "bg-green-100 text-green-800 dark:bg-red-500/20 dark:text-red-300 dark:border-red-500/30" },
+  { value: "info", label: "ℹ️ Informação", icon: Info, color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 border-blue-200 dark:border-blue-700/40" },
+  { value: "warning", label: "⚠️ Aviso", icon: AlertTriangle, color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300 border-yellow-200 dark:border-yellow-700/40" },
+  { value: "manutencao", label: "🔧 Manutenção", icon: Wrench, color: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300 border-orange-200 dark:border-orange-700/40" },
+  { value: "cobranca", label: "💰 Cobrança", icon: DollarSign, color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border-red-200 dark:border-red-700/40" },
 ];
 
 export default function AdminNotificacoes() {
