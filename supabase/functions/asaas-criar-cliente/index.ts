@@ -228,7 +228,7 @@ Deno.serve(async (req) => {
         pix_copia_cola: pixPayload,
       });
 
-      // Create UNDEFINED subscription for future months
+      // Create PIX subscription for future months
       const futureMonth = todayUTC.getMonth() + 2; // +2 because getMonth is 0-based and we want next month
       const futureYear = futureMonth > 12 ? year + 1 : year;
       const futureMonthStr = String(futureMonth > 12 ? futureMonth - 12 : futureMonth).padStart(2, "0");
@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
         headers: { "Content-Type": "application/json", "access_token": asaasKey },
         body: JSON.stringify({
           customer: customerId,
-          billingType: "UNDEFINED",
+          billingType: "PIX",
           value: valor,
           nextDueDate: futureDateStr,
           cycle: "MONTHLY",
@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
         }),
       });
       const subData = await subRes.json();
-      console.log("[asaas-criar-cliente] Assinatura UNDEFINED response:", JSON.stringify(subData));
+      console.log("[asaas-criar-cliente] Assinatura PIX response:", JSON.stringify(subData));
 
       if (subRes.ok) {
         await supabaseAdmin.from("agencias").update({
