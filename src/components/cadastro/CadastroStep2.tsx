@@ -451,7 +451,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
             </div>
             <div className="flex justify-between">
               <span className="text-[#64748B]">Vencimento</span>
-              <span className="font-medium text-[#0F172A]">Dia 10</span>
+              <span className="font-medium text-[#0F172A]">Hoje</span>
             </div>
           </div>
           <div className="border-t border-[#E2E8F0] mt-2 pt-2 flex justify-between">

@@ -75,15 +75,9 @@ Deno.serve(async (req) => {
     const plano = agencia.plano || "starter";
     const valor = PLANO_VALOR[plano] || 397;
 
-    // Next due date
-    const now = new Date();
-    let nextDue: Date;
-    if (now.getDate() <= 10) {
-      nextDue = new Date(now.getFullYear(), now.getMonth(), 10);
-    } else {
-      nextDue = new Date(now.getFullYear(), now.getMonth() + 1, 10);
-    }
-    const nextDueStr = nextDue.toISOString().split("T")[0];
+    // Next due date — today (date of registration)
+    const today = new Date();
+    const nextDueStr = today.toISOString().split("T")[0];
 
     // --- Create or update customer ---
     let customerId = agencia.asaas_customer_id;
@@ -230,7 +224,7 @@ Deno.serve(async (req) => {
       });
 
       // Create UNDEFINED subscription for future months
-      const futureDate = new Date(nextDue);
+      const futureDate = new Date(today);
       futureDate.setMonth(futureDate.getMonth() + 1);
       const futureDateStr = futureDate.toISOString().split("T")[0];
 
