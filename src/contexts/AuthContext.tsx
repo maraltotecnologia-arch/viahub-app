@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", userId)
         .maybeSingle();
 
-      console.log("[AuthContext] perfil:", perfil, "error:", perfilError);
+      console.log("[Auth] Perfil carregado:", perfil, "error:", perfilError);
 
       if (!perfil) {
         setStatusPagamento(null);
