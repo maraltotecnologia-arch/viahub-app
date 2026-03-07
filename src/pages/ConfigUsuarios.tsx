@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { validarTelefone } from "@/lib/validators";
+import { formatError } from "@/lib/errors";
 
 const CARGO_LABELS: Record<string, string> = {
   admin: "Administrador",
@@ -87,7 +88,7 @@ export default function ConfigUsuarios() {
         .maybeSingle();
 
       if (existente) {
-        toast({ title: "Este email já está cadastrado.", variant: "destructive" });
+        toast({ title: formatError("USR005"), variant: "destructive" });
         setSaving(false);
         return;
       }
@@ -106,7 +107,7 @@ export default function ConfigUsuarios() {
 
       const result = await res.json();
       if (!res.ok) {
-        toast({ title: "Erro ao criar usuário", description: result.error, variant: "destructive" });
+        toast({ title: formatError("USR001"), description: result.error, variant: "destructive" });
         setSaving(false);
         return;
       }
@@ -120,7 +121,7 @@ export default function ConfigUsuarios() {
       });
 
       if (insertError) {
-        toast({ title: "Erro ao registrar usuário", description: insertError.message, variant: "destructive" });
+        toast({ title: formatError("USR001"), variant: "destructive" });
         setSaving(false);
         return;
       }
@@ -149,7 +150,7 @@ export default function ConfigUsuarios() {
     setSaving(true);
     const { error } = await supabase.from("usuarios").update({ nome: editForm.nome, cargo: editForm.cargo }).eq("id", editUser.id);
     if (error) {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      toast({ title: formatError("USR002"), variant: "destructive" });
     } else {
       toast({ title: "Usuário atualizado!" });
       queryClient.invalidateQueries({ queryKey: ["agencia-usuarios-config"] });
