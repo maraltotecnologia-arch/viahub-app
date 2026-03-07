@@ -45,11 +45,20 @@ function PixResultView({ qrCodeImage, copiaECola, paymentId, onConfirmed }: {
   const { toast } = useToast();
   const [polling, setPolling] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingStartRef = useRef<number>(Date.now());
+  const POLLING_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   useEffect(() => {
     if (!paymentId) return;
+    pollingStartRef.current = Date.now();
 
     intervalRef.current = setInterval(async () => {
+      if (Date.now() - pollingStartRef.current > POLLING_TIMEOUT) {
+        setPolling(false);
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        toast({ title: "QR Code expirado", description: "Gere um novo QR Code para continuar.", variant: "destructive" });
+        return;
+      }
       try {
         const { data } = await supabase.functions.invoke("asaas-verificar-pagamento", {
           body: { payment_id: paymentId },

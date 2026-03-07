@@ -7,6 +7,14 @@ const corsHeaders = {
 
 const ASAAS_BASE = "https://sandbox.asaas.com/api/v3";
 
+function getBrasiliaDate(): Date {
+  const now = new Date();
+  const brasilia = new Date(
+    now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })
+  );
+  return brasilia;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -96,13 +104,60 @@ Deno.serve(async (req) => {
     console.log(`[asaas-verificar-bloqueio] ${activatedCount} agências ativadas por compensação de boleto`);
 
     // ========================================
-    // STEP 2: Block agencies that are inadimplente for 3+ days
+    // STEP 1.5: Sync data_proximo_vencimento for active agencies (BUG 01 fix)
     // ========================================
+    let syncedCount = 0;
+
+    if (asaasKey) {
+      const { data: agenciasAtivas } = await supabaseAdmin
+        .from("agencias")
+        .select("id, nome_fantasia, asaas_subscription_id")
+        .eq("status_pagamento", "ativo")
+        .eq("ativo", true)
+        .not("asaas_subscription_id", "is", null);
+
+      if (agenciasAtivas && agenciasAtivas.length > 0) {
+        for (const ag of agenciasAtivas) {
+          if (!ag.asaas_subscription_id) continue;
+          try {
+            const res = await fetch(
+              `${ASAAS_BASE}/subscriptions/${ag.asaas_subscription_id}/payments?status=PENDING&limit=1`,
+              { headers: { "access_token": asaasKey } }
+            );
+            const data = await res.json();
+
+            if (data?.data?.length > 0) {
+              const nextDue = data.data[0].dueDate;
+              if (nextDue) {
+                await supabaseAdmin.from("agencias").update({
+                  data_proximo_vencimento: nextDue,
+                }).eq("id", ag.id);
+                syncedCount++;
+              }
+            }
+          } catch (e) {
+            console.error(`[asaas-verificar-bloqueio] Erro sync vencimento ${ag.nome_fantasia}:`, e);
+          }
+        }
+      }
+    }
+
+    console.log(`[asaas-verificar-bloqueio] ${syncedCount} vencimentos sincronizados`);
+
+    // ========================================
+    // STEP 2: Block agencies that are inadimplente for 3+ days (BUG 03 fix: use Brasilia timezone)
+    // ========================================
+    const brasilia = getBrasiliaDate();
+    const tresDiasAtras = new Date(brasilia);
+    tresDiasAtras.setDate(tresDiasAtras.getDate() - 3);
+    const tresDiasAtrasStr = tresDiasAtras.toISOString().split("T")[0];
+
     const { data: agencias, error } = await supabaseAdmin
       .from("agencias")
-      .select("id, nome_fantasia, email, data_proximo_vencimento, status_pagamento")
+      .select("id, nome_fantasia, email")
       .eq("status_pagamento", "inadimplente")
-      .eq("ativo", true);
+      .eq("ativo", true)
+      .lte("data_proximo_vencimento", tresDiasAtrasStr);
 
     if (error) {
       console.error("[asaas-verificar-bloqueio] Erro ao buscar agências:", error);
@@ -112,53 +167,44 @@ Deno.serve(async (req) => {
     let blockedCount = 0;
 
     if (agencias && agencias.length > 0) {
-      const now = new Date();
-
       for (const ag of agencias) {
-        if (!ag.data_proximo_vencimento) continue;
+        console.log(`[asaas-verificar-bloqueio] Bloqueando ${ag.nome_fantasia}`);
 
-        const venc = new Date(ag.data_proximo_vencimento);
-        const diffDays = Math.floor((now.getTime() - venc.getTime()) / (1000 * 60 * 60 * 24));
+        await supabaseAdmin.from("agencias").update({
+          status_pagamento: "bloqueado",
+          data_bloqueio: new Date().toISOString(),
+        }).eq("id", ag.id);
 
-        if (diffDays > 3) {
-          console.log(`[asaas-verificar-bloqueio] Bloqueando ${ag.nome_fantasia} (${diffDays} dias de atraso)`);
-
-          await supabaseAdmin.from("agencias").update({
-            status_pagamento: "bloqueado",
-            data_bloqueio: now.toISOString(),
-          }).eq("id", ag.id);
-
-          // Send blocked email
-          try {
-            await supabaseAdmin.functions.invoke("enviar-email", {
-              body: {
-                to: ag.email,
-                subject: "Acesso suspenso — regularize sua situação",
-                type: "acesso_bloqueado",
-                html: buildBlockedHtml(ag.nome_fantasia),
-              },
-            });
-          } catch (e) {
-            console.error("[asaas-verificar-bloqueio] Erro ao enviar email:", e);
-          }
-
-          // Create notification
-          await supabaseAdmin.from("notificacoes_sistema").insert({
-            agencia_id: ag.id,
-            destinatario: "agencia",
-            tipo: "cobranca",
-            titulo: "Acesso suspenso por inadimplência",
-            mensagem: "O acesso ao sistema foi temporariamente suspenso. Regularize sua situação para continuar utilizando o ViaHub.",
+        // Send blocked email
+        try {
+          await supabaseAdmin.functions.invoke("enviar-email", {
+            body: {
+              to: ag.email,
+              subject: "Acesso suspenso — regularize sua situação",
+              type: "acesso_bloqueado",
+              html: buildBlockedHtml(ag.nome_fantasia),
+            },
           });
-
-          blockedCount++;
+        } catch (e) {
+          console.error("[asaas-verificar-bloqueio] Erro ao enviar email:", e);
         }
+
+        // Create notification
+        await supabaseAdmin.from("notificacoes_sistema").insert({
+          agencia_id: ag.id,
+          destinatario: "agencia",
+          tipo: "cobranca",
+          titulo: "Acesso suspenso por inadimplência",
+          mensagem: "O acesso ao sistema foi temporariamente suspenso. Regularize sua situação para continuar utilizando o ViaHub.",
+        });
+
+        blockedCount++;
       }
     }
 
     console.log(`[asaas-verificar-bloqueio] ${blockedCount} agências bloqueadas`);
 
-    return new Response(JSON.stringify({ ok: true, activated: activatedCount, blocked: blockedCount }), {
+    return new Response(JSON.stringify({ ok: true, activated: activatedCount, blocked: blockedCount, synced: syncedCount }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

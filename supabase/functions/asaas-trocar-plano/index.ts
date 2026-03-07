@@ -55,6 +55,35 @@ Deno.serve(async (req) => {
 
     const novoValor = PLANO_VALOR[novo_plano];
 
+    // BUG 04 FIX: Cancel pending payments before changing plan
+    console.log("[asaas-trocar-plano] Buscando cobranças PENDING para cancelar...");
+    try {
+      const pendingRes = await fetch(
+        `${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}/payments?status=PENDING&limit=5`,
+        { headers: { "access_token": asaasKey } }
+      );
+      const pendingData = await pendingRes.json();
+      const pendingPayments = (pendingData.data || []).filter((p: any) => p.status === "PENDING");
+
+      for (const payment of pendingPayments) {
+        console.log(`[asaas-trocar-plano] Cancelando cobrança ${payment.id} (valor=${payment.value})`);
+        const delRes = await fetch(`${ASAAS_BASE}/payments/${payment.id}`, {
+          method: "DELETE",
+          headers: { "access_token": asaasKey },
+        });
+        if (delRes.ok) {
+          await supabaseAdmin.from("asaas_pagamentos")
+            .update({ status: "CANCELLED" })
+            .eq("asaas_payment_id", payment.id);
+          console.log(`[asaas-trocar-plano] Cobrança ${payment.id} cancelada com sucesso`);
+        } else {
+          console.error(`[asaas-trocar-plano] Erro ao cancelar cobrança ${payment.id}`);
+        }
+      }
+    } catch (e) {
+      console.error("[asaas-trocar-plano] Erro ao cancelar cobranças pendentes:", (e as Error).message);
+    }
+
     // Update subscription in Asaas
     const res = await fetch(`${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}`, {
       method: "POST",

@@ -217,16 +217,25 @@ export default function Relatorios() {
   const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
 
   // CSV Export
+  const escapeCsv = (value: string | null | undefined) => {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    if (str.includes(";") || str.includes('"') || str.includes("\n")) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
   const exportarCSV = () => {
     const headers = ["Data", "Nº Orçamento", "Cliente", "Valor Final", "Lucro Bruto", "Margem %", "Status"];
     const rows = filteredData.map((o) => [
       o.criado_em ? format(new Date(o.criado_em), "dd/MM/yyyy") : "-",
-      o.numero_orcamento || "-",
-      o.cliente_nome,
+      escapeCsv(o.numero_orcamento || "-"),
+      escapeCsv(o.cliente_nome),
       (Number(o.valor_final) || 0).toFixed(2).replace(".", ","),
       (Number(o.lucro_bruto) || 0).toFixed(2).replace(".", ","),
       (Number(o.margem_percentual) || 0).toFixed(1) + "%",
-      o.status,
+      escapeCsv(o.status),
     ]);
     const csv = [headers, ...rows].map((r) => r.join(";")).join("\n");
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });

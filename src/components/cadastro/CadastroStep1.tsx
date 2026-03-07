@@ -21,6 +21,26 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
+
+  const handleCepBlur = async () => {
+    const cepLimpo = data.cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) {
+      setCepError("CEP deve ter 8 dígitos (PAG002)");
+      return;
+    }
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const json = await res.json();
+      if (json.erro) {
+        setCepError("CEP não encontrado (PAG002)");
+      } else {
+        setCepError(null);
+      }
+    } catch {
+      setCepError("Não foi possível consultar o CEP. Verifique sua conexão. (SYS002)");
+    }
+  };
 
   const validate = (): boolean => {
     const e: FieldErrors = {};
@@ -101,8 +121,9 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
             </div>
             <div className="space-y-1">
               <Label htmlFor="cep" className="text-xs font-medium text-[#64748B]">CEP *</Label>
-              <Input id="cep" placeholder="00000-000" value={data.cep} onChange={(e) => updateData({ cep: maskCEP(e.target.value) })} className="h-9 text-sm" maxLength={9} />
+              <Input id="cep" placeholder="00000-000" value={data.cep} onChange={(e) => { updateData({ cep: maskCEP(e.target.value) }); setCepError(null); }} onBlur={handleCepBlur} className="h-9 text-sm" maxLength={9} />
               <FieldError field="cep" />
+              {cepError && <p className="text-xs text-red-500 mt-0.5">{cepError}</p>}
             </div>
           </div>
 

@@ -37,6 +37,8 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
   const [pixLoading, setPixLoading] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingStartRef = useRef<number>(Date.now());
+  const POLLING_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   const [boletoData, setBoletoData] = useState<{ url: string; linhaDigitavel: string; paymentId: string } | null>(null);
   const [boletoLoading, setBoletoLoading] = useState(false);
@@ -126,10 +128,17 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
     setPixLoading(true);
     const result = await handleSignupAndPay("PIX");
     if (result) {
-      if (result.pixQrCode && result.pixPayload) {
+        if (result.pixQrCode && result.pixPayload) {
         setPixData({ qrCode: result.pixQrCode, payload: result.pixPayload, paymentId: result.paymentId });
         if (result.paymentId) {
+          pollingStartRef.current = Date.now();
           pollingRef.current = setInterval(async () => {
+            if (Date.now() - pollingStartRef.current > POLLING_TIMEOUT) {
+              if (pollingRef.current) clearInterval(pollingRef.current);
+              toast({ title: "QR Code expirado", description: "Gere um novo QR Code para continuar.", variant: "destructive" });
+              setPixData(null);
+              return;
+            }
             try {
               const check = await supabase.functions.invoke("asaas-verificar-pagamento", {
                 body: { payment_id: result.paymentId },

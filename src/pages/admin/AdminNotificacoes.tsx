@@ -22,6 +22,12 @@ const TIPO_OPTIONS = [
   { value: "cobranca", label: "💰 Cobrança", icon: DollarSign, color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border-red-200 dark:border-red-700/40" },
 ];
 
+const STATUS_ALVO_OPTIONS = [
+  { value: "todas", label: "Todas as agências" },
+  { value: "ativo", label: "Apenas agências ativas" },
+  { value: "inadimplente", label: "Apenas inadimplentes" },
+];
+
 export default function AdminNotificacoes() {
   const queryClient = useQueryClient();
   const [titulo, setTitulo] = useState("");
@@ -29,6 +35,7 @@ export default function AdminNotificacoes() {
   const [tipo, setTipo] = useState("info");
   const [destinatario, setDestinatario] = useState("todos");
   const [agenciaId, setAgenciaId] = useState<string | null>(null);
+  const [statusAlvo, setStatusAlvo] = useState("todas");
   const [sending, setSending] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -75,6 +82,7 @@ export default function AdminNotificacoes() {
         tipo,
         destinatario,
         agencia_id: destinatario === "agencia" ? agenciaId : null,
+        status_pagamento_alvo: destinatario === "todos" && statusAlvo !== "todas" ? statusAlvo : null,
         ativo: true,
       } as any);
       if (error) throw error;
@@ -84,6 +92,7 @@ export default function AdminNotificacoes() {
       setTipo("info");
       setDestinatario("todos");
       setAgenciaId(null);
+      setStatusAlvo("todas");
       queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
       queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
     } catch (err: any) {
@@ -126,6 +135,10 @@ export default function AdminNotificacoes() {
       const ag = agencias?.find((a: any) => a.id === n.agencia_id);
       return ag ? ag.nome_fantasia : "Agência específica";
     }
+    if (n.status_pagamento_alvo) {
+      const alvo = STATUS_ALVO_OPTIONS.find((s) => s.value === n.status_pagamento_alvo);
+      return alvo ? alvo.label : "Todos os usuários";
+    }
     return "Todos os usuários";
   };
 
@@ -167,7 +180,7 @@ export default function AdminNotificacoes() {
               </div>
               <div className="space-y-2">
                 <Label>Destinatários</Label>
-                <Select value={destinatario} onValueChange={(v) => { setDestinatario(v); if (v !== "agencia") setAgenciaId(null); }}>
+                <Select value={destinatario} onValueChange={(v) => { setDestinatario(v); if (v !== "agencia") setAgenciaId(null); if (v !== "todos") setStatusAlvo("todas"); }}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="todos">Todos os usuários</SelectItem>
@@ -178,6 +191,20 @@ export default function AdminNotificacoes() {
               </div>
             </div>
           </div>
+
+          {destinatario === "todos" && (
+            <div className="space-y-2">
+              <Label>Filtrar por status de pagamento</Label>
+              <Select value={statusAlvo} onValueChange={setStatusAlvo}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {STATUS_ALVO_OPTIONS.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {destinatario === "agencia" && (
             <div className="space-y-2">

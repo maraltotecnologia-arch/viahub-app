@@ -441,6 +441,12 @@ Deno.serve(async (req) => {
       }
     }
 
+    // BUG 10 FIX: Update forma_pagamento on agencias table
+    await supabaseAdmin.from("agencias").update({
+      forma_pagamento: novo_metodo,
+    }).eq("id", agencia_id);
+    console.log(`[asaas-trocar-pagamento] forma_pagamento atualizado para ${novo_metodo}`);
+
     // CREDIT_CARD or fallback
     console.log("[asaas-trocar-pagamento] Sucesso!");
     return new Response(JSON.stringify({ success: true, metodo: novo_metodo }), {

@@ -19,12 +19,23 @@ export default function useNotificacoes() {
     enabled: !!user,
     refetchInterval: 5 * 60 * 1000,
     queryFn: async () => {
-      // Get user creation date to filter out older notifications
+      // Get user profile (creation date + agency status)
       const { data: perfil } = await supabase
         .from("usuarios")
-        .select("criado_em")
+        .select("criado_em, agencia_id")
         .eq("id", user!.id)
         .single();
+
+      // Get agency status_pagamento for filtering
+      let agenciaStatus: string | null = null;
+      if (perfil?.agencia_id) {
+        const { data: agencia } = await supabase
+          .from("agencias")
+          .select("status_pagamento")
+          .eq("id", perfil.agencia_id)
+          .single();
+        agenciaStatus = agencia?.status_pagamento || null;
+      }
 
       // Get all active notifications created after user signup
       let query = supabase
@@ -40,6 +51,12 @@ export default function useNotificacoes() {
       const { data: todas, error } = await query;
       if (error) throw error;
 
+      // Filter by status_pagamento_alvo (BUG 11 fix)
+      const filtered = (todas || []).filter((n: any) => {
+        if (!n.status_pagamento_alvo) return true; // null = all
+        return n.status_pagamento_alvo === agenciaStatus;
+      });
+
       // Get read notifications for this user
       const { data: lidas } = await supabase
         .from("notificacoes_lidas")
@@ -47,7 +64,7 @@ export default function useNotificacoes() {
         .eq("usuario_id", user!.id);
 
       const lidasSet = new Set((lidas || []).map((l: any) => l.notificacao_id));
-      const naoLidas = (todas || []).filter((n: any) => !lidasSet.has(n.id));
+      const naoLidas = filtered.filter((n: any) => !lidasSet.has(n.id));
 
       return naoLidas as Notificacao[];
     },

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Download, MessageCircle, CheckCircle2 } from "lucide-react";
+import { Download, MessageCircle, CheckCircle2, FileX } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -70,14 +70,17 @@ export default function OrcamentoPublico() {
     );
   }
 
-  if (!orc || error) {
+  if (!orc && !isLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center px-6">
-          <div className="text-6xl mb-4">🔗</div>
-          <h1 className="text-2xl font-bold text-[#0F172A] mb-2">Orçamento não encontrado</h1>
-          <p className="text-[#64748B]">O link é inválido ou o orçamento não está mais disponível.</p>
-        </div>
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center p-8 text-center">
+        <FileX className="w-16 h-16 text-[#94A3B8] mb-4" />
+        <h1 className="text-2xl font-bold text-[#0F172A] mb-2">Orçamento não encontrado</h1>
+        <p className="text-[#64748B] mb-6">
+          Este link pode ter expirado ou o orçamento foi removido pela agência.
+        </p>
+        <p className="text-sm text-[#94A3B8]">
+          Entre em contato com a agência para solicitar um novo link.
+        </p>
       </div>
     );
   }

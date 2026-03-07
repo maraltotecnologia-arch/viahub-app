@@ -20,6 +20,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -33,6 +34,25 @@ export default function Onboarding() {
   const [markups, setMarkups] = useState(
     tiposServico.map((t) => ({ tipo: t, markup: 0, taxa: 0 }))
   );
+
+  const handleCepBlur = async () => {
+    const cepLimpo = cep.replace(/\D/g, "");
+    if (cepLimpo.length !== 8) {
+      setCepError("CEP deve ter 8 dígitos (PAG002)");
+      return;
+    }
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const json = await res.json();
+      if (json.erro) {
+        setCepError("CEP não encontrado (PAG002)");
+      } else {
+        setCepError(null);
+      }
+    } catch {
+      setCepError("Não foi possível consultar o CEP. Verifique sua conexão. (SYS002)");
+    }
+  };
 
   // Pre-fill from existing agency data
   useEffect(() => {
@@ -200,7 +220,8 @@ export default function Onboarding() {
                   </div>
                   <div className="space-y-2">
                     <Label>CEP</Label>
-                    <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} maxLength={9} />
+                    <Input placeholder="00000-000" value={cep} onChange={(e) => { setCep(maskCEP(e.target.value)); setCepError(null); }} onBlur={handleCepBlur} maxLength={9} />
+                    {cepError && <p className="text-xs text-destructive mt-0.5">{cepError}</p>}
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>

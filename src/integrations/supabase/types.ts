@@ -26,6 +26,7 @@ export type Database = {
           data_bloqueio: string | null
           data_proximo_vencimento: string | null
           email: string | null
+          forma_pagamento: string | null
           horario_funcionamento: Json | null
           id: string
           logo_url: string | null
@@ -46,6 +47,7 @@ export type Database = {
           data_bloqueio?: string | null
           data_proximo_vencimento?: string | null
           email?: string | null
+          forma_pagamento?: string | null
           horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
@@ -66,6 +68,7 @@ export type Database = {
           data_bloqueio?: string | null
           data_proximo_vencimento?: string | null
           email?: string | null
+          forma_pagamento?: string | null
           horario_funcionamento?: Json | null
           id?: string
           logo_url?: string | null
@@ -637,6 +640,7 @@ export type Database = {
           destinatario: string | null
           id: string
           mensagem: string
+          status_pagamento_alvo: string | null
           tipo: string | null
           titulo: string
         }
@@ -647,6 +651,7 @@ export type Database = {
           destinatario?: string | null
           id?: string
           mensagem: string
+          status_pagamento_alvo?: string | null
           tipo?: string | null
           titulo: string
         }
@@ -657,6 +662,7 @@ export type Database = {
           destinatario?: string | null
           id?: string
           mensagem?: string
+          status_pagamento_alvo?: string | null
           tipo?: string | null
           titulo?: string
         }
