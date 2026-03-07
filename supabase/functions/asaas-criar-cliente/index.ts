@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { agencia_id, billingType: requestedBillingType, creditCard, cep } = await req.json();
+    const { agencia_id, billingType: requestedBillingType, creditCard, cep, reusar_cliente } = await req.json();
     if (!agencia_id) {
       return new Response(JSON.stringify({ error: "agencia_id é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -87,7 +87,10 @@ Deno.serve(async (req) => {
     // --- Create or update customer ---
     let customerId = agencia.asaas_customer_id;
 
-    if (customerId) {
+    if (reusar_cliente && customerId) {
+      console.log(`[asaas-criar-cliente] Reusando cliente existente ${customerId} (reusar_cliente=true)`);
+      // Skip customer creation/update — go straight to subscription
+    } else if (customerId) {
       console.log(`[asaas-criar-cliente] Atualizando cliente existente ${customerId}...`);
       const updateBody: Record<string, unknown> = { cpfCnpj: cnpjLimpo, name: nome, email };
       if (telefone) updateBody.mobilePhone = telefone;
