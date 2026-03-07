@@ -3,10 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Clock, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
 export default function Login() {
@@ -16,7 +15,6 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [paymentPending, setPaymentPending] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,7 +36,6 @@ export default function Login() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setPaymentPending(false);
     setLoading(true);
 
     try {
@@ -113,7 +110,7 @@ export default function Login() {
       if (agencia?.status_pagamento === "pendente" || agencia?.status_pagamento === "bloqueado") {
         console.log("[Login] Pagamento pendente/bloqueado. Derrubando sessão.");
         await supabase.auth.signOut();
-        setPaymentPending(true);
+        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
         return;
       }
 
@@ -143,40 +140,7 @@ export default function Login() {
           <p className="text-sm text-[#64748B] mt-1">Acesse sua conta ViaHub</p>
         </div>
 
-        {/* Payment pending alert */}
-        {paymentPending && (
-          <div className="mb-6 space-y-4">
-            <Alert className="border-amber-200 bg-amber-50">
-              <Clock className="h-5 w-5 text-amber-600" />
-              <AlertTitle className="text-amber-800 font-semibold">Pagamento em Processamento</AlertTitle>
-              <AlertDescription className="text-amber-700 text-sm leading-relaxed mt-1">
-                Seu cadastro via <strong>Boleto</strong> está em análise. O banco pode levar até{" "}
-                <strong>3 dias úteis</strong> para compensar. Seu acesso será liberado automaticamente
-                após a confirmação do pagamento.
-              </AlertDescription>
-            </Alert>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setPaymentPending(false)}
-              className="w-full h-12 rounded-xl text-sm font-medium text-[#64748B] border-[#E2E8F0] hover:bg-[#F8FAFC]"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Tentar novamente
-            </Button>
-            <p className="text-center text-xs text-[#94A3B8]">
-              Precisa de ajuda?{" "}
-              <a href="mailto:suporte@viahub.app" className="text-[#2563EB] hover:underline">
-                suporte@viahub.app
-              </a>
-            </p>
-          </div>
-        )}
-
-        {/* Login form — hidden when payment pending */}
-        {!paymentPending && (
-          <>
-            <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -214,24 +178,22 @@ export default function Login() {
               >
                 {loading ? "Entrando..." : "Entrar"}
               </Button>
-            </form>
+        </form>
 
-            <div className="flex items-center gap-3 my-6">
-              <div className="flex-1 h-px bg-border" />
-              <span className="text-xs text-muted-foreground">ou</span>
-              <div className="flex-1 h-px bg-border" />
-            </div>
+        <div className="flex items-center gap-3 my-6">
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-xs text-muted-foreground">ou</span>
+          <div className="flex-1 h-px bg-border" />
+        </div>
 
-            <p className="text-center text-sm text-[#64748B]">
-              Não tem uma conta?{" "}
-              <Link to="/cadastro" className="text-[#2563EB] font-medium hover:underline">Criar conta grátis</Link>
-            </p>
+        <p className="text-center text-sm text-[#64748B]">
+          Não tem uma conta?{" "}
+          <Link to="/cadastro" className="text-[#2563EB] font-medium hover:underline">Criar conta grátis</Link>
+        </p>
 
-            <p className="text-center text-xs text-[#94A3B8] mt-4">
-              ViaHub — Ecossistema para agências de viagem
-            </p>
-          </>
-        )}
+        <p className="text-center text-xs text-[#94A3B8] mt-4">
+          ViaHub — Ecossistema para agências de viagem
+        </p>
       </div>
     </AuthLayout>
   );
