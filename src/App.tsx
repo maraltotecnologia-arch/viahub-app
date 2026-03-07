@@ -41,59 +41,59 @@ import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 
 const queryClient = new QueryClient();
 
+const LoadingScreen = () => (
+  <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
+    <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
+    <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
+  </div>
+);
+
 function AppRoutes() {
   const { user, loading, statusPagamento, cargoUsuario } = useAuth() as any;
 
+  return (
+    <Routes>
+      {/* === Public routes — always eager rendered === */}
+      <Route path="/" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/login" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/cadastro" element={<Cadastro />} />
+      <Route path="/termos" element={<TermosDeUso />} />
+      <Route path="/privacidade" element={<PoliticaPrivacidade />} />
+      <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+      <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
+      <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
+
+      {/* === Protected routes — loading gate only here === */}
+      <Route path="/*" element={<ProtectedRoutes loading={loading} user={user} statusPagamento={statusPagamento} cargoUsuario={cargoUsuario} />} />
+    </Routes>
+  );
+}
+
+function ProtectedRoutes({ loading, user, statusPagamento, cargoUsuario }: any) {
+  // While auth is resolving, show spinner — NOT 404
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
-        <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
-        <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
+  // Not authenticated → redirect to login
   if (!user) {
-    return (
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/cadastro" element={<Cadastro />} />
-        <Route path="/termos" element={<TermosDeUso />} />
-        <Route path="/privacidade" element={<PoliticaPrivacidade />} />
-        <Route path="/recuperar-senha" element={<RecuperarSenha />} />
-        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-        <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
-        <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    );
+    return <Navigate to="/login" replace />;
   }
 
-  // Block access for pending/blocked agencies (non-superadmin)
+  // Pending/blocked agency → redirect to waiting page
   const isPendingOrBlocked = (statusPagamento === "pendente" || statusPagamento === "bloqueado") && cargoUsuario !== "superadmin";
-
   console.log("[AppRoutes] statusPagamento:", statusPagamento, "cargoUsuario:", cargoUsuario, "isPendingOrBlocked:", isPendingOrBlocked);
 
   if (isPendingOrBlocked) {
-    return (
-      <Routes>
-        <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
-        <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
-        <Route path="*" element={<Navigate to="/aguardando-pagamento" replace />} />
-      </Routes>
-    );
+    return <Navigate to="/aguardando-pagamento" replace />;
   }
 
+  // Authenticated & active — render app
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
-      
       <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
       <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
-      <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
