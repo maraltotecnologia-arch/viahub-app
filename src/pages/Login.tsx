@@ -39,8 +39,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // STEP 1: Authenticate first to validate credentials
-      console.log("[Login] Tentando signInWithPassword...");
+      // STEP 1: Check agency payment status BEFORE attempting authentication
+      console.log("[Login] Verificando status de pagamento para:", email);
+      const { data: statusData, error: statusError } = await supabase.functions.invoke("verificar-status-email", {
+        body: { email: email.trim() },
+      });
+
+      if (!statusError && statusData?.bloqueado) {
+        console.log("[Login] Agência bloqueada/pendente. Impedindo login.", statusData.status);
+        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
+        return;
+      }
+
+      // STEP 2: Payment status OK — now authenticate
+      console.log("[Login] Status OK. Tentando signInWithPassword...");
       const { data: sessionData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
@@ -61,19 +73,6 @@ export default function Login() {
 
       if (!userId) {
         setError("Erro inesperado: sessão sem usuário.");
-        return;
-      }
-
-      // STEP 2: Credentials OK — now check agency payment status
-      console.log("[Login] Verificando status de pagamento para:", email);
-      const { data: statusData, error: statusError } = await supabase.functions.invoke("verificar-status-email", {
-        body: { email: email.trim() },
-      });
-
-      if (!statusError && statusData?.bloqueado) {
-        console.log("[Login] Agência bloqueada/pendente. Derrubando sessão.", statusData.status);
-        await supabase.auth.signOut();
-        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
         return;
       }
 
