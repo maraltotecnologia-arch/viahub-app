@@ -43,6 +43,7 @@ import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date
 import { isMargemZero, calcularLucroReal, getTaxaEmbutida } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { formatError } from "@/lib/errors";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info", pago: "success",
@@ -191,7 +192,7 @@ export default function OrcamentoDetalhe() {
       toast({ title: "PDF gerado com sucesso!" });
     } catch (e) {
       console.error("Erro ao gerar PDF:", e);
-      toast({ title: "Erro ao gerar PDF", variant: "destructive" });
+      toast({ title: formatError("ORC006"), variant: "destructive" });
     } finally {
       setGeneratingPdf(false);
     }
@@ -206,7 +207,7 @@ export default function OrcamentoDetalhe() {
     }
     setChangingStatus(true);
     const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", id);
-    if (error) { toast({ title: "Erro ao atualizar status", variant: "destructive" }); } else {
+    if (error) { toast({ title: formatError("ORC002"), variant: "destructive" }); } else {
       toast({ title: `Status alterado para ${newStatus}` });
       if (user && agenciaId) {
         await registrarHistorico({
@@ -231,7 +232,7 @@ export default function OrcamentoDetalhe() {
     setMarkingPago(true);
     const { error } = await supabase.from("orcamentos").update({ status: "pago", pago_em: new Date().toISOString() } as any).eq("id", id);
     if (error) {
-      toast({ title: "Erro ao registrar pagamento", variant: "destructive" });
+      toast({ title: formatError("ORC002"), variant: "destructive" });
     } else {
       if (user && agenciaId) {
         await registrarHistorico({
@@ -292,7 +293,7 @@ export default function OrcamentoDetalhe() {
       .select("id")
       .single();
 
-    if (error || !newOrc) { toast({ title: "Erro ao duplicar", variant: "destructive" }); setDuplicating(false); return; }
+    if (error || !newOrc) { toast({ title: formatError("ORC007"), variant: "destructive" }); setDuplicating(false); return; }
 
     if (itens && itens.length > 0) {
       const newItens = itens.map((i) => ({
