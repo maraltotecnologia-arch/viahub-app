@@ -17,6 +17,7 @@ import DatePickerInput from "@/components/ui/DatePickerInput";
 import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
 import ContatosCliente from "@/components/clientes/ContatosCliente";
 import { formatError } from "@/lib/errors";
+import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -63,8 +64,8 @@ export default function ClienteDetalhe() {
       setForm({
         nome: cliente.nome || "",
         email: cliente.email || "",
-        telefone: cliente.telefone || "",
-        cpf: cliente.cpf || "",
+        telefone: cliente.telefone ? maskTelefone(cliente.telefone) : "",
+        cpf: cliente.cpf ? maskCPFouCNPJ(cliente.cpf) : "",
         passaporte: cliente.passaporte || "",
         data_nascimento: cliente.data_nascimento ? formatarDataSemTimezone(cliente.data_nascimento) : "",
         observacoes: cliente.observacoes || "",
@@ -78,8 +79,8 @@ export default function ClienteDetalhe() {
     const { error } = await supabase.from("clientes").update({
       nome: form.nome,
       email: form.email || null,
-      telefone: form.telefone || null,
-      cpf: form.cpf || null,
+      telefone: form.telefone.replace(/\D/g, "") || null,
+      cpf: form.cpf.replace(/\D/g, "") || null,
       passaporte: form.passaporte || null,
       data_nascimento: form.data_nascimento || null,
       observacoes: form.observacoes || null,
@@ -128,8 +129,8 @@ export default function ClienteDetalhe() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Nome</Label><Input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} /></div>
             <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
-            <div className="space-y-2"><Label>CPF</Label><Input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} /></div>
+            <div className="space-y-2"><Label>CPF / CNPJ</Label><Input value={form.cpf} onChange={(e) => setForm({ ...form, cpf: maskCPFouCNPJ(e.target.value) })} /></div>
             <div className="space-y-2"><Label>Passaporte</Label><Input value={form.passaporte} onChange={(e) => setForm({ ...form, passaporte: e.target.value })} /></div>
             <div className="space-y-2">
               <Label>Data de Nascimento</Label>

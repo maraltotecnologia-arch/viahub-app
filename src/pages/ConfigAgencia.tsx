@@ -16,6 +16,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { validarCNPJ } from "@/lib/validators";
 import { type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { formatError } from "@/lib/errors";
+import { maskCNPJ, maskTelefone } from "@/lib/masks";
 
 export default function ConfigAgencia() {
   const { user, refreshUser } = useAuth();
@@ -57,9 +58,9 @@ export default function ConfigAgencia() {
     if (agencia) {
       setForm({
         nome_fantasia: agencia.nome_fantasia || "",
-        cnpj: agencia.cnpj || "",
+        cnpj: agencia.cnpj ? maskCNPJ(agencia.cnpj) : "",
         email: agencia.email || "",
-        telefone: agencia.telefone || "",
+        telefone: agencia.telefone ? maskTelefone(agencia.telefone) : "",
       });
       if ((agencia as any).logo_url) {
         setLogoPreview((agencia as any).logo_url);
@@ -72,11 +73,18 @@ export default function ConfigAgencia() {
     setSaving(true);
     const { error } = await supabase.from("agencias").update({
       nome_fantasia: form.nome_fantasia,
-      cnpj: form.cnpj || null,
+      cnpj: form.cnpj.replace(/\D/g, "") || null,
       email: form.email || null,
-      telefone: form.telefone || null,
+      telefone: form.telefone.replace(/\D/g, "") || null,
     }).eq("id", agenciaId);
     if (error) { toast({ title: formatError("AGE002"), variant: "destructive" }); } else {
+      // Sync with Asaas (non-blocking)
+      try {
+        await supabase.functions.invoke("asaas-atualizar-cliente", { body: { agencia_id: agenciaId } });
+        console.log("[config-agencia] Asaas sincronizado");
+      } catch (e) {
+        console.warn("[config-agencia] Erro sync Asaas:", e);
+      }
       toast({ title: "Dados salvos com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["agencia"] });
       queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
@@ -200,7 +208,7 @@ export default function ConfigAgencia() {
               <Label>CNPJ</Label>
               <Input
                 value={form.cnpj}
-                onChange={(e) => { setForm({ ...form, cnpj: e.target.value }); setCnpjError(null); setCnpjValid(false); }}
+                onChange={(e) => { setForm({ ...form, cnpj: maskCNPJ(e.target.value) }); setCnpjError(null); setCnpjValid(false); }}
                 onBlur={() => {
                   const v = form.cnpj.replace(/\D/g, "");
                   if (!v) { setCnpjError(null); setCnpjValid(false); return; }
@@ -212,7 +220,7 @@ export default function ConfigAgencia() {
               {cnpjError && <p className="text-xs text-destructive">{cnpjError}</p>}
             </div>
             <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-            <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: e.target.value })} /></div>
+            <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} /></div>
           </div>
           <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
         </CardContent>

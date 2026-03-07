@@ -18,6 +18,7 @@ import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
 import { formatError } from "@/lib/errors";
+import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
 
 const PAGE_SIZE = 20;
 
@@ -90,7 +91,7 @@ export default function Clientes() {
     setSaving(true);
     const { error } = await supabase
       .from("clientes")
-      .insert({ agencia_id: agenciaId, nome, email: email || null, telefone: telefone || null, cpf: cpf || null });
+      .insert({ agencia_id: agenciaId, nome, email: email || null, telefone: telefone.replace(/\D/g, "") || null, cpf: cpf.replace(/\D/g, "") || null });
     if (error) {
       toast({ title: formatError("CLI001"), variant: "destructive" });
     } else {
@@ -114,8 +115,8 @@ export default function Clientes() {
             <div className="space-y-4 pt-2">
               <div className="space-y-2"><Label>Nome</Label><Input placeholder="Nome completo" value={nome} onChange={(e) => setNome(e.target.value)} /></div>
               <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 00000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} /></div>
-              <div className="space-y-2"><Label>CPF</Label><Input placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 00000-0000" value={telefone} onChange={(e) => setTelefone(maskTelefone(e.target.value))} /></div>
+              <div className="space-y-2"><Label>CPF / CNPJ</Label><Input placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(maskCPFouCNPJ(e.target.value))} /></div>
               <Button variant="gradient" className="w-full" onClick={handleCreate} disabled={saving}>{saving ? "Salvando..." : "Salvar Cliente"}</Button>
             </div>
           </DialogContent>

@@ -7,6 +7,7 @@ import { CreditCard, Zap, FileText, AlertTriangle, CheckCircle2, Copy, Download,
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { maskCardNumber, maskCardExpiry } from "@/lib/masks";
 
 type Metodo = "CREDIT_CARD" | "PIX" | "BOLETO";
 
@@ -31,16 +32,6 @@ function detectBrand(num: string): string {
   if (/^(636|438935|504175|451416|636297|5067|4576|4011)/.test(n)) return "Elo";
   if (/^606282/.test(n)) return "Hipercard";
   return "";
-}
-
-function maskCard(v: string) {
-  return v.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim().slice(0, 19);
-}
-
-function maskExpiry(v: string) {
-  const d = v.replace(/\D/g, "").slice(0, 4);
-  if (d.length >= 3) return d.slice(0, 2) + "/" + d.slice(2);
-  return d;
 }
 
 // ─── Sub-components for post-confirmation views ───
@@ -362,7 +353,7 @@ export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, me
                   <Input
                     placeholder="0000 0000 0000 0000"
                     value={cardNumber}
-                    onChange={(e) => setCardNumber(maskCard(e.target.value))}
+                    onChange={(e) => setCardNumber(maskCardNumber(e.target.value))}
                     maxLength={19}
                   />
                   {brand && (
@@ -386,7 +377,7 @@ export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, me
                   <Input
                     placeholder="MM/AA"
                     value={cardExpiry}
-                    onChange={(e) => setCardExpiry(maskExpiry(e.target.value))}
+                    onChange={(e) => setCardExpiry(maskCardExpiry(e.target.value))}
                     maxLength={5}
                   />
                 </div>

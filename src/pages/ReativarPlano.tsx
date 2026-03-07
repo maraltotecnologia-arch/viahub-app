@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { CheckCircle, CreditCard, Zap, FileText, AlertTriangle, Copy, Check, Loader2, Lock, ShieldCheck, Download } from "lucide-react";
+import { maskCardNumber, maskCardExpiry } from "@/lib/masks";
 
 const planos = [
   { value: "starter", label: "Starter", preco: "R$ 397", precoNum: 397, resumo: "3 usuários • Suporte por email" },
@@ -14,17 +15,6 @@ const planos = [
 ];
 
 const precoMap: Record<string, string> = { starter: "R$ 397,00", pro: "R$ 697,00", elite: "R$ 1.997,00" };
-
-const maskCardNumber = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 16);
-  return d.replace(/(\d{4})(?=\d)/g, "$1 ");
-};
-
-const maskExpiry = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 4);
-  if (d.length >= 3) return d.slice(0, 2) + "/" + d.slice(2);
-  return d;
-};
 
 export default function ReativarPlano() {
   const [params] = useSearchParams();
@@ -388,7 +378,7 @@ export default function ReativarPlano() {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#64748B]">Validade</Label>
-                      <Input placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(maskExpiry(e.target.value))} className="h-10 text-sm bg-white" maxLength={5} />
+                      <Input placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(maskCardExpiry(e.target.value))} className="h-10 text-sm bg-white" maxLength={5} />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs font-medium text-[#64748B]">CVV</Label>

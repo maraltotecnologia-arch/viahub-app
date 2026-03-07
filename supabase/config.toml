@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.create-user]
 verify_jwt = false
+
+[functions.asaas-atualizar-cliente]
+verify_jwt = false
