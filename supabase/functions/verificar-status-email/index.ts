@@ -13,10 +13,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email } = await req.json();
+    const { email, password } = await req.json();
 
-    if (!email) {
-      return new Response(JSON.stringify({ error: "Email obrigatório" }), {
+    if (!email || !password) {
+      return new Response(JSON.stringify({ error: "Email e senha obrigatórios" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -27,28 +27,61 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Find user by email in usuarios table
-    const { data: usuario, error: userError } = await supabaseAdmin
+    // STEP 1: Validate credentials without creating a persistent session on the client
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!
+    );
+
+    const { data: authData, error: authError } = await supabaseAuth.auth.signInWithPassword({
+      email: email.toLowerCase().trim(),
+      password,
+    });
+
+    if (authError) {
+      console.log("[verificar-status-email] Credenciais inválidas:", authError.message);
+
+      let userMessage = "Email ou senha incorretos.";
+      if (authError.message?.includes("Email not confirmed") || (authError as any).code === "email_not_confirmed") {
+        userMessage = "Seu email ainda não foi confirmado. Verifique sua caixa de entrada.";
+      }
+
+      return new Response(JSON.stringify({ 
+        allowed: false, 
+        reason: "invalid_credentials",
+        message: userMessage,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Sign out the session we just created on the backend (cleanup)
+    if (authData.session) {
+      await supabaseAuth.auth.signOut();
+    }
+
+    // STEP 2: Credentials OK — check agency payment status
+    const { data: usuario } = await supabaseAdmin
       .from("usuarios")
       .select("agencia_id, cargo")
       .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
-    if (userError || !usuario) {
-      return new Response(JSON.stringify({ bloqueado: false }), {
+    if (!usuario) {
+      return new Response(JSON.stringify({ allowed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Superadmin always passes
     if (usuario.cargo === "superadmin") {
-      return new Response(JSON.stringify({ bloqueado: false }), {
+      return new Response(JSON.stringify({ allowed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (!usuario.agencia_id) {
-      return new Response(JSON.stringify({ bloqueado: false }), {
+      return new Response(JSON.stringify({ allowed: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -66,7 +99,6 @@ Deno.serve(async (req) => {
     if (statusPagamento === "pendente") {
       const asaasKey = Deno.env.get("ASAAS_API_KEY");
       if (asaasKey) {
-        // Get the latest pending boleto payment for this agency
         const { data: pagamento } = await supabaseAdmin
           .from("asaas_pagamentos")
           .select("asaas_payment_id, forma_pagamento")
@@ -89,7 +121,6 @@ Deno.serve(async (req) => {
             console.log(`[verificar-status-email] Status Asaas: ${asaasData.status}`);
 
             if (asaasData.status === "RECEIVED" || asaasData.status === "CONFIRMED") {
-              // Boleto was compensated! Update agency and payment records
               console.log(`[verificar-status-email] Boleto compensado! Ativando agência ${usuario.agencia_id}`);
 
               await supabaseAdmin.from("agencias").update({
@@ -102,14 +133,13 @@ Deno.serve(async (req) => {
                 pago_em: new Date().toISOString(),
               }).eq("asaas_payment_id", pagamento.asaas_payment_id);
 
-              // Agency is now active — allow login
-              return new Response(JSON.stringify({ bloqueado: false, status: "ativo" }), {
+              // Boleto compensated — allow login
+              return new Response(JSON.stringify({ allowed: true }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             }
           } catch (e) {
             console.error("[verificar-status-email] Erro ao consultar Asaas:", e);
-            // If Asaas check fails, fall through to current status logic
           }
         }
       }
@@ -117,7 +147,17 @@ Deno.serve(async (req) => {
 
     const bloqueado = statusPagamento === "pendente" || statusPagamento === "bloqueado";
 
-    return new Response(JSON.stringify({ bloqueado, status: statusPagamento }), {
+    if (bloqueado) {
+      return new Response(JSON.stringify({ 
+        allowed: false,
+        reason: "payment_pending",
+        message: "Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ allowed: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
