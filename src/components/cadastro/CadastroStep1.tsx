@@ -5,29 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { validarTelefone, validarCNPJ } from "@/lib/validators";
+import { maskTelefone, maskCNPJ, maskCEP } from "@/lib/masks";
 import type { CadastroData } from "@/pages/Cadastro";
 import AuthLayout from "@/components/AuthLayout";
-
-const maskTelefone = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10)
-    return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
-  return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3");
-};
-
-const maskCNPJ = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 14);
-  return d
-    .replace(/(\d{2})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1.$2")
-    .replace(/(\d{3})(\d)/, "$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2");
-};
-
-const maskCEP = (v: string) => {
-  const d = v.replace(/\D/g, "").slice(0, 8);
-  return d.replace(/(\d{5})(\d)/, "$1-$2");
-};
 
 type Props = {
   data: CadastroData;

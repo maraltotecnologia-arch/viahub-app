@@ -9,6 +9,7 @@ import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { maskCNPJ, maskTelefone, maskCEP } from "@/lib/masks";
 
 const steps = ["Confirme seus dados", "Markup Padrão", "Confirmação"];
 
@@ -52,9 +53,9 @@ export default function Onboarding() {
       if (agencia) {
         if (agencia.nome_fantasia) setNomeFantasia(agencia.nome_fantasia);
         if (agencia.email) setEmail(agencia.email);
-        if (agencia.telefone) setTelefone(agencia.telefone);
-        if (agencia.cnpj) setCnpj(agencia.cnpj);
-        if (agencia.cep) setCep(agencia.cep);
+        if (agencia.telefone) setTelefone(maskTelefone(agencia.telefone));
+        if (agencia.cnpj) setCnpj(maskCNPJ(agencia.cnpj));
+        if (agencia.cep) setCep(maskCEP(agencia.cep));
       }
       setDataLoaded(true);
     };
@@ -99,8 +100,8 @@ export default function Onboarding() {
           nome_fantasia: nomeFantasia,
           email,
           telefone,
-          cnpj: cnpj || null,
-          cep: cep || null,
+          cnpj: cnpj.replace(/\D/g, "") || null,
+          cep: cep.replace(/\D/g, "") || null,
         })
         .eq("id", userData.agencia_id);
       setLoading(false);
@@ -195,11 +196,11 @@ export default function Onboarding() {
                   </div>
                   <div className="space-y-2">
                     <Label>CNPJ</Label>
-                    <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+                    <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(maskCNPJ(e.target.value))} />
                   </div>
                   <div className="space-y-2">
                     <Label>CEP</Label>
-                    <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value)} />
+                    <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(maskCEP(e.target.value))} maxLength={9} />
                   </div>
                   <div className="space-y-2">
                     <Label>Email</Label>
@@ -207,7 +208,7 @@ export default function Onboarding() {
                   </div>
                   <div className="space-y-2">
                     <Label>Telefone</Label>
-                    <Input placeholder="(00) 0000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                    <Input placeholder="(00) 00000-0000" value={telefone} onChange={(e) => setTelefone(maskTelefone(e.target.value))} />
                   </div>
                 </div>
               </div>
