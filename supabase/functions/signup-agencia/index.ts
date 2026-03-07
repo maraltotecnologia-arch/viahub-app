@@ -28,13 +28,13 @@ Deno.serve(async (req) => {
     }));
 
     if (!email || !password || !nome_agencia || !nome_admin || !telefone || !plano || !cnpj) {
-      return new Response(JSON.stringify({ error: "Campos obrigatórios não preenchidos" }), {
+      return new Response(JSON.stringify({ error: "Campos obrigatórios não preenchidos", code: "AUTH005" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (password.length < 8) {
-      return new Response(JSON.stringify({ error: "Senha deve ter no mínimo 8 caracteres" }), {
+      return new Response(JSON.stringify({ error: "Senha deve ter no mínimo 8 caracteres", code: "AUTH005" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existing = existingUsers?.users?.find((u) => u.email === email);
     if (existing) {
-      return new Response(JSON.stringify({ error: "Este email já está cadastrado. Faça login ou use outro email." }), {
+      return new Response(JSON.stringify({ error: "Este email já está cadastrado.", code: "AUTH001" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         .eq("cnpj", cnpjLimpo)
         .maybeSingle();
       if (existingCnpj) {
-        return new Response(JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }), {
+        return new Response(JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub.", code: "AUTH002" }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -109,12 +109,12 @@ Deno.serve(async (req) => {
       await supabaseAdmin.auth.admin.deleteUser(userId);
       if (agenciaError?.code === "23505" && agenciaError?.message?.includes("cnpj")) {
         return new Response(
-          JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }),
+          JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub.", code: "AUTH002" }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
       return new Response(
-        JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || "") }),
+        JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || ""), code: "AGE001" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

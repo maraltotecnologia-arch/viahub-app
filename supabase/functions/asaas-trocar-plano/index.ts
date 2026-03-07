@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
     const { agencia_id, novo_plano } = await req.json();
 
     if (!agencia_id || !novo_plano || !PLANO_VALOR[novo_plano]) {
-      return new Response(JSON.stringify({ error: "Dados inválidos" }), {
+      return new Response(JSON.stringify({ error: "Dados inválidos", code: "PAG007" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -42,13 +42,13 @@ Deno.serve(async (req) => {
       .single();
 
     if (agErr || !agencia?.asaas_subscription_id) {
-      return new Response(JSON.stringify({ error: "Assinatura não encontrada" }), {
+      return new Response(JSON.stringify({ error: "Assinatura não encontrada", code: "PAG008" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (agencia.plano === novo_plano) {
-      return new Response(JSON.stringify({ error: "Já está neste plano" }), {
+      return new Response(JSON.stringify({ error: "Já está neste plano", code: "PAG007" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     console.log("[asaas-trocar-plano] Asaas response:", JSON.stringify(resData));
 
     if (!res.ok) {
-      return new Response(JSON.stringify({ error: resData.errors?.[0]?.description || "Erro ao atualizar assinatura" }), {
+      return new Response(JSON.stringify({ error: resData.errors?.[0]?.description || "Erro ao atualizar assinatura", code: "PAG007" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
