@@ -20,6 +20,7 @@ export type Database = {
           asaas_subscription_id: string | null
           ativo: boolean | null
           atualizado_em: string | null
+          cep: string | null
           cnpj: string | null
           criado_em: string | null
           data_bloqueio: string | null
@@ -39,6 +40,7 @@ export type Database = {
           asaas_subscription_id?: string | null
           ativo?: boolean | null
           atualizado_em?: string | null
+          cep?: string | null
           cnpj?: string | null
           criado_em?: string | null
           data_bloqueio?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           asaas_subscription_id?: string | null
           ativo?: boolean | null
           atualizado_em?: string | null
+          cep?: string | null
           cnpj?: string | null
           criado_em?: string | null
           data_bloqueio?: string | null

@@ -82,6 +82,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
           nome_admin: data.nomeAdmin.trim(),
           telefone: data.telefone.trim(),
           cnpj: data.cnpj.trim(),
+          cep: data.cep.replace(/\D/g, ""),
           plano: data.plano,
           forma_pagamento: activeTab,
           ...extra,

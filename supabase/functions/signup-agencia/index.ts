@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
-    const { email, password, nome_agencia, nome_admin, telefone, cnpj, plano, forma_pagamento, creditCard } = body;
+    const { email, password, nome_agencia, nome_admin, telefone, cnpj, cep, plano, forma_pagamento, creditCard } = body;
 
     console.log("[signup-agencia] Dados:", JSON.stringify({
       email, nome_agencia, nome_admin, telefone, cnpj, plano, forma_pagamento,
@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
         email,
         telefone,
         cnpj: cnpj || null,
+        cep: cep?.replace(/\D/g, "") || null,
         plano,
         onboarding_completo: false,
       })
@@ -127,7 +128,7 @@ Deno.serve(async (req) => {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-      const asaasBody: Record<string, unknown> = { agencia_id: agencia.id, billingType };
+      const asaasBody: Record<string, unknown> = { agencia_id: agencia.id, billingType, cep: cep?.replace(/\D/g, "") || null };
 
       // Pass credit card data if present
       if (creditCard && billingType === "CREDIT_CARD") {
