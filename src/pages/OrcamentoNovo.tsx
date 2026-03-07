@@ -21,6 +21,7 @@ import { getPlanoMultiplier } from "@/lib/plan-commission";
 import { calcularLucroReal, getTaxaEmbutida, isMargemZero } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { formatError } from "@/lib/errors";
 
 interface Item {
   id: string;
@@ -275,7 +276,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       .insert({ agencia_id: agenciaId, nome: newNome, email: newEmail || null, telefone: newTelefone || null })
       .select("id, nome")
       .single();
-    if (error) { toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" }); return; }
+    if (error) { toast({ title: formatError("CLI001"), description: error.message, variant: "destructive" }); return; }
     selectCliente(data);
     setShowNewClientModal(false);
     setNewNome(""); setNewEmail(""); setNewTelefone("");
@@ -407,7 +408,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         })
         .eq("id", orcamentoId!);
 
-      if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+      if (error) { toast({ title: formatError("ORC002"), description: error.message, variant: "destructive" }); setLoading(false); return; }
 
       // Delete old items and insert new ones
       await supabase.from("itens_orcamento").delete().eq("orcamento_id", orcamentoId!);
@@ -528,7 +529,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         .select("id")
         .single();
 
-      if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+      if (error) { toast({ title: formatError("ORC001"), variant: "destructive" }); setLoading(false); return; }
 
       const itensRows = itens.map((i) => ({
         orcamento_id: orc.id,

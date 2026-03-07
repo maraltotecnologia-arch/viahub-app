@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
     if (agError || !agencia) {
       console.error("[asaas-criar-cliente] Agência não encontrada:", agError);
-      return new Response(JSON.stringify({ error: "Agência não encontrada" }), {
+      return new Response(JSON.stringify({ error: "Agência não encontrada", code: "AGE003" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

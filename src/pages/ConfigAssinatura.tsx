@@ -8,6 +8,7 @@ import { CreditCard, Zap, FileText, CheckCircle2, AlertTriangle, Crown, Lock, Re
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import MetodoPagamentoModal from "@/components/assinatura/MetodoPagamentoModal";
+import { formatError } from "@/lib/errors";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -118,7 +119,7 @@ export default function ConfigAssinatura() {
       }
 
       if (res.error || res.data?.error) {
-        toast({ title: "Erro ao gerar QR Code", description: res.data?.error || res.error?.message, variant: "destructive" });
+        toast({ title: formatError("PAG004"), variant: "destructive" });
         setPixModalOpen(false);
         return;
       }
@@ -142,7 +143,7 @@ export default function ConfigAssinatura() {
         } catch {}
       }, 5000);
     } catch {
-      toast({ title: "Erro inesperado", variant: "destructive" });
+      toast({ title: formatError("SYS001"), variant: "destructive" });
       setPixModalOpen(false);
     } finally {
       setPixLoading(false);
@@ -169,13 +170,14 @@ export default function ConfigAssinatura() {
         body: { agencia_id: agenciaId, novo_plano: newPlan },
       });
       if (res.error || res.data?.error) {
-        toast({ title: "Erro ao trocar plano", description: res.data?.error || res.error?.message, variant: "destructive" });
+        toast({ title: formatError("PAG007"), variant: "destructive" });
       } else {
         toast({ title: "Plano alterado com sucesso!" });
         queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
+        queryClient.invalidateQueries({ queryKey: ["agencia"] });
       }
     } catch {
-      toast({ title: "Erro inesperado", variant: "destructive" });
+      toast({ title: formatError("SYS001"), variant: "destructive" });
     }
     setChangingPlan(null);
   };

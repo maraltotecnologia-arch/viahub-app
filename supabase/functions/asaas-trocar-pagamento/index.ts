@@ -35,13 +35,13 @@ Deno.serve(async (req) => {
     const { agencia_id, novo_metodo, cardNumber, cardHolderName, cardExpiryMonth, cardExpiryYear, cardCvv } = body;
 
     if (!agencia_id || !novo_metodo || !["CREDIT_CARD", "PIX", "BOLETO"].includes(novo_metodo)) {
-      return new Response(JSON.stringify({ error: "Dados inválidos" }), {
+      return new Response(JSON.stringify({ error: "Dados inválidos", code: "PAG006" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     if (novo_metodo === "CREDIT_CARD" && (!cardNumber || !cardHolderName || !cardExpiryMonth || !cardExpiryYear || !cardCvv)) {
-      return new Response(JSON.stringify({ error: "Dados do cartão incompletos" }), {
+      return new Response(JSON.stringify({ error: "Dados do cartão incompletos", code: "PAG006" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

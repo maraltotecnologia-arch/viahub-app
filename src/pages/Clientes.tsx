@@ -17,6 +17,7 @@ import SortableTableHead from "@/components/SortableTableHead";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
+import { formatError } from "@/lib/errors";
 
 const PAGE_SIZE = 20;
 
@@ -91,7 +92,7 @@ export default function Clientes() {
       .from("clientes")
       .insert({ agencia_id: agenciaId, nome, email: email || null, telefone: telefone || null, cpf: cpf || null });
     if (error) {
-      toast({ title: "Erro ao criar cliente", description: error.message, variant: "destructive" });
+      toast({ title: formatError("CLI001"), variant: "destructive" });
     } else {
       toast({ title: "Cliente criado com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["clientes"] });

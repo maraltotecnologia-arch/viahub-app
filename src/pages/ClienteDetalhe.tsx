@@ -16,6 +16,7 @@ import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-
 import DatePickerInput from "@/components/ui/DatePickerInput";
 import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
 import ContatosCliente from "@/components/clientes/ContatosCliente";
+import { formatError } from "@/lib/errors";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -83,7 +84,7 @@ export default function ClienteDetalhe() {
       data_nascimento: form.data_nascimento || null,
       observacoes: form.observacoes || null,
     }).eq("id", id);
-    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); } else {
+    if (error) { toast({ title: formatError("CLI002"), variant: "destructive" }); } else {
       toast({ title: "Cliente atualizado!" });
       queryClient.invalidateQueries({ queryKey: ["cliente", id] });
       queryClient.invalidateQueries({ queryKey: ["clientes"] });

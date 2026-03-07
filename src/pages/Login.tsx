@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { formatError } from "@/lib/errors";
 
 export default function Login() {
   const { user } = useAuth();
@@ -47,7 +48,7 @@ export default function Login() {
 
       if (checkError) {
         console.error("[Login] Erro na verificação:", checkError);
-        setError("Ocorreu um erro ao verificar suas credenciais. Tente novamente.");
+        setError(formatError("SYS001"));
         return;
       }
 
@@ -62,7 +63,10 @@ export default function Login() {
           return;
         }
 
-        setError(checkData?.message || "Não foi possível fazer login.");
+        const msg = checkData?.code
+          ? formatError(checkData.code)
+          : checkData?.message || formatError("SYS001");
+        setError(msg);
         return;
       }
 
@@ -72,7 +76,7 @@ export default function Login() {
 
       if (authError) {
         console.error("[Login] signInWithPassword FALHOU:", authError.message);
-        setError("Erro inesperado ao criar sessão. Tente novamente.");
+        setError(formatError("SYS001"));
         return;
       }
 
@@ -80,7 +84,7 @@ export default function Login() {
       // Navigate will happen via useEffect when AuthContext sets user
     } catch (err) {
       console.error("[Login] Erro inesperado:", err);
-      setError("Ocorreu um erro inesperado. Tente novamente.");
+      setError(formatError("SYS001"));
       await supabase.auth.signOut().catch(() => {});
     } finally {
       setLoading(false);

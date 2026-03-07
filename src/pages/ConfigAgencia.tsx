@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { validarCNPJ } from "@/lib/validators";
 import { type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
+import { formatError } from "@/lib/errors";
 
 export default function ConfigAgencia() {
   const { user, refreshUser } = useAuth();
@@ -75,9 +76,10 @@ export default function ConfigAgencia() {
       email: form.email || null,
       telefone: form.telefone || null,
     }).eq("id", agenciaId);
-    if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); } else {
+    if (error) { toast({ title: formatError("AGE002"), variant: "destructive" }); } else {
       toast({ title: "Dados salvos com sucesso!" });
       queryClient.invalidateQueries({ queryKey: ["agencia"] });
+      queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
       refreshUser();
     }
     setSaving(false);
@@ -106,7 +108,7 @@ export default function ConfigAgencia() {
       .upload(path, file, { upsert: true });
 
     if (uploadError) {
-      toast({ title: "Erro no upload", description: uploadError.message, variant: "destructive" });
+      toast({ title: formatError("CFG004"), variant: "destructive" });
       setUploading(false);
       return;
     }

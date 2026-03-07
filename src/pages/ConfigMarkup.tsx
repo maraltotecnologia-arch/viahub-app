@@ -70,7 +70,10 @@ export default function ConfigMarkup() {
         taxa_fixa: row.taxa,
         acrescimo_cartao: row.acrescimoCartao,
       }).eq("id", row.id);
-      if (error) { toast({ title: "Erro ao salvar", variant: "destructive" }); } else { toast({ title: `Markup de ${tiposLabel[row.tipo]} salvo!` }); }
+      if (error) { toast({ title: "Erro ao salvar", variant: "destructive" }); } else {
+        toast({ title: `Markup de ${tiposLabel[row.tipo]} salvo!` });
+        queryClient.invalidateQueries({ queryKey: ["markup-config"] });
+      }
     } else {
       const { error } = await supabase.from("configuracoes_markup").insert({
         agencia_id: agenciaId!,
