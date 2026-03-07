@@ -63,9 +63,23 @@ Deno.serve(async (req) => {
 
     console.log("[asaas-criar-cliente] Campos da agência:", JSON.stringify(agencia));
 
+    // Fallback: buscar email do admin da agência se não tiver email na agência
+    let emailAgencia = agencia.email;
+    if (!emailAgencia) {
+      const { data: adminUser } = await supabaseAdmin
+        .from("usuarios")
+        .select("email")
+        .eq("agencia_id", agencia_id)
+        .eq("cargo", "admin")
+        .limit(1)
+        .single();
+      emailAgencia = adminUser?.email || undefined;
+      console.log("[asaas-criar-cliente] Email fallback do admin:", emailAgencia);
+    }
+
     // Map fields
     const nome = agencia.nome_fantasia;
-    const email = agencia.email || undefined;
+    const email = emailAgencia || undefined;
     const cnpjLimpo = agencia.cnpj?.replace(/\D/g, "") || "";
     const telefone = agencia.telefone?.replace(/\D/g, "") || undefined;
 

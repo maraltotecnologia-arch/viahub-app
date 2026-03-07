@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
       .from("agencias")
       .insert({
         nome_fantasia: nome_agencia,
+        email,
         telefone,
         cnpj: cnpj || null,
         plano,
