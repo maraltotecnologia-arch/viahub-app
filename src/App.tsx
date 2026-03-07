@@ -54,8 +54,8 @@ function AppRoutes() {
   return (
     <Routes>
       {/* === Public routes — always eager rendered === */}
-      <Route path="/" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Index />} />
-      <Route path="/login" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={user && !loading && statusPagamento !== null ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/login" element={user && !loading && statusPagamento !== null ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/termos" element={<TermosDeUso />} />
       <Route path="/privacidade" element={<PoliticaPrivacidade />} />
@@ -71,19 +71,26 @@ function AppRoutes() {
 }
 
 function ProtectedRoutes({ loading, user, statusPagamento, cargoUsuario }: any) {
-  // While auth is resolving, show spinner — NOT 404
+  // Gate 1: Auth still resolving
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Not authenticated → redirect to login
+  // Gate 2: Not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Pending/blocked agency → redirect to waiting page
+  // Gate 3: Agency status not yet resolved — BLOCK rendering, show spinner
+  const isAgencyResolved = statusPagamento !== null || cargoUsuario !== null;
+  if (!isAgencyResolved) {
+    console.log("[ProtectedRoutes] Aguardando resolução do status da agência...");
+    return <LoadingScreen />;
+  }
+
+  // Gate 4: Pending/blocked agency → redirect
   const isPendingOrBlocked = (statusPagamento === "pendente" || statusPagamento === "bloqueado") && cargoUsuario !== "superadmin";
-  console.log("[AppRoutes] statusPagamento:", statusPagamento, "cargoUsuario:", cargoUsuario, "isPendingOrBlocked:", isPendingOrBlocked);
+  console.log("[ProtectedRoutes] statusPagamento:", statusPagamento, "cargoUsuario:", cargoUsuario, "isPendingOrBlocked:", isPendingOrBlocked);
 
   if (isPendingOrBlocked) {
     return <Navigate to="/aguardando-pagamento" replace />;
