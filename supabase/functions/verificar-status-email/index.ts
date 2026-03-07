@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
     // Check agency status and payment
     const { data: agencia } = await supabaseAdmin
       .from("agencias")
-      .select("status_pagamento, ativo")
+      .select("status_pagamento, ativo, asaas_subscription_id")
       .eq("id", usuario.agencia_id)
       .single();
 
@@ -102,6 +102,67 @@ Deno.serve(async (req) => {
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // STEP 3.5: Check subscription status in Asaas for admin users
+    if (usuario.cargo === "admin" && agencia?.asaas_subscription_id && agencia?.status_pagamento === "ativo") {
+      const asaasKey = Deno.env.get("ASAAS_API_KEY");
+      if (asaasKey) {
+        try {
+          console.log(`[verificar-status-email] Verificando assinatura ${agencia.asaas_subscription_id} no Asaas`);
+          const subRes = await fetch(`${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}`, {
+            headers: { "access_token": asaasKey },
+          });
+
+          let subscriptionDeleted = false;
+
+          if (!subRes.ok) {
+            console.log(`[verificar-status-email] Assinatura retornou ${subRes.status}`);
+            subscriptionDeleted = true;
+          } else {
+            const subData = await subRes.json();
+            console.log(`[verificar-status-email] Assinatura status: ${subData.status}, deleted: ${subData.deleted}`);
+            if (subData.deleted === true || subData.status === "INACTIVE" || subData.status === "EXPIRED") {
+              subscriptionDeleted = true;
+            }
+          }
+
+          if (subscriptionDeleted) {
+            // Clear subscription ID
+            await supabaseAdmin
+              .from("agencias")
+              .update({ asaas_subscription_id: null })
+              .eq("id", usuario.agencia_id);
+
+            console.log("[verificar-status-email] Assinatura deletada/inativa — redirecionando admin para reativar");
+            return new Response(JSON.stringify({
+              allowed: false,
+              reason: "subscription_deleted",
+              message: "redirect_reativar",
+              agencia_id: usuario.agencia_id,
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        } catch (e) {
+          console.error("[verificar-status-email] Erro ao verificar assinatura:", (e as Error).message);
+          // Don't block login if Asaas check fails
+        }
+      }
+    }
+
+    // STEP 3.6: For non-admin, non-superadmin users — check if agency has active subscription
+    if (usuario.cargo !== "admin" && usuario.cargo !== "superadmin") {
+      if (!agencia?.asaas_subscription_id || agencia?.status_pagamento === "cancelado") {
+        console.log("[verificar-status-email] Usuário não-admin sem assinatura ativa");
+        return new Response(JSON.stringify({
+          allowed: false,
+          reason: "no_active_subscription",
+          message: "Não foi localizado plano ativo para essa agência. Comunique seu administrador para solicitar um novo plano.",
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     const statusPagamento = agencia?.status_pagamento;

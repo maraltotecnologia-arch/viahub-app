@@ -32,3 +32,15 @@ verify_jwt = false
 
 [functions.asaas-gerar-qrcode-pix]
 verify_jwt = false
+
+[functions.asaas-trocar-plano]
+verify_jwt = false
+
+[functions.asaas-verificar-assinatura]
+verify_jwt = false
+
+[functions.verificar-status-email]
+verify_jwt = false
+
+[functions.create-user]
+verify_jwt = false

@@ -53,6 +53,15 @@ export default function Login() {
 
       if (!checkData?.allowed) {
         console.log("[Login] Acesso negado:", checkData?.reason, checkData?.message);
+
+        // Handle subscription deleted — redirect admin to reactivar-plano
+        if (checkData?.reason === "subscription_deleted") {
+          const agId = checkData?.agencia_id;
+          const encodedEmail = encodeURIComponent(email.trim().toLowerCase());
+          navigate(`/reativar-plano?agencia_id=${agId}&email=${encodedEmail}`, { replace: true });
+          return;
+        }
+
         setError(checkData?.message || "Não foi possível fazer login.");
         return;
       }
