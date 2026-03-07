@@ -86,10 +86,9 @@ Deno.serve(async (req) => {
 
     // Step 2: Create agencia
     console.log("[signup-agencia] [STEP 2] Criando agência...");
-    const isBoleto = forma_pagamento === "boleto";
-    const statusPagamento = isBoleto ? "pendente" : "ativo";
-    console.log("[signup-agencia] forma_pagamento recebido:", forma_pagamento);
-    console.log("[signup-agencia] status_pagamento definido:", statusPagamento);
+    console.log("[signup-agencia] forma_pagamento:", forma_pagamento);
+    const statusPagamento = (forma_pagamento === "boleto") ? "pendente" : "ativo";
+    console.log("[signup-agencia] status_pagamento:", statusPagamento);
     const { data: agencia, error: agenciaError } = await supabaseAdmin
       .from("agencias")
       .insert({
@@ -97,10 +96,9 @@ Deno.serve(async (req) => {
         email,
         telefone,
         cnpj: cnpj || null,
-        cep: cep?.replace(/\D/g, "") || null,
         plano,
-        onboarding_completo: false,
         status_pagamento: statusPagamento,
+        onboarding_completo: false,
       })
       .select("id")
       .single();
@@ -109,13 +107,15 @@ Deno.serve(async (req) => {
       console.error("[signup-agencia] Erro agência:", agenciaError);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       if (agenciaError?.code === "23505" && agenciaError?.message?.includes("cnpj")) {
-        return new Response(JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
-      return new Response(JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || "") }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ error: "Erro ao criar agência: " + (agenciaError?.message || "") }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
     console.log("[signup-agencia] [STEP 2 OK] agenciaId:", agencia.id);
 
