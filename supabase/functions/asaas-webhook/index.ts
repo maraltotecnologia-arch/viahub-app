@@ -56,7 +56,6 @@ Deno.serve(async (req) => {
         if (agencia) {
           await supabaseAdmin.from("agencias").update({
             asaas_subscription_id: subId,
-            status_pagamento: "ativo",
           }).eq("id", agencia.id);
           console.log(`[asaas-webhook] Agência ${agencia.id} atualizada com subscription ${subId}`);
         }
