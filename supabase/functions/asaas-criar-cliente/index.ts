@@ -62,7 +62,8 @@ Deno.serve(async (req) => {
     const nome = agencia.nome_fantasia;
     const email = emailAgencia || undefined;
     const cnpjLimpo = agencia.cnpj?.replace(/\D/g, "") || "";
-    const telefone = agencia.telefone?.replace(/\D/g, "") || undefined;
+    const telefoneLimpo = agencia.telefone?.replace(/\D/g, "") || "";
+    const telefone = (telefoneLimpo.length >= 10 && telefoneLimpo.length <= 11) ? telefoneLimpo : undefined;
 
     if (!cnpjLimpo || cnpjLimpo.length < 11) {
       console.error("[asaas-criar-cliente] CNPJ inválido:", cnpjLimpo);
@@ -89,34 +90,76 @@ Deno.serve(async (req) => {
 
     if (customerId) {
       console.log(`[asaas-criar-cliente] Atualizando cliente existente ${customerId}...`);
+      const updateBody: Record<string, unknown> = { cpfCnpj: cnpjLimpo, name: nome, email };
+      if (telefone) updateBody.mobilePhone = telefone;
       const updateRes = await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "access_token": asaasKey },
-        body: JSON.stringify({ cpfCnpj: cnpjLimpo, name: nome, email, phone: telefone, mobilePhone: telefone }),
+        body: JSON.stringify(updateBody),
       });
       if (!updateRes.ok) {
         const updateData = await updateRes.json();
-        console.error("[asaas-criar-cliente] Erro update cliente:", updateData);
-        return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: updateData }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const isPhoneError = updateData.errors?.every((e: any) => e.code === "invalid_phone" || e.code === "invalid_mobilePhone");
+        if (isPhoneError) {
+          console.warn("[asaas-criar-cliente] Telefone inválido no update, tentando sem telefone...");
+          delete updateBody.mobilePhone;
+          const retryRes = await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "access_token": asaasKey },
+            body: JSON.stringify(updateBody),
+          });
+          if (!retryRes.ok) {
+            const retryData = await retryRes.json();
+            console.error("[asaas-criar-cliente] Erro update cliente (retry):", retryData);
+            return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: retryData }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        } else {
+          console.error("[asaas-criar-cliente] Erro update cliente:", updateData);
+          return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: updateData }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
       }
       console.log("[asaas-criar-cliente] Cliente atualizado");
     } else {
       console.log("[asaas-criar-cliente] Criando cliente...");
+      const bodyCliente: Record<string, unknown> = { name: nome, email, cpfCnpj: cnpjLimpo, externalReference: agencia_id };
+      if (telefone) bodyCliente.mobilePhone = telefone;
       const customerRes = await fetch(`${ASAAS_BASE}/customers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "access_token": asaasKey },
-        body: JSON.stringify({ name: nome, email, cpfCnpj: cnpjLimpo, phone: telefone, mobilePhone: telefone, externalReference: agencia_id }),
+        body: JSON.stringify(bodyCliente),
       });
       const customerData = await customerRes.json();
       if (!customerRes.ok) {
-        console.error("[asaas-criar-cliente] Erro criar cliente:", customerData);
-        return new Response(JSON.stringify({ error: "Erro ao criar cliente", details: customerData }), {
-          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        const isPhoneError = customerData.errors?.every((e: any) => e.code === "invalid_phone" || e.code === "invalid_mobilePhone");
+        if (isPhoneError) {
+          console.warn("[asaas-criar-cliente] Telefone inválido, tentando sem telefone...");
+          delete bodyCliente.mobilePhone;
+          const retryRes = await fetch(`${ASAAS_BASE}/customers`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "access_token": asaasKey },
+            body: JSON.stringify(bodyCliente),
+          });
+          const retryData = await retryRes.json();
+          if (!retryRes.ok) {
+            console.error("[asaas-criar-cliente] Erro criar cliente (retry):", retryData);
+            return new Response(JSON.stringify({ error: "Erro ao criar cliente", details: retryData }), {
+              status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+          customerId = retryData.id;
+        } else {
+          console.error("[asaas-criar-cliente] Erro criar cliente:", customerData);
+          return new Response(JSON.stringify({ error: "Erro ao criar cliente", details: customerData }), {
+            status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      } else {
+        customerId = customerData.id;
       }
-      customerId = customerData.id;
       console.log("[asaas-criar-cliente] Cliente criado:", customerId);
       await supabaseAdmin.from("agencias").update({ asaas_customer_id: customerId }).eq("id", agencia_id);
     }
@@ -239,7 +282,7 @@ Deno.serve(async (req) => {
         cpfCnpj: cnpjLimpo,
         postalCode: "00000000",
         addressNumber: "0",
-        phone: telefone || "",
+        mobilePhone: telefone || "",
       };
     }
 
