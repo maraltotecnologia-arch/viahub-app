@@ -38,14 +38,24 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    console.log("[Login] Tentando signInWithPassword para:", email);
+    const { data: sessionData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
-      setError("Email ou senha incorretos");
+      console.error("[Login] signInWithPassword FALHOU:", authError.message, "code:", (authError as any).code);
+      
+      if ((authError as any).code === "email_not_confirmed" || authError.message?.includes("Email not confirmed")) {
+        setError("Seu email ainda não foi confirmado. Verifique sua caixa de entrada.");
+      } else if (authError.message?.includes("Invalid login credentials")) {
+        setError("Email ou senha incorretos.");
+      } else {
+        setError(`Erro ao fazer login: ${authError.message}`);
+      }
       setLoading(false);
       return;
     }
 
+    console.log("[Login] signInWithPassword OK. User ID:", sessionData?.user?.id);
     // AuthContext + AppRoutes will handle the redirect based on status_pagamento
     setLoading(false);
   };
