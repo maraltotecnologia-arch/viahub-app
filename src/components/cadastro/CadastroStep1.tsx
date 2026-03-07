@@ -24,6 +24,11 @@ const maskCNPJ = (v: string) => {
     .replace(/(\d{4})(\d)/, "$1-$2");
 };
 
+const maskCEP = (v: string) => {
+  const d = v.replace(/\D/g, "").slice(0, 8);
+  return d.replace(/(\d{5})(\d)/, "$1-$2");
+};
+
 type Props = {
   data: CadastroData;
   updateData: (d: Partial<CadastroData>) => void;
@@ -42,6 +47,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
     if (!data.nomeAgencia.trim()) e.nomeAgencia = "Nome da agência é obrigatório";
     if (!data.cnpj.trim()) e.cnpj = "CNPJ é obrigatório";
     else if (!validarCNPJ(data.cnpj)) e.cnpj = "CNPJ inválido";
+    if (!data.cep.trim()) e.cep = "CEP é obrigatório";
+    else if (data.cep.replace(/\D/g, "").length !== 8) e.cep = "CEP inválido";
     if (!data.nomeAdmin.trim()) e.nomeAdmin = "Seu nome é obrigatório";
     if (!data.email.trim()) e.email = "Email é obrigatório";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email = "Email inválido";
@@ -105,7 +112,7 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
             <FieldError field="nomeAgencia" />
           </div>
 
-          {/* CNPJ | Telefone */}
+          {/* CNPJ | CEP */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <Label htmlFor="cnpj" className="text-xs font-medium text-[#64748B]">CNPJ *</Label>
@@ -113,17 +120,24 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
               <FieldError field="cnpj" />
             </div>
             <div className="space-y-1">
+              <Label htmlFor="cep" className="text-xs font-medium text-[#64748B]">CEP *</Label>
+              <Input id="cep" placeholder="00000-000" value={data.cep} onChange={(e) => updateData({ cep: maskCEP(e.target.value) })} className="h-9 text-sm" maxLength={9} />
+              <FieldError field="cep" />
+            </div>
+          </div>
+
+          {/* Telefone | Nome responsável */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
               <Label htmlFor="telefone" className="text-xs font-medium text-[#64748B]">Telefone *</Label>
               <Input id="telefone" placeholder="(11) 99999-9999" value={data.telefone} onChange={(e) => updateData({ telefone: maskTelefone(e.target.value) })} className="h-9 text-sm" />
               <FieldError field="telefone" />
             </div>
-          </div>
-
-          {/* Nome responsável */}
-          <div className="space-y-1">
-            <Label htmlFor="nomeAdmin" className="text-xs font-medium text-[#64748B]">Nome do Responsável *</Label>
-            <Input id="nomeAdmin" placeholder="João Silva" value={data.nomeAdmin} onChange={(e) => updateData({ nomeAdmin: e.target.value })} className="h-9 text-sm" />
-            <FieldError field="nomeAdmin" />
+            <div className="space-y-1">
+              <Label htmlFor="nomeAdmin" className="text-xs font-medium text-[#64748B]">Nome do Responsável *</Label>
+              <Input id="nomeAdmin" placeholder="João Silva" value={data.nomeAdmin} onChange={(e) => updateData({ nomeAdmin: e.target.value })} className="h-9 text-sm" />
+              <FieldError field="nomeAdmin" />
+            </div>
           </div>
 
           {/* Email */}

@@ -8,6 +8,7 @@ import CadastroStep3 from "@/components/cadastro/CadastroStep3";
 export type CadastroData = {
   nomeAgencia: string;
   cnpj: string;
+  cep: string;
   nomeAdmin: string;
   email: string;
   telefone: string;
@@ -37,6 +38,7 @@ export default function Cadastro() {
   const [data, setData] = useState<CadastroData>({
     nomeAgencia: "",
     cnpj: "",
+    cep: "",
     nomeAdmin: "",
     email: "",
     telefone: "",
