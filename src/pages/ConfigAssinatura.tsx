@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreditCard, Zap, FileText, CheckCircle2, AlertTriangle, Crown, Lock } from "lucide-react";
+import { CreditCard, Zap, FileText, CheckCircle2, AlertTriangle, Crown, Lock, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
+import MetodoPagamentoModal from "@/components/assinatura/MetodoPagamentoModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -37,6 +38,7 @@ export default function ConfigAssinatura() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [changingPlan, setChangingPlan] = useState<string | null>(null);
+  const [metodoModalOpen, setMetodoModalOpen] = useState(false);
 
   const { data: agencia, isLoading } = useQuery({
     queryKey: ["agencia-assinatura", agenciaId],
@@ -188,6 +190,49 @@ export default function ConfigAssinatura() {
           )}
         </CardContent>
       </Card>
+
+      {/* SEÇÃO — Método de Pagamento */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <CreditCard className="h-4 w-4 text-primary" />
+            Método de Pagamento
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {forma ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <forma.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="font-medium">{forma.text}</p>
+                  <p className="text-xs text-muted-foreground">Método atual de cobrança</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setMetodoModalOpen(true)}>
+                <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                Trocar método
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">Nenhum método de pagamento registrado</p>
+              <Button variant="outline" size="sm" onClick={() => setMetodoModalOpen(true)}>
+                Definir método
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <MetodoPagamentoModal
+        open={metodoModalOpen}
+        onOpenChange={setMetodoModalOpen}
+        agenciaId={agenciaId || ""}
+        metodoAtual={ultimoPagamento?.forma_pagamento || null}
+      />
 
       {/* SEÇÃO C — Trocar plano */}
       <Card>
