@@ -413,11 +413,13 @@ export default function ConfigAssinatura() {
                 </p>
               </div>
               <div className="flex justify-center">
-                <img
-                  src={`data:image/png;base64,${pixData.encodedImage}`}
-                  alt="QR Code PIX"
-                  className="w-56 h-56 rounded-lg border"
-                />
+                <div className="bg-white p-3 rounded-xl inline-block">
+                  <img
+                    src={`data:image/png;base64,${pixData.encodedImage}`}
+                    alt="QR Code PIX"
+                    className="w-56 h-56 rounded-lg"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">Copia e cola:</p>

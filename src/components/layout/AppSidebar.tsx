@@ -39,6 +39,20 @@ export function AppSidebar() {
     },
   });
 
+  const { data: agenciaInfo } = useQuery({
+    queryKey: ["agencia-nome", agenciaId],
+    enabled: !!agenciaId && !isSuperadmin,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("agencias")
+        .select("nome_fantasia")
+        .eq("id", agenciaId!)
+        .single();
+      return data;
+    },
+  });
+
+  const nomeAgencia = isSuperadmin ? "ViaHub Admin" : agenciaInfo?.nome_fantasia || "";
   const initials = nome ? nome.slice(0, 2).toUpperCase() : user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
 
   const handleSignOut = async () => {
@@ -181,6 +195,9 @@ export function AppSidebar() {
             <div className="flex-1 min-w-0">
               <p className={`text-sm font-medium truncate ${isDark ? "text-white/80" : "text-white/90"}`}>{nome || user?.email || "Usuário"}</p>
               <p className="text-xs text-white/40">{cargoLabel}</p>
+              {nomeAgencia && (
+                <p className="text-[10px] text-white/25 truncate" title={nomeAgencia}>{nomeAgencia}</p>
+              )}
             </div>
             <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
               <LogOut className="h-4 w-4" />

@@ -19,12 +19,25 @@ export default function useNotificacoes() {
     enabled: !!user,
     refetchInterval: 5 * 60 * 1000,
     queryFn: async () => {
-      // Get all active notifications
-      const { data: todas, error } = await supabase
+      // Get user creation date to filter out older notifications
+      const { data: perfil } = await supabase
+        .from("usuarios")
+        .select("criado_em")
+        .eq("id", user!.id)
+        .single();
+
+      // Get all active notifications created after user signup
+      let query = supabase
         .from("notificacoes_sistema")
         .select("*")
         .eq("ativo", true)
         .order("criado_em", { ascending: false });
+
+      if (perfil?.criado_em) {
+        query = query.gte("criado_em", perfil.criado_em);
+      }
+
+      const { data: todas, error } = await query;
       if (error) throw error;
 
       // Get read notifications for this user

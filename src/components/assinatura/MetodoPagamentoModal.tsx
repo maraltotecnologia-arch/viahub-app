@@ -76,11 +76,13 @@ function PixResultView({ qrCodeImage, copiaECola, paymentId, onConfirmed }: {
     <div className="space-y-4">
       <div className="flex flex-col items-center gap-3 p-4">
         <p className="text-sm font-medium text-center">Escaneie o QR Code ou copie o código abaixo</p>
-        <img
-          src={`data:image/png;base64,${qrCodeImage}`}
-          alt="QR Code PIX"
-          className="w-48 h-48 border rounded-lg"
-        />
+        <div className="bg-white p-3 rounded-xl inline-block">
+          <img
+            src={`data:image/png;base64,${qrCodeImage}`}
+            alt="QR Code PIX"
+            className="w-48 h-48 rounded-lg"
+          />
+        </div>
       </div>
 
       <div className="space-y-2">

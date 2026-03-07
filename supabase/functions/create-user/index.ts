@@ -142,6 +142,29 @@ Deno.serve(async (req) => {
 
     console.log("[create-user] Auth user criado:", data.user.id);
 
+    // Mark pre-existing notifications as read for the new user
+    if (targetAgenciaId) {
+      try {
+        const { data: oldNotifs } = await supabaseAdmin
+          .from("notificacoes_sistema")
+          .select("id")
+          .or(`agencia_id.eq.${targetAgenciaId},agencia_id.is.null`)
+          .eq("ativo", true);
+
+        if (oldNotifs && oldNotifs.length > 0) {
+          await supabaseAdmin
+            .from("notificacoes_lidas")
+            .insert(oldNotifs.map((n: any) => ({
+              notificacao_id: n.id,
+              usuario_id: data.user.id,
+            })));
+          console.log("[create-user] Marcou", oldNotifs.length, "notificações antigas como lidas");
+        }
+      } catch (e) {
+        console.warn("[create-user] Erro ao marcar notificações antigas:", (e as Error).message);
+      }
+    }
+
     // Send credentials email (non-blocking)
     try {
       const agencyName = nome_agencia || "";
