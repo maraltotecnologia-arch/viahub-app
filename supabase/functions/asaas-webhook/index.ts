@@ -29,15 +29,51 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const event = body.event;
     const payment = body.payment;
+    const subscription = body.subscription;
 
-    if (!event || !payment) {
+    if (!event) {
       return new Response(JSON.stringify({ error: "Payload inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`[asaas-webhook] Evento: ${event}, Payment ID: ${payment.id}`);
+    console.log(`[asaas-webhook] Evento: ${event}`, JSON.stringify({ paymentId: payment?.id, subscriptionId: subscription?.id }));
+
+    // Handle subscription events (no payment field)
+    if (event === "SUBSCRIPTION_CREATED") {
+      const subId = subscription?.id;
+      const customerId = subscription?.customer;
+      console.log(`[asaas-webhook] Assinatura criada: ${subId}, customer: ${customerId}`);
+
+      if (subId && customerId) {
+        const { data: agencia } = await supabaseAdmin
+          .from("agencias")
+          .select("id")
+          .eq("asaas_customer_id", customerId)
+          .single();
+
+        if (agencia) {
+          await supabaseAdmin.from("agencias").update({
+            asaas_subscription_id: subId,
+            status_pagamento: "ativo",
+          }).eq("id", agencia.id);
+          console.log(`[asaas-webhook] Agência ${agencia.id} atualizada com subscription ${subId}`);
+        }
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // For payment events, require payment field
+    if (!payment) {
+      console.log(`[asaas-webhook] Evento sem payment, ignorando: ${event}`);
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Find agency by customer ID
     const { data: agencia } = await supabaseAdmin
@@ -48,7 +84,7 @@ Deno.serve(async (req) => {
 
     if (!agencia) {
       console.error("[asaas-webhook] Agência não encontrada para customer:", payment.customer);
-      return new Response(JSON.stringify({ ok: true, skipped: "agency_not_found" }), {
+      return new Response(JSON.stringify({ received: true, skipped: "agency_not_found" }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
