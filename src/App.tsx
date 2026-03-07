@@ -35,6 +35,7 @@ import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
 import Cadastro from "./pages/Cadastro";
+import ReativarPlano from "./pages/ReativarPlano";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 
@@ -56,6 +57,7 @@ function AppRoutes() {
       <Route path="/" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Index />} />
       <Route path="/login" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
+      <Route path="/reativar-plano" element={<ReativarPlano />} />
       <Route path="/termos" element={<TermosDeUso />} />
       <Route path="/privacidade" element={<PoliticaPrivacidade />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />

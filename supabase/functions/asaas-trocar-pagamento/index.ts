@@ -54,18 +54,176 @@ Deno.serve(async (req) => {
       .eq("id", agencia_id)
       .single();
 
-    if (agErr || !agencia?.asaas_subscription_id || !agencia?.asaas_customer_id) {
-      console.error("[asaas-trocar-pagamento] Agência/assinatura não encontrada:", agErr);
-      return new Response(JSON.stringify({ error: "Assinatura não encontrada" }), {
+    if (agErr || !agencia?.asaas_customer_id) {
+      console.error("[asaas-trocar-pagamento] Agência/cliente não encontrada:", agErr);
+      return new Response(JSON.stringify({ error: "Agência não encontrada" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const subscriptionId = agencia.asaas_subscription_id;
+    let subscriptionId = agencia.asaas_subscription_id;
     const customerId = agencia.asaas_customer_id;
     const planoLabel = PLANO_LABEL[agencia.plano || "starter"] || "Starter";
+    const PLANO_VALOR: Record<string, number> = { starter: 397, pro: 697, elite: 1997 };
+    const planoValor = PLANO_VALOR[agencia.plano || "starter"] || 397;
 
-    // ─── STEP 1: Update subscription billingType ───
+    // ─── STEP 0: Verify subscription exists in Asaas ───
+    let subscriptionExists = false;
+
+    if (subscriptionId) {
+      console.log(`[asaas-trocar-pagamento] Verificando assinatura ${subscriptionId} no Asaas`);
+      const checkRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}`, {
+        headers: { "access_token": asaasKey },
+      });
+
+      if (checkRes.ok) {
+        const checkData = await checkRes.json();
+        if (checkData.deleted === true || checkData.status === "INACTIVE" || checkData.status === "EXPIRED") {
+          console.log(`[asaas-trocar-pagamento] Assinatura ${subscriptionId} deletada/inativa no Asaas`);
+          subscriptionExists = false;
+        } else {
+          subscriptionExists = true;
+        }
+      } else {
+        console.log(`[asaas-trocar-pagamento] Assinatura ${subscriptionId} não encontrada no Asaas (${checkRes.status})`);
+        subscriptionExists = false;
+      }
+    }
+
+    // If subscription doesn't exist, create a new one
+    if (!subscriptionExists) {
+      console.log("[asaas-trocar-pagamento] Assinatura não existe, criando nova...");
+
+      // Clear old subscription ID
+      await supabaseAdmin.from("agencias").update({ asaas_subscription_id: null }).eq("id", agencia_id);
+
+      // Calculate next due date
+      const todayUTC = new Date();
+      const year = todayUTC.getFullYear();
+      const month = String(todayUTC.getMonth() + 1).padStart(2, "0");
+      const day = String(todayUTC.getDate()).padStart(2, "0");
+      const nextDueStr = `${year}-${month}-${day}`;
+
+      const newSubBody: Record<string, unknown> = {
+        customer: customerId,
+        billingType: novo_metodo,
+        value: planoValor,
+        nextDueDate: nextDueStr,
+        cycle: "MONTHLY",
+        description: `ViaHub — Plano ${planoLabel}`,
+      };
+
+      if (novo_metodo === "CREDIT_CARD" && cardNumber) {
+        newSubBody.creditCard = {
+          holderName: cardHolderName,
+          number: cardNumber.replace(/\s/g, ""),
+          expiryMonth: cardExpiryMonth,
+          expiryYear: cardExpiryYear,
+          ccv: cardCvv,
+        };
+        newSubBody.creditCardHolderInfo = {
+          name: cardHolderName,
+          email: agencia.email || "",
+          cpfCnpj: agencia.cnpj?.replace(/\D/g, "") || "",
+          postalCode: agencia.cep?.replace(/\D/g, "") || "01310100",
+          addressNumber: "0",
+          phone: agencia.telefone?.replace(/\D/g, "") || undefined,
+        };
+      }
+
+      const newSubRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        body: JSON.stringify(newSubBody),
+      });
+      const newSubData = await newSubRes.json();
+
+      if (!newSubRes.ok) {
+        const errorMsg = newSubData.errors?.[0]?.description || "Erro ao criar nova assinatura";
+        console.error("[asaas-trocar-pagamento] Erro ao criar subscription:", errorMsg);
+        return new Response(JSON.stringify({ error: errorMsg }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      subscriptionId = newSubData.id;
+      console.log(`[asaas-trocar-pagamento] Nova assinatura criada: ${subscriptionId}`);
+
+      await supabaseAdmin.from("agencias").update({
+        asaas_subscription_id: subscriptionId,
+        data_proximo_vencimento: nextDueStr,
+        status_pagamento: novo_metodo === "BOLETO" ? "pendente" : "ativo",
+      }).eq("id", agencia_id);
+
+      // Get first payment of new subscription
+      try {
+        const paymentsRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}/payments?limit=1`, {
+          headers: { "access_token": asaasKey },
+        });
+        const paymentsData = await paymentsRes.json();
+
+        if (paymentsData?.data?.length > 0) {
+          const firstPayment = paymentsData.data[0];
+
+          await supabaseAdmin.from("asaas_pagamentos").insert({
+            agencia_id,
+            asaas_payment_id: firstPayment.id,
+            status: firstPayment.status,
+            valor: firstPayment.value,
+            vencimento: firstPayment.dueDate,
+            forma_pagamento: novo_metodo,
+            boleto_url: firstPayment.bankSlipUrl || null,
+            boleto_linha_digitavel: firstPayment.identificationField || firstPayment.nossoNumero || null,
+          });
+
+          // If PIX, get QR code
+          if (novo_metodo === "PIX") {
+            const pixRes = await fetch(`${ASAAS_BASE}/payments/${firstPayment.id}/pixQrCode`, {
+              headers: { "access_token": asaasKey },
+            });
+            const pixData = await pixRes.json();
+
+            if (pixRes.ok && pixData.encodedImage) {
+              await supabaseAdmin.from("asaas_pagamentos").update({
+                pix_qr_code: pixData.encodedImage,
+                pix_copia_cola: pixData.payload,
+              }).eq("asaas_payment_id", firstPayment.id);
+
+              return new Response(JSON.stringify({
+                success: true,
+                nova_assinatura: true,
+                metodo: "PIX",
+                pixQrCodeImage: pixData.encodedImage,
+                pixCopiaECola: pixData.payload,
+                pixPaymentId: firstPayment.id,
+              }), {
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              });
+            }
+          }
+
+          if (novo_metodo === "BOLETO") {
+            return new Response(JSON.stringify({
+              success: true,
+              nova_assinatura: true,
+              metodo: "BOLETO",
+              boletoUrl: firstPayment.bankSlipUrl || null,
+              boletoLinhaDigitavel: firstPayment.identificationField || firstPayment.nossoNumero || null,
+            }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } catch (e) {
+        console.error("[asaas-trocar-pagamento] Erro ao buscar pagamento da nova subscription:", (e as Error).message);
+      }
+
+      return new Response(JSON.stringify({ success: true, nova_assinatura: true, metodo: novo_metodo }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─── STEP 1: Update existing subscription billingType ───
     console.log(`[asaas-trocar-pagamento] Atualizando billingType para ${novo_metodo} na subscription ${subscriptionId}`);
 
     let subBody: Record<string, unknown> = { billingType: novo_metodo };
