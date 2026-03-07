@@ -18,6 +18,19 @@ export type CadastroData = {
   formaPagamento: string;
 };
 
+export type PaymentResult = {
+  formaPagamento: string;
+  email: string;
+  invoiceUrl?: string;
+  boletoUrl?: string;
+  boletoLinhaDigitavel?: string;
+  pixQrCode?: string;
+  pixPayload?: string;
+  paymentId?: string;
+  subscriptionId?: string;
+  agenciaId?: string;
+};
+
 export default function Cadastro() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -30,15 +43,10 @@ export default function Cadastro() {
     telefone: "",
     senha: "",
     confirmarSenha: "",
-    plano: "",
+    plano: "pro",
     formaPagamento: "",
   });
-  const [paymentResult, setPaymentResult] = useState<{
-    invoiceUrl?: string;
-    boletoUrl?: string;
-    formaPagamento: string;
-    email: string;
-  } | null>(null);
+  const [paymentResult, setPaymentResult] = useState<PaymentResult | null>(null);
 
   useEffect(() => {
     document.title = "Criar conta — ViaHub";
@@ -63,14 +71,14 @@ export default function Cadastro() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#F8FAFC" }}>
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: "#F8FAFC" }}>
       {/* Progress indicator */}
-      <div className="w-full py-6 px-4">
+      <div className="w-full py-3 px-4 shrink-0">
         <CadastroProgress currentStep={step} />
       </div>
 
-      <div className="flex-1 flex items-start justify-center px-4 pb-8">
-        <div className="w-full max-w-5xl animate-fade-in">
+      <div className="flex-1 flex items-start justify-center px-4 overflow-hidden lg:overflow-hidden">
+        <div className="w-full max-w-5xl animate-fade-in h-full lg:h-auto">
           {step === 0 && (
             <CadastroStep1
               data={data}
@@ -98,7 +106,7 @@ export default function Cadastro() {
         </div>
       </div>
 
-      <p className="text-center text-xs text-[#94A3B8] py-4">
+      <p className="text-center text-xs text-[#94A3B8] py-2 shrink-0">
         powered by <span className="font-semibold">Maralto</span>
       </p>
     </div>

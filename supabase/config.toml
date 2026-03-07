@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.asaas-verificar-bloqueio]
 verify_jwt = false
+
+[functions.asaas-verificar-pagamento]
+verify_jwt = false
