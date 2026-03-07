@@ -6,10 +6,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const LIMITE_USUARIOS: Record<string, number> = {
+  starter: 3,
+  pro: 10,
+  elite: 999,
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  console.log("[create-user] ========== INÍCIO ==========");
 
   try {
     const supabaseAdmin = createClient(
@@ -20,7 +28,8 @@ Deno.serve(async (req) => {
     // Verify caller is admin or superadmin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      console.error("[create-user] Sem header Authorization");
+      return new Response(JSON.stringify({ error: "Não autorizado", code: "AUTH009" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -29,11 +38,14 @@ Deno.serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: { user: caller }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !caller) {
-      return new Response(JSON.stringify({ error: "Não autorizado" }), {
+      console.error("[create-user] Auth error:", authError?.message);
+      return new Response(JSON.stringify({ error: "Não autorizado", code: "AUTH009" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("[create-user] Caller:", caller.id, caller.email);
 
     // Check caller is admin or superadmin
     const { data: callerProfile } = await supabaseAdmin
@@ -43,32 +55,77 @@ Deno.serve(async (req) => {
       .single();
 
     if (!callerProfile || !["admin", "superadmin"].includes(callerProfile.cargo)) {
-      return new Response(JSON.stringify({ error: "Sem permissão" }), {
+      console.error("[create-user] Sem permissão. Cargo:", callerProfile?.cargo);
+      return new Response(JSON.stringify({ error: "Sem permissão", code: "AUTH010" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { email, password, nome, nome_agencia } = await req.json();
+    const body = await req.json();
+    const { email, password, nome, nome_agencia, agencia_id } = body;
+
+    // Use agencia_id from body or from caller profile
+    const targetAgenciaId = agencia_id || callerProfile.agencia_id;
+
+    console.log("[create-user] Body recebido:", JSON.stringify({
+      email,
+      nome,
+      agencia_id: targetAgenciaId,
+      has_senha: !!password,
+    }));
 
     if (!email || !password) {
-      return new Response(JSON.stringify({ error: "Email e senha são obrigatórios" }), {
+      console.error("[create-user] Email ou senha ausentes");
+      return new Response(JSON.stringify({ error: "Email e senha são obrigatórios", code: "USR001" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Check plan user limit
+    if (targetAgenciaId) {
+      const { data: agencia } = await supabaseAdmin
+        .from("agencias")
+        .select("plano")
+        .eq("id", targetAgenciaId)
+        .single();
+
+      const limite = LIMITE_USUARIOS[agencia?.plano || "starter"] || 3;
+
+      const { count } = await supabaseAdmin
+        .from("usuarios")
+        .select("*", { count: "exact", head: true })
+        .eq("agencia_id", targetAgenciaId)
+        .eq("ativo", true);
+
+      console.log("[create-user] Plano:", agencia?.plano, "Usuarios ativos:", count, "Limite:", limite);
+
+      if (count !== null && count >= limite) {
+        console.error("[create-user] Limite de usuários atingido:", count, "/", limite);
+        return new Response(JSON.stringify({
+          error: `Limite de ${limite} usuários do plano ${agencia?.plano || "starter"} atingido`,
+          code: "USR006",
+        }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existing = existingUsers?.users?.find((u) => u.email === email);
     if (existing) {
-      return new Response(JSON.stringify({ error: "Este email já está cadastrado" }), {
+      console.error("[create-user] Email já cadastrado:", email);
+      return new Response(JSON.stringify({ error: "Este email já está cadastrado", code: "USR005" }), {
         status: 409,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Create user with email confirmed
+    console.log("[create-user] Criando usuário Auth...");
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
@@ -76,11 +133,14 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      return new Response(JSON.stringify({ error: error.message }), {
+      console.error("[create-user] Erro ao criar Auth user:", JSON.stringify(error));
+      return new Response(JSON.stringify({ error: error.message, code: "USR001" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("[create-user] Auth user criado:", data.user.id);
 
     // Send credentials email (non-blocking)
     try {
@@ -125,12 +185,15 @@ Deno.serve(async (req) => {
       console.error("[create-user] Erro email:", (emailErr as Error).message);
     }
 
+    console.log("[create-user] ========== SUCESSO ==========");
+
     return new Response(JSON.stringify({ user: { id: data.user.id, email: data.user.email } }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
+    console.error("[create-user] Erro inesperado:", (err as Error).message);
+    return new Response(JSON.stringify({ error: (err as Error).message, code: "SYS001" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

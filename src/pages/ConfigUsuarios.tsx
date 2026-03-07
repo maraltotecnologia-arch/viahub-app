@@ -93,6 +93,8 @@ export default function ConfigUsuarios() {
         return;
       }
 
+      console.log("[create-user] Enviando:", { email: addForm.email, nome: addForm.nome, cargo: addForm.cargo, agencia_id: agenciaId });
+
       // Criar usuário via edge function (email já confirmado)
       const { data: session } = await supabase.auth.getSession();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-user`, {
@@ -102,12 +104,15 @@ export default function ConfigUsuarios() {
           Authorization: `Bearer ${session.session?.access_token}`,
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
-        body: JSON.stringify({ email: addForm.email, password: addForm.senha, nome: addForm.nome }),
+        body: JSON.stringify({ email: addForm.email, password: addForm.senha, nome: addForm.nome, agencia_id: agenciaId }),
       });
 
       const result = await res.json();
+      console.log("[create-user] Resposta:", JSON.stringify(result), "status:", res.status);
+
       if (!res.ok) {
-        toast({ title: formatError("USR001"), description: result.error, variant: "destructive" });
+        const errorCode = result.code || "USR001";
+        toast({ title: formatError(errorCode), description: result.error, variant: "destructive" });
         setSaving(false);
         return;
       }
@@ -121,7 +126,8 @@ export default function ConfigUsuarios() {
       });
 
       if (insertError) {
-        toast({ title: formatError("USR001"), variant: "destructive" });
+        console.error("[create-user] Erro ao inserir na tabela usuarios:", insertError);
+        toast({ title: formatError("USR001"), description: insertError.message, variant: "destructive" });
         setSaving(false);
         return;
       }
