@@ -61,6 +61,16 @@ function AppRoutes() {
     );
   }
 
+  // Still loading agency status — show spinner, don't flash 404
+  if (statusPagamento === null && cargoUsuario === null) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
+        <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
+        <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
+      </div>
+    );
+  }
+
   // Block access for pending/blocked agencies (non-superadmin)
   const isPendingOrBlocked = (statusPagamento === "pendente" || statusPagamento === "bloqueado") && cargoUsuario !== "superadmin";
 
