@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -65,6 +65,7 @@ export function AppSidebar() {
   const configItems = [
     { title: "Markup", url: "/configuracoes/markup", icon: Settings },
     { title: "Agência", url: "/configuracoes/agencia", icon: Building2 },
+    { title: "Assinatura", url: "/configuracoes/assinatura", icon: CreditCard },
     { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
     { title: "Templates", url: "/configuracoes/templates", icon: FileText },
   ];

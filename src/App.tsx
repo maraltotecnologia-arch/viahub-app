@@ -22,6 +22,7 @@ import Clientes from "./pages/Clientes";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
 import ConfigMarkup from "./pages/ConfigMarkup";
 import ConfigAgencia from "./pages/ConfigAgencia";
+import ConfigAssinatura from "./pages/ConfigAssinatura";
 import ConfigUsuarios from "./pages/ConfigUsuarios";
 import ConfigTemplates from "./pages/ConfigTemplates";
 import AdminAgencias from "./pages/admin/AdminAgencias";
@@ -31,6 +32,7 @@ import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import Metas from "./pages/Metas";
 import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import PagamentoPendente from "./pages/PagamentoPendente";
+import AguardandoPagamento from "./pages/AguardandoPagamento";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
@@ -55,6 +57,7 @@ function AppRoutes() {
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
         <Route path="/redefinir-senha" element={<RedefinirSenha />} />
         <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
+        <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -68,6 +71,7 @@ function AppRoutes() {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
       <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
+      <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
       <Route element={<AppLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
@@ -82,6 +86,7 @@ function AppRoutes() {
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
         <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
         <Route path="/configuracoes/agencia" element={<ConfigAgencia />} />
+        <Route path="/configuracoes/assinatura" element={<ConfigAssinatura />} />
         <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
         <Route path="/configuracoes/templates" element={<ConfigTemplates />} />
         <Route path="/admin/agencias" element={<AdminAgencias />} />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-const steps = ["Dados da Agência", "Markup Padrão", "Confirmação"];
+const steps = ["Confirme seus dados", "Markup Padrão", "Confirmação"];
 
 const tiposServico = ["aereo", "hotel", "pacote", "seguro", "transfer"];
 const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pacote: "Pacote", seguro: "Seguro", transfer: "Transfer" };
@@ -18,6 +18,7 @@ const tiposLabel: Record<string, string> = { aereo: "Aéreo", hotel: "Hotel", pa
 export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -26,9 +27,39 @@ export default function Onboarding() {
   const [nomeFantasia, setNomeFantasia] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [cnpj, setCnpj] = useState("");
+  const [cep, setCep] = useState("");
   const [markups, setMarkups] = useState(
     tiposServico.map((t) => ({ tipo: t, markup: 0, taxa: 0 }))
   );
+
+  // Pre-fill from existing agency data
+  useEffect(() => {
+    if (!user?.id || dataLoaded) return;
+    const loadData = async () => {
+      const { data: userData } = await supabase
+        .from("usuarios")
+        .select("agencia_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!userData?.agencia_id) return;
+
+      const { data: agencia } = await supabase
+        .from("agencias")
+        .select("nome_fantasia, email, telefone, cnpj, cep")
+        .eq("id", userData.agencia_id)
+        .single();
+      if (agencia) {
+        if (agencia.nome_fantasia) setNomeFantasia(agencia.nome_fantasia);
+        if (agencia.email) setEmail(agencia.email);
+        if (agencia.telefone) setTelefone(agencia.telefone);
+        if (agencia.cnpj) setCnpj(agencia.cnpj);
+        if (agencia.cep) setCep(agencia.cep);
+      }
+      setDataLoaded(true);
+    };
+    loadData();
+  }, [user?.id, dataLoaded]);
 
   const updateMarkup = (tipo: string, field: "markup" | "taxa", value: number) => {
     setMarkups(markups.map((m) => (m.tipo === tipo ? { ...m, [field]: value } : m)));
@@ -42,7 +73,6 @@ export default function Onboarding() {
       }
       setLoading(true);
 
-      // 1. Buscar agencia_id do usuário logado
       const { data: sessionData } = await supabase.auth.getUser();
       const userId = sessionData?.user?.id;
       if (!userId) {
@@ -63,10 +93,15 @@ export default function Onboarding() {
         return;
       }
 
-      // 2. UPDATE usando o agencia_id retornado
       const { error } = await supabase
         .from("agencias")
-        .update({ nome_fantasia: nomeFantasia, email, telefone })
+        .update({
+          nome_fantasia: nomeFantasia,
+          email,
+          telefone,
+          cnpj: cnpj || null,
+          cep: cep || null,
+        })
         .eq("id", userData.agencia_id);
       setLoading(false);
       if (error) { toast({ title: "Erro ao salvar dados. Tente novamente.", description: error.message, variant: "destructive" }); return; }
@@ -150,9 +185,31 @@ export default function Onboarding() {
           <CardContent>
             {step === 0 && (
               <div className="space-y-4">
-                <div className="space-y-2"><Label>Nome Fantasia</Label><Input placeholder="Minha Agência de Viagens" value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="contato@minhaagencia.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-                <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 0000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} /></div>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Confirme os dados da sua agência. Os campos já vêm preenchidos com as informações do cadastro.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Nome Fantasia</Label>
+                    <Input placeholder="Minha Agência de Viagens" value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CNPJ</Label>
+                    <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>CEP</Label>
+                    <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input type="email" placeholder="contato@minhaagencia.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Telefone</Label>
+                    <Input placeholder="(00) 0000-0000" value={telefone} onChange={(e) => setTelefone(e.target.value)} />
+                  </div>
+                </div>
               </div>
             )}
 
