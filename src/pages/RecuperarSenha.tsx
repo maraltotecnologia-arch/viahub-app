@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +12,7 @@ export default function RecuperarSenha() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
-  const navigate = useNavigate();
+  
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'light');
@@ -31,27 +31,12 @@ export default function RecuperarSenha() {
 
     const trimmedEmail = email.toLowerCase().trim();
 
-    // Check if email exists before sending OTP
-    const { data } = await supabase
-      .from('usuarios')
-      .select('id')
-      .eq('email', trimmedEmail)
-      .maybeSingle();
+    // Send password reset email (magic link)
+    await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+      redirectTo: `${window.location.origin}/redefinir-senha`,
+    });
 
-    if (data) {
-      // Send OTP for password recovery
-      await supabase.auth.signInWithOtp({
-        email: trimmedEmail,
-        options: { shouldCreateUser: false },
-      });
-
-      setLoading(false);
-      // Redirect to OTP verification page with recovery flag
-      navigate(`/verificar-email?email=${encodeURIComponent(trimmedEmail)}&tipo=recuperacao`);
-      return;
-    }
-
-    // Email not found — show generic message
+    // Always show success to avoid email enumeration
     setSent(true);
     setLoading(false);
   };
