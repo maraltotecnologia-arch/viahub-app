@@ -107,6 +107,7 @@ Deno.serve(async (req) => {
           name: nome,
           email,
           phone: telefone,
+          mobilePhone: telefone,
         }),
       });
 
@@ -133,6 +134,7 @@ Deno.serve(async (req) => {
           email,
           cpfCnpj: cnpjLimpo,
           phone: telefone,
+          mobilePhone: telefone,
           externalReference: agencia_id,
         }),
       });
