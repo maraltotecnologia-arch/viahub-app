@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     const billingType = requestedBillingType || "UNDEFINED";
-    console.log("[asaas-criar-cliente] agencia_id:", agencia_id, "billingType:", billingType);
+    console.log("[asaas-criar-cliente] agencia_id:", agencia_id, "billingType:", billingType, "has_creditCard:", !!creditCard);
 
     // Fetch agency
     const { data: agencia, error: agError } = await supabaseAdmin
@@ -110,13 +110,13 @@ Deno.serve(async (req) => {
           });
           if (!retryRes.ok) {
             const retryData = await retryRes.json();
-            console.error("[asaas-criar-cliente] Erro update cliente (retry):", retryData);
+            console.error("[asaas-criar-cliente] Erro update cliente (retry):", JSON.stringify(retryData));
             return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: retryData }), {
               status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
         } else {
-          console.error("[asaas-criar-cliente] Erro update cliente:", updateData);
+          console.error("[asaas-criar-cliente] Erro update cliente:", JSON.stringify(updateData));
           return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: updateData }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -145,14 +145,14 @@ Deno.serve(async (req) => {
           });
           const retryData = await retryRes.json();
           if (!retryRes.ok) {
-            console.error("[asaas-criar-cliente] Erro criar cliente (retry):", retryData);
+            console.error("[asaas-criar-cliente] Erro criar cliente (retry):", JSON.stringify(retryData));
             return new Response(JSON.stringify({ error: "Erro ao criar cliente", details: retryData }), {
               status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
           }
           customerId = retryData.id;
         } else {
-          console.error("[asaas-criar-cliente] Erro criar cliente:", customerData);
+          console.error("[asaas-criar-cliente] Erro criar cliente:", JSON.stringify(customerData));
           return new Response(JSON.stringify({ error: "Erro ao criar cliente", details: customerData }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -183,28 +183,36 @@ Deno.serve(async (req) => {
           billingType: "PIX",
           value: valor,
           dueDate: nextDueStr,
-          description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano} (1º mês)`,
+          description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano} (1ª mensalidade)`,
+          externalReference: agencia_id,
         }),
       });
       const pixPaymentData = await pixPaymentRes.json();
+      console.log("[asaas-criar-cliente] PIX response completo:", JSON.stringify(pixPaymentData));
+
       if (!pixPaymentRes.ok) {
-        console.error("[asaas-criar-cliente] Erro cobrança PIX:", pixPaymentData);
+        console.error("[asaas-criar-cliente] Erro cobrança PIX:", JSON.stringify(pixPaymentData));
         return new Response(JSON.stringify({ error: "Erro ao criar cobrança PIX", details: pixPaymentData }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      console.log("[asaas-criar-cliente] Cobrança PIX criada:", pixPaymentData.id);
 
-      // Get PIX QR Code
+      const pixPaymentId = pixPaymentData.id;
+      console.log("[asaas-criar-cliente] Cobrança PIX criada:", pixPaymentId);
+
+      // Get PIX QR Code from separate endpoint
       let pixQrCode = "";
       let pixPayload = "";
+      let pixExpirationDate = "";
       try {
-        const qrRes = await fetch(`${ASAAS_BASE}/payments/${pixPaymentData.id}/pixQrCode`, {
+        const qrRes = await fetch(`${ASAAS_BASE}/payments/${pixPaymentId}/pixQrCode`, {
           headers: { "access_token": asaasKey },
         });
         const qrData = await qrRes.json();
+        console.log("[asaas-criar-cliente] QR Code response:", JSON.stringify(qrData));
         pixQrCode = qrData.encodedImage || "";
         pixPayload = qrData.payload || "";
+        pixExpirationDate = qrData.expirationDate || "";
       } catch (e) {
         console.error("[asaas-criar-cliente] Erro QR Code:", (e as Error).message);
       }
@@ -212,7 +220,7 @@ Deno.serve(async (req) => {
       // Save payment
       await supabaseAdmin.from("asaas_pagamentos").insert({
         agencia_id,
-        asaas_payment_id: pixPaymentData.id,
+        asaas_payment_id: pixPaymentId,
         status: pixPaymentData.status,
         valor: pixPaymentData.value,
         vencimento: pixPaymentData.dueDate,
@@ -239,6 +247,8 @@ Deno.serve(async (req) => {
         }),
       });
       const subData = await subRes.json();
+      console.log("[asaas-criar-cliente] Assinatura UNDEFINED response:", JSON.stringify(subData));
+
       if (subRes.ok) {
         await supabaseAdmin.from("agencias").update({
           asaas_subscription_id: subData.id,
@@ -250,15 +260,16 @@ Deno.serve(async (req) => {
         success: true,
         customer_id: customerId,
         subscription_id: subData?.id,
-        paymentId: pixPaymentData.id,
+        paymentId: pixPaymentId,
         pixQrCode,
         pixPayload,
+        pixExpirationDate,
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // --- CREDIT CARD with transparent checkout ---
+    // --- CREDIT CARD or BOLETO subscription ---
     const subscriptionBody: Record<string, unknown> = {
       customer: customerId,
       billingType: billingType === "CREDIT_CARD" ? "CREDIT_CARD" : billingType,
@@ -269,9 +280,17 @@ Deno.serve(async (req) => {
     };
 
     if (billingType === "CREDIT_CARD" && creditCard) {
+      console.log("[asaas-criar-cliente] Preparando dados do cartão...", {
+        holderName: creditCard.holderName,
+        numberLength: creditCard.number?.replace(/\s/g, "")?.length,
+        expiryMonth: creditCard.expiryMonth,
+        expiryYear: creditCard.expiryYear,
+        hasCcv: !!creditCard.ccv,
+      });
+
       subscriptionBody.creditCard = {
         holderName: creditCard.holderName,
-        number: creditCard.number,
+        number: creditCard.number?.replace(/\s/g, ""),
         expiryMonth: creditCard.expiryMonth,
         expiryYear: creditCard.expiryYear,
         ccv: creditCard.ccv,
@@ -282,7 +301,7 @@ Deno.serve(async (req) => {
         cpfCnpj: cnpjLimpo,
         postalCode: "00000000",
         addressNumber: "0",
-        mobilePhone: telefone || "",
+        mobilePhone: telefone || "00000000000",
       };
     }
 
@@ -294,11 +313,13 @@ Deno.serve(async (req) => {
     });
 
     const subData = await subRes.json();
+    console.log("[asaas-criar-cliente] Cartão/Boleto response completo:", JSON.stringify(subData));
+
     if (!subRes.ok) {
-      console.error("[asaas-criar-cliente] Erro assinatura:", subData);
+      console.error("[asaas-criar-cliente] Erro assinatura:", JSON.stringify(subData));
       const errorMsg = subData.errors?.[0]?.description || "Erro ao criar assinatura";
       return new Response(JSON.stringify({ error: errorMsg, details: subData }), {
-        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -320,12 +341,13 @@ Deno.serve(async (req) => {
         headers: { "access_token": asaasKey },
       });
       const paymentsData = await paymentsRes.json();
+      console.log("[asaas-criar-cliente] Primeiro pagamento response:", JSON.stringify(paymentsData));
 
       if (paymentsData?.data?.length > 0) {
         const firstPayment = paymentsData.data[0];
         invoiceUrl = firstPayment.invoiceUrl;
         boletoUrl = firstPayment.bankSlipUrl;
-        boletoLinhaDigitavel = firstPayment.nossoNumero;
+        boletoLinhaDigitavel = firstPayment.identificationField || firstPayment.nossoNumero;
         paymentId = firstPayment.id;
 
         await supabaseAdmin.from("asaas_pagamentos").insert({
@@ -336,7 +358,7 @@ Deno.serve(async (req) => {
           vencimento: firstPayment.dueDate,
           forma_pagamento: billingType,
           boleto_url: firstPayment.bankSlipUrl || null,
-          boleto_linha_digitavel: firstPayment.nossoNumero || null,
+          boleto_linha_digitavel: boletoLinhaDigitavel || null,
         });
       }
     } catch (e) {
@@ -355,7 +377,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("[asaas-criar-cliente] Erro:", (err as Error).message);
+    console.error("[asaas-criar-cliente] Erro geral:", (err as Error).message, (err as Error).stack);
     return new Response(JSON.stringify({ error: (err as Error).message }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
