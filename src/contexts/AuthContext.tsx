@@ -1,28 +1,89 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const AuthContext = createContext<any>(null);
+interface AuthContextType {
+  user: any;
+  loading: boolean;
+  refreshUser: () => Promise<void>;
+  signOut: () => Promise<void>;
+  statusPagamento: string | null;
+  cargoUsuario: string | null;
+}
+
+const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [statusPagamento, setStatusPagamento] = useState<string | null>(null);
+  const [cargoUsuario, setCargoUsuario] = useState<string | null>(null);
+
+  const fetchAgencyStatus = async (userId: string) => {
+    try {
+      const { data: perfil, error: perfilError } = await supabase
+        .from("usuarios")
+        .select("agencia_id, cargo")
+        .eq("id", userId)
+        .maybeSingle();
+
+      console.log("[AuthContext] perfil:", perfil, "error:", perfilError);
+
+      if (!perfil) {
+        setStatusPagamento(null);
+        setCargoUsuario(null);
+        return;
+      }
+
+      setCargoUsuario(perfil.cargo);
+
+      if (perfil.cargo === "superadmin") {
+        console.log("[AuthContext] superadmin detected, skipping status check");
+        setStatusPagamento("ativo");
+        return;
+      }
+
+      if (!perfil.agencia_id) {
+        setStatusPagamento(null);
+        return;
+      }
+
+      const { data: agencia, error: agenciaError } = await supabase
+        .from("agencias")
+        .select("status_pagamento")
+        .eq("id", perfil.agencia_id)
+        .single();
+
+      console.log("[AuthContext] agencia status_pagamento:", agencia?.status_pagamento, "error:", agenciaError);
+      setStatusPagamento(agencia?.status_pagamento ?? null);
+    } catch (err) {
+      console.error("[AuthContext] fetchAgencyStatus error:", err);
+      setStatusPagamento(null);
+      setCargoUsuario(null);
+    }
+  };
 
   const refreshUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    setUser(session?.user ?? null);
+    const u = session?.user ?? null;
+    setUser(u);
+    if (u) await fetchAgencyStatus(u.id);
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setStatusPagamento(null);
+    setCargoUsuario(null);
     document.documentElement.setAttribute('data-theme', 'light');
   };
 
   useEffect(() => {
     supabase.auth
       .getSession()
-      .then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
+      .then(async ({ data: { session } }) => {
+        const u = session?.user ?? null;
+        setUser(u);
+        if (u) await fetchAgencyStatus(u.id);
       })
       .catch(() => {
         setUser(null);
@@ -33,11 +94,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+
+      if (u) {
+        await fetchAgencyStatus(u.id);
+      } else {
+        setStatusPagamento(null);
+        setCargoUsuario(null);
+      }
 
       if (_event === "SIGNED_IN" && session?.user) {
-        // Fire-and-forget — never block auth flow
         const userId = session.user.id;
         const email = session.user.email;
         Promise.resolve(
@@ -73,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </div>
   );
 
-  return <AuthContext.Provider value={{ user, refreshUser, signOut }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, refreshUser, signOut, statusPagamento, cargoUsuario }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);

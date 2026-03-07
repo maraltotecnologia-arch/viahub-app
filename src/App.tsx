@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import useUserRole from "@/hooks/useUserRole";
 import Login from "./pages/Login";
 
 import Onboarding from "./pages/Onboarding";
@@ -43,7 +42,7 @@ import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user } = useAuth();
+  const { user, statusPagamento, cargoUsuario } = useAuth() as any;
 
   if (!user) {
     return (
@@ -58,6 +57,21 @@ function AppRoutes() {
         <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
         <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    );
+  }
+
+  // Block access for pending/blocked agencies (non-superadmin)
+  const isPendingOrBlocked = (statusPagamento === "pendente" || statusPagamento === "bloqueado") && cargoUsuario !== "superadmin";
+
+  console.log("[AppRoutes] statusPagamento:", statusPagamento, "cargoUsuario:", cargoUsuario, "isPendingOrBlocked:", isPendingOrBlocked);
+
+  if (isPendingOrBlocked) {
+    return (
+      <Routes>
+        <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
+        <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
+        <Route path="*" element={<Navigate to="/aguardando-pagamento" replace />} />
       </Routes>
     );
   }
