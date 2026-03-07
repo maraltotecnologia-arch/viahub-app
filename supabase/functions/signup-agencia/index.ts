@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
 
     // Step 2: Create agencia
     console.log("[signup-agencia] [STEP 2] Criando agência...");
+    const isBoleto = forma_pagamento === "boleto";
     const { data: agencia, error: agenciaError } = await supabaseAdmin
       .from("agencias")
       .insert({
@@ -96,6 +97,7 @@ Deno.serve(async (req) => {
         cep: cep?.replace(/\D/g, "") || null,
         plano,
         onboarding_completo: false,
+        status_pagamento: isBoleto ? "pendente" : "ativo",
       })
       .select("id")
       .single();

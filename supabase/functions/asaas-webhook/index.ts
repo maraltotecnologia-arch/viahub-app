@@ -126,6 +126,15 @@ Deno.serve(async (req) => {
         const dueDate = new Date(payment.dueDate);
         const nextDue = new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, dueDate.getDate());
 
+        // Check if agency was pending (boleto first payment)
+        const { data: agenciaAtual } = await supabaseAdmin
+          .from("agencias")
+          .select("status_pagamento, email")
+          .eq("id", agencia.id)
+          .single();
+
+        const wasPending = agenciaAtual?.status_pagamento === "pendente";
+
         // Update agency status
         await supabaseAdmin.from("agencias").update({
           status_pagamento: "ativo",
@@ -135,14 +144,26 @@ Deno.serve(async (req) => {
 
         // Send confirmation email
         try {
-          await supabaseAdmin.functions.invoke("enviar-email", {
-            body: {
-              to: agencia.email,
-              subject: "Pagamento recebido! ✓",
-              type: "pagamento_confirmado",
-              html: buildPaymentConfirmedHtml(agencia.nome_fantasia, payment.value, agencia.plano, nextDue),
-            },
-          });
+          if (wasPending) {
+            // Boleto first payment confirmed — send access email
+            await supabaseAdmin.functions.invoke("enviar-email", {
+              body: {
+                to: agencia.email,
+                subject: "Seu acesso ao ViaHub foi liberado! 🎉",
+                type: "acesso_liberado",
+                html: buildAccessGrantedHtml(agencia.nome_fantasia),
+              },
+            });
+          } else {
+            await supabaseAdmin.functions.invoke("enviar-email", {
+              body: {
+                to: agencia.email,
+                subject: "Pagamento recebido! ✓",
+                type: "pagamento_confirmado",
+                html: buildPaymentConfirmedHtml(agencia.nome_fantasia, payment.value, agencia.plano, nextDue),
+              },
+            });
+          }
         } catch (e) {
           console.error("[asaas-webhook] Erro ao enviar email:", e);
         }
