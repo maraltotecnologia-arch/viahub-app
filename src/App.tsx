@@ -31,7 +31,6 @@ import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
 import Metas from "./pages/Metas";
 import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import PagamentoPendente from "./pages/PagamentoPendente";
-import AguardandoPagamento from "./pages/AguardandoPagamento";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
 import Index from "./pages/Index";
@@ -49,54 +48,35 @@ const LoadingScreen = () => (
 );
 
 function AppRoutes() {
-  const { user, loading, statusPagamento, cargoUsuario } = useAuth() as any;
+  const { user, loading } = useAuth() as any;
 
   return (
     <Routes>
       {/* === Public routes — always eager rendered === */}
-      <Route path="/" element={user && !loading && statusPagamento !== null ? <Navigate to="/dashboard" replace /> : <Index />} />
-      <Route path="/login" element={user && !loading && statusPagamento !== null ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Index />} />
+      <Route path="/login" element={user && !loading ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/cadastro" element={<Cadastro />} />
       <Route path="/termos" element={<TermosDeUso />} />
       <Route path="/privacidade" element={<PoliticaPrivacidade />} />
       <Route path="/recuperar-senha" element={<RecuperarSenha />} />
       <Route path="/redefinir-senha" element={<RedefinirSenha />} />
       <Route path="/orcamento/:token" element={<OrcamentoPublico />} />
-      <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
 
-      {/* === Protected routes — loading gate only here === */}
-      <Route path="/*" element={<ProtectedRoutes loading={loading} user={user} statusPagamento={statusPagamento} cargoUsuario={cargoUsuario} />} />
+      {/* === Protected routes — session-only gate === */}
+      <Route path="/*" element={<ProtectedRoutes loading={loading} user={user} />} />
     </Routes>
   );
 }
 
-function ProtectedRoutes({ loading, user, statusPagamento, cargoUsuario }: any) {
-  // Gate 1: Auth still resolving
+function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Gate 2: Not authenticated
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // Gate 3: Agency status not yet resolved — BLOCK rendering, show spinner
-  const isAgencyResolved = statusPagamento !== null || cargoUsuario !== null;
-  if (!isAgencyResolved) {
-    console.log("[ProtectedRoutes] Aguardando resolução do status da agência...");
-    return <LoadingScreen />;
-  }
-
-  // Gate 4: Pending/blocked agency → redirect
-  const isPendingOrBlocked = (statusPagamento === "pendente" || statusPagamento === "bloqueado") && cargoUsuario !== "superadmin";
-  console.log("[ProtectedRoutes] statusPagamento:", statusPagamento, "cargoUsuario:", cargoUsuario, "isPendingOrBlocked:", isPendingOrBlocked);
-
-  if (isPendingOrBlocked) {
-    return <Navigate to="/aguardando-pagamento" replace />;
-  }
-
-  // Authenticated & active — render app
   return (
     <Routes>
       <Route path="/onboarding" element={<Onboarding />} />
