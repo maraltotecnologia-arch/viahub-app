@@ -38,7 +38,7 @@ export default function Login() {
     setError("");
     setLoading(true);
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       setError("Email ou senha incorretos");
@@ -46,36 +46,8 @@ export default function Login() {
       return;
     }
 
-    // Check if boleto payment is still pending (block access)
-    if (authData?.user) {
-      try {
-        const { data: perfil } = await supabase
-          .from("usuarios")
-          .select("agencia_id, cargo")
-          .eq("id", authData.user.id)
-          .maybeSingle();
-
-        if (perfil && perfil.cargo !== "superadmin" && perfil.agencia_id) {
-          const { data: agencia } = await supabase
-            .from("agencias")
-            .select("status_pagamento")
-            .eq("id", perfil.agencia_id)
-            .single();
-
-          if (agencia?.status_pagamento === "pendente") {
-            await supabase.auth.signOut();
-            setLoading(false);
-            navigate(`/aguardando-pagamento?email=${encodeURIComponent(email.trim().toLowerCase())}`);
-            return;
-          }
-        }
-      } catch {
-        // Don't block login on check errors
-      }
-    }
-
+    // AuthContext + AppRoutes will handle the redirect based on status_pagamento
     setLoading(false);
-    navigate("/dashboard", { replace: true });
   };
 
   return (
