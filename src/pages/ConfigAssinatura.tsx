@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreditCard, Zap, FileText, CheckCircle2, AlertTriangle, Crown, Lock, RefreshCw } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CreditCard, Zap, FileText, CheckCircle2, AlertTriangle, Crown, Lock, RefreshCw, Copy, Download, QrCode, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import MetodoPagamentoModal from "@/components/assinatura/MetodoPagamentoModal";
@@ -40,6 +39,13 @@ export default function ConfigAssinatura() {
   const [changingPlan, setChangingPlan] = useState<string | null>(null);
   const [metodoModalOpen, setMetodoModalOpen] = useState(false);
 
+  // PIX QR Code modal state
+  const [pixModalOpen, setPixModalOpen] = useState(false);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [pixData, setPixData] = useState<{ encodedImage: string; payload: string; value: number; dueDate: string } | null>(null);
+  const pixPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+
   const { data: agencia, isLoading } = useQuery({
     queryKey: ["agencia-assinatura", agenciaId],
     enabled: !!agenciaId,
@@ -62,7 +68,7 @@ export default function ConfigAssinatura() {
         .from("asaas_pagamentos")
         .select("*")
         .eq("agencia_id", agenciaId!)
-        .in("status", ["OVERDUE", "PENDING"])
+        .in("status", ["OVERDUE", "PENDING", "REFUSED"])
         .order("vencimento", { ascending: true });
       if (error) throw error;
       return data || [];
@@ -84,6 +90,76 @@ export default function ConfigAssinatura() {
       return data;
     },
   });
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pixPollingRef.current) clearInterval(pixPollingRef.current);
+    };
+  }, []);
+
+  const handleGeneratePixQr = async (paymentId: string) => {
+    setPixLoading(true);
+    setPixPaymentId(paymentId);
+    setPixData(null);
+    setPixModalOpen(true);
+
+    try {
+      const res = await supabase.functions.invoke("asaas-gerar-qrcode-pix", {
+        body: { payment_id: paymentId },
+      });
+
+      if (res.data?.alreadyPaid) {
+        toast({ title: "Pagamento já confirmado!" });
+        setPixModalOpen(false);
+        queryClient.invalidateQueries({ queryKey: ["debitos-aberto"] });
+        queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
+        return;
+      }
+
+      if (res.error || res.data?.error) {
+        toast({ title: "Erro ao gerar QR Code", description: res.data?.error || res.error?.message, variant: "destructive" });
+        setPixModalOpen(false);
+        return;
+      }
+
+      setPixData(res.data);
+
+      // Start polling
+      if (pixPollingRef.current) clearInterval(pixPollingRef.current);
+      pixPollingRef.current = setInterval(async () => {
+        try {
+          const checkRes = await supabase.functions.invoke("asaas-verificar-pagamento", {
+            body: { payment_id: paymentId },
+          });
+          if (checkRes.data?.status === "RECEIVED" || checkRes.data?.status === "CONFIRMED") {
+            if (pixPollingRef.current) clearInterval(pixPollingRef.current);
+            toast({ title: "Pagamento confirmado! ✓" });
+            setPixModalOpen(false);
+            queryClient.invalidateQueries({ queryKey: ["debitos-aberto"] });
+            queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
+          }
+        } catch {}
+      }, 5000);
+    } catch {
+      toast({ title: "Erro inesperado", variant: "destructive" });
+      setPixModalOpen(false);
+    } finally {
+      setPixLoading(false);
+    }
+  };
+
+  const handleCopyPixPayload = () => {
+    if (pixData?.payload) {
+      navigator.clipboard.writeText(pixData.payload);
+      toast({ title: "Código copiado!" });
+    }
+  };
+
+  const handleCopyLinhaDigitavel = (linha: string) => {
+    navigator.clipboard.writeText(linha);
+    toast({ title: "Linha digitável copiada!" });
+  };
 
   const handleChangePlan = async (newPlan: string) => {
     if (!agenciaId || !agencia?.asaas_subscription_id) return;
@@ -110,6 +186,12 @@ export default function ConfigAssinatura() {
   const planoInfo = PLANOS.find((p) => p.value === planoAtual);
   const status = statusConfig[agencia?.status_pagamento || "ativo"] || statusConfig.ativo;
   const forma = ultimoPagamento?.forma_pagamento ? formaLabel[ultimoPagamento.forma_pagamento] : null;
+
+  const getDebitoStatusBadge = (d: any) => {
+    if (d.status === "REFUSED") return <Badge variant="destructive">Recusado</Badge>;
+    if (d.status === "OVERDUE") return <Badge variant="destructive">Vencido</Badge>;
+    return <Badge variant="muted">Pendente</Badge>;
+  };
 
   return (
     <div className="space-y-6 max-w-3xl animate-fade-in">
@@ -174,16 +256,85 @@ export default function ConfigAssinatura() {
           ) : (
             <div className="space-y-3">
               {debitos.map((d) => (
-                <div key={d.id} className="flex items-center justify-between p-3 rounded-lg border">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">
-                      Vencimento: {d.vencimento ? new Date(d.vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "—"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">{fmt(d.valor || 0)}</p>
+                <div key={d.id} className="p-4 rounded-lg border space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">
+                        Vencimento: {d.vencimento ? new Date(d.vencimento + "T12:00:00").toLocaleDateString("pt-BR") : "—"}
+                      </p>
+                      <p className="text-lg font-bold">{fmt(d.valor || 0)}</p>
+                      {d.forma_pagamento && (
+                        <p className="text-xs text-muted-foreground">
+                          {formaLabel[d.forma_pagamento]?.text || d.forma_pagamento}
+                        </p>
+                      )}
+                    </div>
+                    {getDebitoStatusBadge(d)}
                   </div>
-                  <Badge variant={d.status === "OVERDUE" ? "destructive" : "muted"}>
-                    {d.status === "OVERDUE" ? "Vencido" : "Pendente"}
-                  </Badge>
+
+                  {/* PIX actions */}
+                  {d.forma_pagamento === "PIX" && (d.status === "PENDING" || d.status === "OVERDUE") && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleGeneratePixQr(d.asaas_payment_id!)}
+                    >
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Gerar QR Code PIX
+                    </Button>
+                  )}
+
+                  {/* BOLETO actions */}
+                  {d.forma_pagamento === "BOLETO" && (d.status === "PENDING" || d.status === "OVERDUE") && (
+                    <div className="space-y-2">
+                      {d.boleto_url && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => window.open(d.boleto_url!, "_blank")}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Baixar boleto
+                        </Button>
+                      )}
+                      {d.boleto_linha_digitavel && (
+                        <div className="flex items-center gap-2 p-2 bg-muted rounded text-xs">
+                          <code className="flex-1 truncate">{d.boleto_linha_digitavel}</code>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 px-2 shrink-0"
+                            onClick={() => handleCopyLinhaDigitavel(d.boleto_linha_digitavel!)}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* CREDIT_CARD refused */}
+                  {d.forma_pagamento === "CREDIT_CARD" && (d.status === "REFUSED" || d.status === "OVERDUE") && (
+                    <div className="space-y-2">
+                      {d.status === "REFUSED" && (
+                        <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-950/20 rounded text-xs text-red-700 dark:text-red-400">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                          Seu cartão foi recusado. Atualize os dados para regularizar.
+                        </div>
+                      )}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => setMetodoModalOpen(true)}
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Atualizar cartão
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -233,6 +384,56 @@ export default function ConfigAssinatura() {
         agenciaId={agenciaId || ""}
         metodoAtual={ultimoPagamento?.forma_pagamento || null}
       />
+
+      {/* PIX QR Code Modal */}
+      <Dialog open={pixModalOpen} onOpenChange={(open) => {
+        if (!open && pixPollingRef.current) clearInterval(pixPollingRef.current);
+        setPixModalOpen(open);
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Pagar com PIX
+            </DialogTitle>
+          </DialogHeader>
+          {pixLoading ? (
+            <div className="flex flex-col items-center gap-3 py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
+            </div>
+          ) : pixData ? (
+            <div className="space-y-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{fmt(pixData.value)}</p>
+                <p className="text-sm text-muted-foreground">
+                  Vencimento: {new Date(pixData.dueDate + "T12:00:00").toLocaleDateString("pt-BR")}
+                </p>
+              </div>
+              <div className="flex justify-center">
+                <img
+                  src={`data:image/png;base64,${pixData.encodedImage}`}
+                  alt="QR Code PIX"
+                  className="w-56 h-56 rounded-lg border"
+                />
+              </div>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">Copia e cola:</p>
+                <div className="flex items-center gap-2 p-2 bg-muted rounded">
+                  <code className="text-xs flex-1 break-all max-h-16 overflow-y-auto">{pixData.payload}</code>
+                  <Button size="sm" variant="ghost" className="shrink-0" onClick={handleCopyPixPayload}>
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg text-xs text-blue-700 dark:text-blue-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0" />
+                Aguardando confirmação do pagamento...
+              </div>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* SEÇÃO C — Trocar plano */}
       <Card>

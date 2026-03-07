@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.asaas-trocar-pagamento]
 verify_jwt = false
+
+[functions.asaas-gerar-qrcode-pix]
+verify_jwt = false
