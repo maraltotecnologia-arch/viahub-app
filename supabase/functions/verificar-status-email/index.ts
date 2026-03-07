@@ -86,12 +86,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check agency payment status
+    // Check agency status and payment
     const { data: agencia } = await supabaseAdmin
       .from("agencias")
-      .select("status_pagamento")
+      .select("status_pagamento, ativo")
       .eq("id", usuario.agencia_id)
       .single();
+
+    // STEP 3: Check if agency was deactivated by superadmin
+    if (agencia?.ativo === false) {
+      return new Response(JSON.stringify({ 
+        allowed: false,
+        reason: "agency_deactivated",
+        message: "Sua agência foi desativada. Entre em contato com o suporte para mais informações.",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const statusPagamento = agencia?.status_pagamento;
 
