@@ -41,17 +41,6 @@ export default function Login() {
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
-      // Detect unconfirmed email
-      if (authError.message?.toLowerCase().includes("email not confirmed")) {
-        // Send OTP for verification
-        await supabase.auth.signInWithOtp({
-          email: email.trim().toLowerCase(),
-          options: { shouldCreateUser: false },
-        });
-        setLoading(false);
-        navigate(`/verificar-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
-        return;
-      }
       setError("Email ou senha incorretos");
       setLoading(false);
       return;
