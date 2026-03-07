@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { agencia_id, billingType: requestedBillingType, creditCard } = await req.json();
+    const { agencia_id, billingType: requestedBillingType, creditCard, cep } = await req.json();
     if (!agencia_id) {
       return new Response(JSON.stringify({ error: "agencia_id é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -289,11 +289,12 @@ Deno.serve(async (req) => {
         expiryYear: creditCard.expiryYear,
         ccv: creditCard.ccv,
       };
+      const cepLimpo = cep?.replace(/\D/g, "") || agencia.cep?.replace(/\D/g, "") || "";
       subscriptionBody.creditCardHolderInfo = {
         name: creditCard.holderName,
         email: email || "",
         cpfCnpj: cnpjLimpo,
-        postalCode: "00000000",
+        postalCode: cepLimpo || "00000000",
         addressNumber: "0",
         mobilePhone: telefone || "00000000000",
       };
