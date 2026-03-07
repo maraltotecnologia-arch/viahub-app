@@ -39,45 +39,36 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // STEP 1: Check agency payment status BEFORE attempting authentication
-      console.log("[Login] Verificando status de pagamento para:", email);
-      const { data: statusData, error: statusError } = await supabase.functions.invoke("verificar-status-email", {
-        body: { email: email.trim() },
+      // STEP 1: Validate credentials + check payment status (backend, no session created)
+      console.log("[Login] Verificando credenciais e status de pagamento...");
+      const { data: checkData, error: checkError } = await supabase.functions.invoke("verificar-status-email", {
+        body: { email: email.trim(), password },
       });
 
-      if (!statusError && statusData?.bloqueado) {
-        console.log("[Login] Agência bloqueada/pendente. Impedindo login.", statusData.status);
-        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
+      if (checkError) {
+        console.error("[Login] Erro na verificação:", checkError);
+        setError("Ocorreu um erro ao verificar suas credenciais. Tente novamente.");
         return;
       }
 
-      // STEP 2: Payment status OK — now authenticate
-      console.log("[Login] Status OK. Tentando signInWithPassword...");
+      if (!checkData?.allowed) {
+        console.log("[Login] Acesso negado:", checkData?.reason, checkData?.message);
+        setError(checkData?.message || "Não foi possível fazer login.");
+        return;
+      }
+
+      // STEP 2: All checks passed — now create the session on the client
+      console.log("[Login] Verificação OK. Criando sessão...");
       const { data: sessionData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
-        console.error("[Login] signInWithPassword FALHOU:", authError.message, "code:", (authError as any).code);
-
-        if ((authError as any).code === "email_not_confirmed" || authError.message?.includes("Email not confirmed")) {
-          setError("Seu email ainda não foi confirmado. Verifique sua caixa de entrada.");
-        } else if (authError.message?.includes("Invalid login credentials")) {
-          setError("Email ou senha incorretos.");
-        } else {
-          setError(`Erro ao fazer login: ${authError.message}`);
-        }
+        console.error("[Login] signInWithPassword FALHOU:", authError.message);
+        setError("Erro inesperado ao criar sessão. Tente novamente.");
         return;
       }
 
-      const userId = sessionData?.user?.id;
-      console.log("[Login] signInWithPassword OK. User ID:", userId);
-
-      if (!userId) {
-        setError("Erro inesperado: sessão sem usuário.");
-        return;
-      }
-
+      console.log("[Login] Sessão criada. User ID:", sessionData?.user?.id);
       // Navigate will happen via useEffect when AuthContext sets user
-      console.log("[Login] Acesso liberado.");
     } catch (err) {
       console.error("[Login] Erro inesperado:", err);
       setError("Ocorreu um erro inesperado. Tente novamente.");
