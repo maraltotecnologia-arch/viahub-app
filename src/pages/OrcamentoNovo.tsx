@@ -529,7 +529,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         .select("id")
         .single();
 
-      if (error) { toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" }); setLoading(false); return; }
+      if (error) { toast({ title: formatError("ORC001"), variant: "destructive" }); setLoading(false); return; }
 
       const itensRows = itens.map((i) => ({
         orcamento_id: orc.id,
