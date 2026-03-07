@@ -39,7 +39,20 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log("[Login] Tentando signInWithPassword para:", email);
+      // PRE-AUTH: Check agency payment status BEFORE attempting login
+      console.log("[Login] Verificando status de pagamento para:", email);
+      const { data: statusData, error: statusError } = await supabase.functions.invoke("verificar-status-email", {
+        body: { email: email.trim() },
+      });
+
+      if (!statusError && statusData?.bloqueado) {
+        console.log("[Login] Agência bloqueada/pendente. Impedindo login.", statusData.status);
+        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
+        return;
+      }
+
+      // Status OK — proceed with authentication
+      console.log("[Login] Status OK. Tentando signInWithPassword...");
       const { data: sessionData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
       if (authError) {
@@ -63,58 +76,7 @@ export default function Login() {
         return;
       }
 
-      // Fetch profile to get agencia_id and cargo
-      const { data: perfil, error: perfilError } = await supabase
-        .from("usuarios")
-        .select("agencia_id, cargo")
-        .eq("id", userId)
-        .maybeSingle();
-
-      console.log("[Login] Perfil:", perfil, "error:", perfilError);
-
-      if (perfilError) {
-        setError("Erro ao carregar dados do usuário.");
-        await supabase.auth.signOut();
-        return;
-      }
-
-      // Superadmin always passes
-      if (perfil?.cargo === "superadmin") {
-        console.log("[Login] Superadmin detectado, liberando acesso.");
-        // navigate will happen via useEffect when AuthContext sets user
-        return;
-      }
-
-      if (!perfil?.agencia_id) {
-        setError("Usuário sem agência vinculada.");
-        await supabase.auth.signOut();
-        return;
-      }
-
-      // Fetch agency status
-      const { data: agencia, error: agenciaError } = await supabase
-        .from("agencias")
-        .select("status_pagamento")
-        .eq("id", perfil.agencia_id)
-        .single();
-
-      console.log("[Login] Status da agência:", agencia?.status_pagamento, "error:", agenciaError);
-
-      if (agenciaError) {
-        setError("Erro ao carregar dados da agência.");
-        await supabase.auth.signOut();
-        return;
-      }
-
-      // GATE: Block pending/blocked
-      if (agencia?.status_pagamento === "pendente" || agencia?.status_pagamento === "bloqueado") {
-        console.log("[Login] Pagamento pendente/bloqueado. Derrubando sessão.");
-        await supabase.auth.signOut();
-        setError("Pagamento em processamento: Seu boleto está aguardando compensação no banco. O prazo é de até 3 dias úteis.");
-        return;
-      }
-
-      // Status is 'ativo' — navigate will happen via useEffect when AuthContext sets user
+      // Navigate will happen via useEffect when AuthContext sets user
       console.log("[Login] Acesso liberado.");
     } catch (err) {
       console.error("[Login] Erro inesperado:", err);
