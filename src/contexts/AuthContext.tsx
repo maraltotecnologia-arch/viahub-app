@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", userId)
         .maybeSingle();
 
-      console.log("[AuthContext] perfil:", perfil, "error:", perfilError);
+      console.log("[Auth] Perfil carregado:", perfil, "error:", perfilError);
 
       if (!perfil) {
         setStatusPagamento(null);
@@ -53,10 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", perfil.agencia_id)
         .single();
 
-      console.log("[AuthContext] agencia status_pagamento:", agencia?.status_pagamento, "error:", agenciaError);
+      console.log("[Auth] Status da agência:", agencia?.status_pagamento, "error:", agenciaError);
       setStatusPagamento(agencia?.status_pagamento ?? null);
-    } catch (err) {
-      console.error("[AuthContext] fetchAgencyStatus error:", err);
+    } catch (error) {
+      console.error("[Auth] Erro detectado:", error);
       setStatusPagamento(null);
       setCargoUsuario(null);
     }
@@ -78,28 +78,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    supabase.auth
-      .getSession()
-      .then(async ({ data: { session } }) => {
+    let isMounted = true;
+
+    const checkSession = async () => {
+      console.log("[Auth] Iniciando checagem de sessão...");
+      setLoading(true);
+
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
         const u = session?.user ?? null;
+        if (!isMounted) return;
+
         setUser(u);
-        if (u) await fetchAgencyStatus(u.id);
-      })
-      .catch(() => {
+
+        if (!u) {
+          setStatusPagamento(null);
+          setCargoUsuario(null);
+          return;
+        }
+
+        console.log("[Auth] Usuário logado:", u.id);
+        await fetchAgencyStatus(u.id);
+      } catch (error) {
+        if (!isMounted) return;
+        console.error("[Auth] Erro detectado:", error);
         setUser(null);
-      })
-      .finally(() => {
+        setStatusPagamento(null);
+        setCargoUsuario(null);
+      } finally {
+        if (!isMounted) return;
+        console.log("[Auth] Desligando tela de carregamento.");
         setLoading(false);
-      });
+      }
+    };
+
+    checkSession();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
+
       const u = session?.user ?? null;
       setUser(u);
 
       if (u) {
-        await fetchAgencyStatus(u.id);
+        console.log("[Auth] Usuário logado:", u.id);
+        void fetchAgencyStatus(u.id).catch((error) => {
+          console.error("[Auth] Erro detectado:", error);
+        });
       } else {
         setStatusPagamento(null);
         setCargoUsuario(null);
@@ -130,7 +160,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) return (
