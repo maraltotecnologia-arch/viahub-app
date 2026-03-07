@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         cep: cep?.replace(/\D/g, "") || null,
         plano,
         onboarding_completo: false,
-        status_pagamento: isBoleto ? "pendente" : "ativo",
+        status_pagamento: statusPagamento,
       })
       .select("id")
       .single();
