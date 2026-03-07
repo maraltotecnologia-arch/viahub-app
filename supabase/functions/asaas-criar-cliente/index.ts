@@ -46,10 +46,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch agency data
+    // Fetch ALL agency fields
     const { data: agencia, error: agError } = await supabaseAdmin
       .from("agencias")
-      .select("id, nome_fantasia, email, cnpj, plano, telefone")
+      .select("*")
       .eq("id", agencia_id)
       .single();
 
@@ -61,54 +61,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check if already has customer
-    if (agencia.asaas_customer_id) {
-      console.log("[asaas-criar-cliente] Agência já possui customer_id:", agencia.asaas_customer_id);
-      return new Response(JSON.stringify({ success: true, already_exists: true }), {
+    console.log("[asaas-criar-cliente] Campos da agência:", JSON.stringify(agencia));
+
+    // Map fields
+    const nome = agencia.nome_fantasia;
+    const email = agencia.email || undefined;
+    const cnpjLimpo = agencia.cnpj?.replace(/\D/g, "") || "";
+    const telefone = agencia.telefone?.replace(/\D/g, "") || undefined;
+
+    // Validate CNPJ
+    if (!cnpjLimpo || cnpjLimpo.length < 11) {
+      console.error("[asaas-criar-cliente] CNPJ inválido ou ausente:", cnpjLimpo);
+      return new Response(JSON.stringify({ error: "CNPJ obrigatório para criar assinatura" }), {
+        status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Step 1: Create customer in Asaas
-    console.log("[asaas-criar-cliente] Criando cliente no Asaas...");
-    const customerRes = await fetch(`${ASAAS_BASE}/customers`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "access_token": asaasKey,
-      },
-      body: JSON.stringify({
-        name: agencia.nome_fantasia,
-        email: agencia.email || undefined,
-        cpfCnpj: agencia.cnpj?.replace(/\D/g, "") || undefined,
-        phone: agencia.telefone?.replace(/\D/g, "") || undefined,
-        externalReference: agencia_id,
-      }),
-    });
-
-    const customerData = await customerRes.json();
-    if (!customerRes.ok) {
-      console.error("[asaas-criar-cliente] Erro ao criar cliente:", customerData);
-      return new Response(JSON.stringify({ error: "Erro ao criar cliente no Asaas", details: customerData }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const customerId = customerData.id;
-    console.log("[asaas-criar-cliente] Cliente criado:", customerId);
-
-    // Save customer ID
-    await supabaseAdmin
-      .from("agencias")
-      .update({ asaas_customer_id: customerId })
-      .eq("id", agencia_id);
-
-    // Step 2: Create subscription
     const plano = agencia.plano || "starter";
     const valor = PLANO_VALOR[plano] || 397;
 
-    // Next due date: day 10 of current or next month
+    // Calculate next due date
     const now = new Date();
     let nextDue: Date;
     if (now.getDate() <= 10) {
@@ -118,6 +91,79 @@ Deno.serve(async (req) => {
     }
     const nextDueStr = nextDue.toISOString().split("T")[0];
 
+    let customerId = agencia.asaas_customer_id;
+
+    if (customerId) {
+      // Customer already exists — update with CNPJ
+      console.log(`[asaas-criar-cliente] Cliente já existe (${customerId}), atualizando com CNPJ...`);
+      const updateRes = await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "access_token": asaasKey,
+        },
+        body: JSON.stringify({
+          cpfCnpj: cnpjLimpo,
+          name: nome,
+          email,
+          phone: telefone,
+        }),
+      });
+
+      const updateData = await updateRes.json();
+      if (!updateRes.ok) {
+        console.error("[asaas-criar-cliente] Erro ao atualizar cliente:", updateData);
+        return new Response(JSON.stringify({ error: "Erro ao atualizar cliente no Asaas", details: updateData }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log("[asaas-criar-cliente] Cliente atualizado com CNPJ");
+    } else {
+      // Create new customer with CNPJ
+      console.log("[asaas-criar-cliente] Criando cliente no Asaas...");
+      const customerRes = await fetch(`${ASAAS_BASE}/customers`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "access_token": asaasKey,
+        },
+        body: JSON.stringify({
+          name: nome,
+          email,
+          cpfCnpj: cnpjLimpo,
+          phone: telefone,
+          externalReference: agencia_id,
+        }),
+      });
+
+      const customerData = await customerRes.json();
+      if (!customerRes.ok) {
+        console.error("[asaas-criar-cliente] Erro ao criar cliente:", customerData);
+        return new Response(JSON.stringify({ error: "Erro ao criar cliente no Asaas", details: customerData }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      customerId = customerData.id;
+      console.log("[asaas-criar-cliente] Cliente criado:", customerId);
+
+      await supabaseAdmin
+        .from("agencias")
+        .update({ asaas_customer_id: customerId })
+        .eq("id", agencia_id);
+    }
+
+    // Check if subscription already exists
+    if (agencia.asaas_subscription_id) {
+      console.log("[asaas-criar-cliente] Assinatura já existe:", agencia.asaas_subscription_id);
+      return new Response(JSON.stringify({ success: true, customer_id: customerId, subscription_id: agencia.asaas_subscription_id }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Create subscription
     console.log("[asaas-criar-cliente] Criando assinatura...", { plano, valor, nextDueStr });
     const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
       method: "POST",
@@ -146,7 +192,6 @@ Deno.serve(async (req) => {
 
     console.log("[asaas-criar-cliente] Assinatura criada:", subData.id);
 
-    // Save subscription ID and next due date
     await supabaseAdmin
       .from("agencias")
       .update({
