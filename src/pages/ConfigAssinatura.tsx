@@ -249,9 +249,9 @@ export default function ConfigAssinatura() {
         </CardHeader>
         <CardContent>
           {!debitos || debitos.length === 0 ? (
-            <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
-              <span className="text-sm text-green-800 dark:text-green-300 font-medium">
+            <div className="flex items-center gap-3 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <span className="text-sm text-green-500 font-medium">
                 Nenhum débito em aberto ✓
               </span>
             </div>
@@ -459,7 +459,7 @@ export default function ConfigAssinatura() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{p.label}</span>
                       {p.popular && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
                           Popular
                         </span>
                       )}

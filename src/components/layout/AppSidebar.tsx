@@ -193,10 +193,13 @@ export function AppSidebar() {
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-medium truncate ${isDark ? "text-white/80" : "text-white/90"}`}>{nome || user?.email || "Usuário"}</p>
-              <p className="text-xs text-white/40">{cargoLabel}</p>
+              <p className="text-sm font-semibold text-white/90 truncate">{nome || user?.email || "Usuário"}</p>
+              <p className="text-xs text-white/50">{cargoLabel}</p>
               {nomeAgencia && (
-                <p className="text-[10px] text-white/25 truncate" title={nomeAgencia}>{nomeAgencia}</p>
+                <p className="flex items-center gap-1 text-xs font-medium text-white/60 truncate mt-0.5" title={nomeAgencia}>
+                  <Building2 className="w-3 h-3 shrink-0" />
+                  {nomeAgencia}
+                </p>
               )}
             </div>
             <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
