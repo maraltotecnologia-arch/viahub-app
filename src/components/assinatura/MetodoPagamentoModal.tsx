@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Zap, FileText, AlertTriangle } from "lucide-react";
+import { CreditCard, Zap, FileText, AlertTriangle, CheckCircle2, Copy, Download, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -43,16 +43,139 @@ function maskExpiry(v: string) {
   return d;
 }
 
+// ─── Sub-components for post-confirmation views ───
+
+function PixResultView({ qrCodeImage, copiaECola, paymentId, onConfirmed }: {
+  qrCodeImage: string;
+  copiaECola: string;
+  paymentId: string;
+  onConfirmed: () => void;
+}) {
+  const { toast } = useToast();
+  const [polling, setPolling] = useState(true);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (!paymentId) return;
+
+    intervalRef.current = setInterval(async () => {
+      try {
+        const { data } = await supabase.functions.invoke("asaas-verificar-pagamento", {
+          body: { payment_id: paymentId },
+        });
+        if (data?.status === "RECEIVED" || data?.status === "CONFIRMED") {
+          setPolling(false);
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          onConfirmed();
+        }
+      } catch { /* ignore */ }
+    }, 5000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [paymentId, onConfirmed]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(copiaECola);
+    toast({ title: "Código copiado!" });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col items-center gap-3 p-4">
+        <p className="text-sm font-medium text-center">Escaneie o QR Code ou copie o código abaixo</p>
+        <img
+          src={`data:image/png;base64,${qrCodeImage}`}
+          alt="QR Code PIX"
+          className="w-48 h-48 border rounded-lg"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Copia e Cola</Label>
+        <div className="flex gap-2">
+          <Input value={copiaECola} readOnly className="text-xs font-mono" />
+          <Button variant="outline" size="icon" onClick={handleCopy} className="shrink-0">
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {polling && (
+        <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-muted/50 border border-border">
+          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+          <span className="text-xs text-muted-foreground">Aguardando confirmação do pagamento...</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BoletoResultView({ boletoUrl, linhaDigitavel }: {
+  boletoUrl: string | null;
+  linhaDigitavel: string | null;
+}) {
+  const { toast } = useToast();
+
+  const handleCopyLinha = () => {
+    if (linhaDigitavel) {
+      navigator.clipboard.writeText(linhaDigitavel);
+      toast({ title: "Linha digitável copiada!" });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      {linhaDigitavel && (
+        <div className="space-y-2">
+          <Label className="text-xs">Linha digitável</Label>
+          <div className="flex gap-2">
+            <Input value={linhaDigitavel} readOnly className="text-xs font-mono" />
+            <Button variant="outline" size="icon" onClick={handleCopyLinha} className="shrink-0">
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {boletoUrl && (
+        <Button variant="outline" className="w-full" asChild>
+          <a href={boletoUrl} target="_blank" rel="noopener noreferrer">
+            <Download className="h-4 w-4 mr-2" />
+            Baixar boleto PDF
+          </a>
+        </Button>
+      )}
+
+      <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+        <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+        <p className="text-xs text-amber-800 dark:text-amber-300">
+          Pague até o vencimento para manter seu acesso ativo.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main modal ───
+
 export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, metodoAtual }: Props) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Metodo | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
+
+  // Post-confirmation state
+  const [resultView, setResultView] = useState<"selection" | "pix" | "boleto" | null>("selection");
+  const [pixData, setPixData] = useState<{ qrCodeImage: string; copiaECola: string; paymentId: string } | null>(null);
+  const [boletoData, setBoletoData] = useState<{ boletoUrl: string | null; linhaDigitavel: string | null } | null>(null);
 
   const brand = detectBrand(cardNumber);
 
@@ -87,10 +210,28 @@ export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, me
       if (res.error || res.data?.error) {
         toast({ title: "Erro", description: res.data?.error || res.error?.message, variant: "destructive" });
       } else {
-        toast({ title: "Método de pagamento atualizado!" });
         queryClient.invalidateQueries({ queryKey: ["ultimo-pagamento-forma"] });
-        onOpenChange(false);
-        resetForm();
+        queryClient.invalidateQueries({ queryKey: ["debitos-aberto"] });
+
+        if (res.data?.metodo === "PIX" && res.data?.pixQrCodeImage) {
+          setPixData({
+            qrCodeImage: res.data.pixQrCodeImage,
+            copiaECola: res.data.pixCopiaECola || "",
+            paymentId: res.data.pixPaymentId || "",
+          });
+          setResultView("pix");
+        } else if (res.data?.metodo === "BOLETO") {
+          setBoletoData({
+            boletoUrl: res.data.boletoUrl || null,
+            linhaDigitavel: res.data.boletoLinhaDigitavel || null,
+          });
+          setResultView("boleto");
+        } else {
+          // CREDIT_CARD
+          toast({ title: "Método atualizado!", description: "Cartão será cobrado no próximo vencimento." });
+          onOpenChange(false);
+          resetForm();
+        }
       }
     } catch {
       toast({ title: "Erro inesperado", variant: "destructive" });
@@ -98,14 +239,75 @@ export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, me
     setLoading(false);
   };
 
+  const handlePixConfirmed = useCallback(() => {
+    toast({ title: "Pagamento PIX confirmado!" });
+    queryClient.invalidateQueries({ queryKey: ["debitos-aberto"] });
+    queryClient.invalidateQueries({ queryKey: ["agencia-assinatura"] });
+    onOpenChange(false);
+    resetForm();
+  }, [toast, queryClient, onOpenChange]);
+
   const resetForm = () => {
     setSelected(null);
     setCardNumber("");
     setCardName("");
     setCardExpiry("");
     setCardCvv("");
+    setResultView("selection");
+    setPixData(null);
+    setBoletoData(null);
   };
 
+  // ─── PIX result view ───
+  if (resultView === "pix" && pixData) {
+    return (
+      <Dialog open={open} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              Pagamento via PIX
+            </DialogTitle>
+            <DialogDescription>Realize o pagamento para confirmar a troca de método.</DialogDescription>
+          </DialogHeader>
+          <PixResultView
+            qrCodeImage={pixData.qrCodeImage}
+            copiaECola={pixData.copiaECola}
+            paymentId={pixData.paymentId}
+            onConfirmed={handlePixConfirmed}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // ─── Boleto result view ───
+  if (resultView === "boleto" && boletoData) {
+    return (
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { onOpenChange(false); resetForm(); } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Boleto Gerado
+            </DialogTitle>
+            <DialogDescription>Pague o boleto para confirmar a troca de método.</DialogDescription>
+          </DialogHeader>
+          <BoletoResultView
+            boletoUrl={boletoData.boletoUrl}
+            linhaDigitavel={boletoData.linhaDigitavel}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { onOpenChange(false); resetForm(); }}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // ─── Selection view ───
   return (
     <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) resetForm(); }}>
       <DialogContent className="sm:max-w-md">
@@ -207,7 +409,12 @@ export default function MetodoPagamentoModal({ open, onOpenChange, agenciaId, me
             Cancelar
           </Button>
           <Button onClick={handleConfirm} disabled={!canConfirm || loading}>
-            {loading ? "Processando..." : "Confirmar troca"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Processando...
+              </>
+            ) : "Confirmar troca"}
           </Button>
         </DialogFooter>
       </DialogContent>

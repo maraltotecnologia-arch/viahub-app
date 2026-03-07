@@ -7,6 +7,12 @@ const corsHeaders = {
 
 const ASAAS_BASE = "https://sandbox.asaas.com/api/v3";
 
+const PLANO_LABEL: Record<string, string> = {
+  starter: "Starter",
+  pro: "Pro",
+  elite: "Elite",
+};
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,24 +50,29 @@ Deno.serve(async (req) => {
 
     const { data: agencia, error: agErr } = await supabaseAdmin
       .from("agencias")
-      .select("asaas_subscription_id, email, cnpj, cep, telefone")
+      .select("asaas_subscription_id, asaas_customer_id, email, cnpj, cep, telefone, plano")
       .eq("id", agencia_id)
       .single();
 
-    if (agErr || !agencia?.asaas_subscription_id) {
+    if (agErr || !agencia?.asaas_subscription_id || !agencia?.asaas_customer_id) {
       console.error("[asaas-trocar-pagamento] Agência/assinatura não encontrada:", agErr);
       return new Response(JSON.stringify({ error: "Assinatura não encontrada" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log(`[asaas-trocar-pagamento] Atualizando para ${novo_metodo} na subscription ${agencia.asaas_subscription_id}`);
+    const subscriptionId = agencia.asaas_subscription_id;
+    const customerId = agencia.asaas_customer_id;
+    const planoLabel = PLANO_LABEL[agencia.plano || "starter"] || "Starter";
 
-    let asaasBody: Record<string, unknown> = { billingType: novo_metodo };
+    // ─── STEP 1: Update subscription billingType ───
+    console.log(`[asaas-trocar-pagamento] Atualizando billingType para ${novo_metodo} na subscription ${subscriptionId}`);
+
+    let subBody: Record<string, unknown> = { billingType: novo_metodo };
 
     if (novo_metodo === "CREDIT_CARD") {
-      asaasBody = {
-        ...asaasBody,
+      subBody = {
+        ...subBody,
         creditCard: {
           holderName: cardHolderName,
           number: cardNumber.replace(/\s/g, ""),
@@ -73,49 +84,208 @@ Deno.serve(async (req) => {
           name: cardHolderName,
           email: agencia.email || "",
           cpfCnpj: agencia.cnpj?.replace(/\D/g, "") || "",
-          postalCode: agencia.cep?.replace(/\D/g, "") || "00000000",
+          postalCode: agencia.cep?.replace(/\D/g, "") || "01310100",
           addressNumber: "0",
           phone: agencia.telefone?.replace(/\D/g, "") || undefined,
         },
       };
     }
 
-    const res = await fetch(`${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}`, {
+    const subRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "access_token": asaasKey },
-      body: JSON.stringify(asaasBody),
+      body: JSON.stringify(subBody),
     });
 
-    const resData = await res.json();
-    console.log("[asaas-trocar-pagamento] Asaas response:", JSON.stringify(resData));
-
-    if (!res.ok) {
-      const errorMsg = resData.errors?.[0]?.description || "Erro ao atualizar método de pagamento";
-      console.error("[asaas-trocar-pagamento] Erro Asaas:", errorMsg);
+    const subData = await subRes.json();
+    if (!subRes.ok) {
+      const errorMsg = subData.errors?.[0]?.description || "Erro ao atualizar método de pagamento";
+      console.error("[asaas-trocar-pagamento] Erro ao atualizar subscription:", errorMsg);
       return new Response(JSON.stringify({ error: errorMsg }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    console.log("[asaas-trocar-pagamento] Subscription atualizada com sucesso");
 
-    // Atualizar forma_pagamento no último registro de pagamento
-    const { data: ultimoPag } = await supabaseAdmin
-      .from("asaas_pagamentos")
-      .select("id")
-      .eq("agencia_id", agencia_id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // ─── STEP 2: Find pending payment ───
+    console.log(`[asaas-trocar-pagamento] Buscando cobranças PENDING da subscription ${subscriptionId}`);
 
-    if (ultimoPag) {
-      await supabaseAdmin
-        .from("asaas_pagamentos")
-        .update({ forma_pagamento: novo_metodo })
-        .eq("id", ultimoPag.id);
-      console.log("[asaas-trocar-pagamento] Atualizado forma_pagamento no pagamento", ultimoPag.id);
+    const pendingRes = await fetch(
+      `${ASAAS_BASE}/subscriptions/${subscriptionId}/payments?status=PENDING&limit=5`,
+      { headers: { "access_token": asaasKey } }
+    );
+    const pendingData = await pendingRes.json();
+    const pendingPayments = (pendingData.data || []).filter((p: any) => p.status === "PENDING");
+
+    let dueDate: string | null = null;
+    let value: number | null = null;
+    let cancelledPaymentAsaasId: string | null = null;
+
+    if (pendingPayments.length > 0) {
+      const pending = pendingPayments[0];
+      dueDate = pending.dueDate;
+      value = pending.value;
+      cancelledPaymentAsaasId = pending.id;
+
+      console.log(`[asaas-trocar-pagamento] Cobrança pendente encontrada: ${pending.id}, dueDate=${dueDate}, value=${value}`);
+
+      // Cancel the pending payment
+      const delRes = await fetch(`${ASAAS_BASE}/payments/${pending.id}`, {
+        method: "DELETE",
+        headers: { "access_token": asaasKey },
+      });
+      const delData = await delRes.json();
+      console.log(`[asaas-trocar-pagamento] Cobrança ${pending.id} cancelada:`, JSON.stringify(delData));
+
+      if (!delRes.ok) {
+        console.error("[asaas-trocar-pagamento] Erro ao cancelar cobrança:", JSON.stringify(delData));
+        return new Response(JSON.stringify({ error: "Erro ao cancelar cobrança pendente" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      console.log("[asaas-trocar-pagamento] Nenhuma cobrança PENDING encontrada");
     }
 
+    // ─── STEP 3: Create new payment with new method ───
+    let newPaymentResult: Record<string, any> | null = null;
+
+    if (dueDate && value) {
+      console.log(`[asaas-trocar-pagamento] Criando nova cobrança: método=${novo_metodo}, dueDate=${dueDate}, value=${value}`);
+
+      const newPaymentBody: Record<string, unknown> = {
+        customer: customerId,
+        billingType: novo_metodo,
+        value,
+        dueDate,
+        description: `ViaHub — Plano ${planoLabel} (troca de método)`,
+        externalReference: agencia_id,
+      };
+
+      if (novo_metodo === "CREDIT_CARD") {
+        newPaymentBody.creditCard = {
+          holderName: cardHolderName,
+          number: cardNumber.replace(/\s/g, ""),
+          expiryMonth: cardExpiryMonth,
+          expiryYear: cardExpiryYear,
+          ccv: cardCvv,
+        };
+        newPaymentBody.creditCardHolderInfo = {
+          name: cardHolderName,
+          email: agencia.email || "",
+          cpfCnpj: agencia.cnpj?.replace(/\D/g, "") || "",
+          postalCode: agencia.cep?.replace(/\D/g, "") || "01310100",
+          addressNumber: "0",
+          phone: agencia.telefone?.replace(/\D/g, "") || undefined,
+        };
+      }
+
+      const createRes = await fetch(`${ASAAS_BASE}/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        body: JSON.stringify(newPaymentBody),
+      });
+      newPaymentResult = await createRes.json();
+
+      if (!createRes.ok) {
+        const errorMsg = newPaymentResult?.errors?.[0]?.description || "Erro ao criar nova cobrança";
+        console.error("[asaas-trocar-pagamento] Erro ao criar cobrança:", errorMsg);
+        return new Response(JSON.stringify({ error: errorMsg }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      console.log(`[asaas-trocar-pagamento] Nova cobrança criada: id=${newPaymentResult.id}, método=${novo_metodo}, dueDate=${dueDate}`);
+
+      // ─── STEP 4: Update asaas_pagamentos table ───
+      // Mark old payment as cancelled
+      if (cancelledPaymentAsaasId) {
+        await supabaseAdmin
+          .from("asaas_pagamentos")
+          .update({ status: "CANCELLED" })
+          .eq("asaas_payment_id", cancelledPaymentAsaasId);
+        console.log(`[asaas-trocar-pagamento] Pagamento antigo ${cancelledPaymentAsaasId} marcado como CANCELLED`);
+      }
+
+      // Insert new payment record
+      await supabaseAdmin.from("asaas_pagamentos").insert({
+        agencia_id,
+        asaas_payment_id: newPaymentResult.id,
+        status: newPaymentResult.status,
+        valor: newPaymentResult.value,
+        vencimento: newPaymentResult.dueDate,
+        forma_pagamento: novo_metodo,
+        boleto_url: newPaymentResult.bankSlipUrl || null,
+        boleto_linha_digitavel: newPaymentResult.nossoNumero || null,
+        pix_copia_cola: null,
+        pix_qr_code: null,
+      });
+      console.log("[asaas-trocar-pagamento] Novo registro inserido na tabela asaas_pagamentos");
+
+      // If PIX, fetch QR code
+      if (novo_metodo === "PIX" && newPaymentResult.id) {
+        const pixRes = await fetch(`${ASAAS_BASE}/payments/${newPaymentResult.id}/pixQrCode`, {
+          headers: { "access_token": asaasKey },
+        });
+        const pixData = await pixRes.json();
+
+        if (pixRes.ok && pixData.encodedImage) {
+          // Update the record with PIX data
+          await supabaseAdmin
+            .from("asaas_pagamentos")
+            .update({
+              pix_qr_code: pixData.encodedImage,
+              pix_copia_cola: pixData.payload,
+            })
+            .eq("asaas_payment_id", newPaymentResult.id);
+
+          console.log("[asaas-trocar-pagamento] QR Code PIX obtido e salvo");
+
+          return new Response(JSON.stringify({
+            success: true,
+            metodo: "PIX",
+            pixQrCodeImage: pixData.encodedImage,
+            pixCopiaECola: pixData.payload,
+            pixPaymentId: newPaymentResult.id,
+          }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      // If BOLETO, return boleto data
+      if (novo_metodo === "BOLETO") {
+        return new Response(JSON.stringify({
+          success: true,
+          metodo: "BOLETO",
+          boletoUrl: newPaymentResult.bankSlipUrl || null,
+          boletoLinhaDigitavel: newPaymentResult.nossoNumero || null,
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // No pending payment found — just update the last payment record's forma_pagamento
+      const { data: ultimoPag } = await supabaseAdmin
+        .from("asaas_pagamentos")
+        .select("id")
+        .eq("agencia_id", agencia_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (ultimoPag) {
+        await supabaseAdmin
+          .from("asaas_pagamentos")
+          .update({ forma_pagamento: novo_metodo })
+          .eq("id", ultimoPag.id);
+        console.log("[asaas-trocar-pagamento] Atualizado forma_pagamento no pagamento", ultimoPag.id);
+      }
+    }
+
+    // CREDIT_CARD or fallback
     console.log("[asaas-trocar-pagamento] Sucesso!");
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, metodo: novo_metodo }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
