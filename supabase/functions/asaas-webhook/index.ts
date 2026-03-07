@@ -126,6 +126,15 @@ Deno.serve(async (req) => {
         const dueDate = new Date(payment.dueDate);
         const nextDue = new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, dueDate.getDate());
 
+        // Check if agency was pending (boleto first payment)
+        const { data: agenciaAtual } = await supabaseAdmin
+          .from("agencias")
+          .select("status_pagamento, email")
+          .eq("id", agencia.id)
+          .single();
+
+        const wasPending = agenciaAtual?.status_pagamento === "pendente";
+
         // Update agency status
         await supabaseAdmin.from("agencias").update({
           status_pagamento: "ativo",
@@ -135,14 +144,26 @@ Deno.serve(async (req) => {
 
         // Send confirmation email
         try {
-          await supabaseAdmin.functions.invoke("enviar-email", {
-            body: {
-              to: agencia.email,
-              subject: "Pagamento recebido! ✓",
-              type: "pagamento_confirmado",
-              html: buildPaymentConfirmedHtml(agencia.nome_fantasia, payment.value, agencia.plano, nextDue),
-            },
-          });
+          if (wasPending) {
+            // Boleto first payment confirmed — send access email
+            await supabaseAdmin.functions.invoke("enviar-email", {
+              body: {
+                to: agencia.email,
+                subject: "Seu acesso ao ViaHub foi liberado! 🎉",
+                type: "acesso_liberado",
+                html: buildAccessGrantedHtml(agencia.nome_fantasia),
+              },
+            });
+          } else {
+            await supabaseAdmin.functions.invoke("enviar-email", {
+              body: {
+                to: agencia.email,
+                subject: "Pagamento recebido! ✓",
+                type: "pagamento_confirmado",
+                html: buildPaymentConfirmedHtml(agencia.nome_fantasia, payment.value, agencia.plano, nextDue),
+              },
+            });
+          }
         } catch (e) {
           console.error("[asaas-webhook] Erro ao enviar email:", e);
         }
@@ -244,6 +265,28 @@ function buildPaymentOverdueHtml(nome: string, valor: number, dueDate: string): 
         <p style="color:#DC2626;font-weight:bold;">Atenção: Após 3 dias de atraso, o acesso ao sistema será temporariamente suspenso.</p>
         <p>Para regularizar, acesse o ViaHub e realize o pagamento.</p>
         <p style="color:#64748B;font-size:14px;margin-top:20px;">Em caso de dúvidas: <a href="mailto:suporte@viahub.app">suporte@viahub.app</a></p>
+      </div>
+    </div>
+  `;
+}
+
+function buildAccessGrantedHtml(nome: string): string {
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+      <div style="background:#1E3A5F;padding:20px;text-align:center;border-radius:8px 8px 0 0;">
+        <h1 style="color:#fff;margin:0;font-size:24px;">ViaHub</h1>
+      </div>
+      <div style="background:#fff;padding:30px;border:1px solid #E2E8F0;border-top:none;border-radius:0 0 8px 8px;">
+        <h2 style="color:#16A34A;margin-top:0;">Pagamento confirmado! 🎉</h2>
+        <p>Olá, <strong>${nome}</strong>!</p>
+        <p>Seu boleto foi compensado e seu acesso ao ViaHub está liberado.</p>
+        <p>Clique no botão abaixo para fazer seu primeiro login.</p>
+        <div style="text-align:center;margin:30px 0;">
+          <a href="https://viahubapp.lovable.app/login" style="background:#2563EB;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-block;">
+            Acessar o ViaHub
+          </a>
+        </div>
+        <p style="color:#64748B;font-size:14px;">Obrigado por escolher o ViaHub!</p>
       </div>
     </div>
   `;

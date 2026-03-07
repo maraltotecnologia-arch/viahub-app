@@ -59,23 +59,19 @@ export default function CadastroStep3({ paymentResult, email }: Props) {
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
         <h2 className="text-2xl font-bold text-[#0F172A] mb-2">
-          {paymentResult?.formaPagamento === "pix" ? "Pagamento confirmado! 🎉" : "Conta criada com sucesso! 🎉"}
+          Cadastro realizado com sucesso! 🎉
         </h2>
 
-        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-6">
-          <p className="text-sm text-green-800">
-            Enviamos um link de confirmação para{" "}
-            <span className="font-medium">{displayEmail}</span>.
-            Clique no link para ativar sua conta e fazer o primeiro login.
-          </p>
-        </div>
+        <p className="text-sm text-[#64748B] mb-6">
+          Seu acesso está pronto. Clique abaixo para fazer seu primeiro login.
+        </p>
 
         <Button
           onClick={() => navigate("/login")}
           className="w-full h-12 rounded-xl font-semibold text-[15px] text-white shadow-[0_4px_16px_rgba(37,99,235,0.3)]"
           style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
         >
-          Ir para o login →
+          Fazer login agora →
         </Button>
 
         <p className="text-center text-xs text-[#94A3B8] mt-4">
