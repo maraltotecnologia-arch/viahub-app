@@ -53,10 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq("id", perfil.agencia_id)
         .single();
 
-      console.log("[AuthContext] agencia status_pagamento:", agencia?.status_pagamento, "error:", agenciaError);
+      console.log("[Auth] Status da agência:", agencia?.status_pagamento, "error:", agenciaError);
       setStatusPagamento(agencia?.status_pagamento ?? null);
-    } catch (err) {
-      console.error("[AuthContext] fetchAgencyStatus error:", err);
+    } catch (error) {
+      console.error("[Auth] Erro detectado:", error);
       setStatusPagamento(null);
       setCargoUsuario(null);
     }
