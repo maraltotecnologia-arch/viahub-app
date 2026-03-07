@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: any;
+  loading: boolean;
   refreshUser: () => Promise<void>;
   signOut: () => Promise<void>;
   statusPagamento: string | null;
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     </div>
   );
 
-  return <AuthContext.Provider value={{ user, refreshUser, signOut, statusPagamento, cargoUsuario }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, refreshUser, signOut, statusPagamento, cargoUsuario }}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
