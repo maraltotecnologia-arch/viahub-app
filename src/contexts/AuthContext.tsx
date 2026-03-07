@@ -60,14 +60,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (_event === "SIGNED_IN" && session?.user) {
         const userId = session.user.id;
         const email = session.user.email;
-        supabase
-          .from("usuarios")
-          .select("nome, cargo, agencia_id")
-          .eq("id", userId)
-          .maybeSingle()
-          .then(({ data: usuario }) => {
+        Promise.resolve(
+          supabase
+            .from("usuarios")
+            .select("nome, cargo, agencia_id")
+            .eq("id", userId)
+            .maybeSingle()
+        ).then(({ data: usuario }) => {
             if (usuario?.agencia_id) {
-            supabase.functions.invoke("registrar-log-acesso", {
+              supabase.functions.invoke("registrar-log-acesso", {
                 body: {
                   usuario_id: userId,
                   agencia_id: usuario.agencia_id,
@@ -76,8 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 },
               }).then(() => {}).catch(() => {});
             }
-          })
-          .catch(() => {});
+          }).catch(() => {});
       }
     });
 
