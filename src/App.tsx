@@ -42,7 +42,16 @@ import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
-  const { user, statusPagamento, cargoUsuario } = useAuth() as any;
+  const { user, loading, statusPagamento, cargoUsuario } = useAuth() as any;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
+        <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
+        <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
+      </div>
+    );
+  }
 
   if (!user) {
     return (
@@ -58,16 +67,6 @@ function AppRoutes() {
         <Route path="/aguardando-pagamento" element={<AguardandoPagamento />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    );
-  }
-
-  // Still loading agency status — show spinner, don't flash 404
-  if (statusPagamento === null && cargoUsuario === null) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
-        <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
-        <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
-      </div>
     );
   }
 
