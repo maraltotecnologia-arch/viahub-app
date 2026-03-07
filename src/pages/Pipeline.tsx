@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import useVerificarVencidos from "@/hooks/useVerificarVencidos";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Clock, LayoutGrid } from "lucide-react";
@@ -33,6 +33,7 @@ export default function Pipeline() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [justDropped, setJustDropped] = useState<string | null>(null);
+  const isDroppingRef = useRef(false);
 
   const { data: orcamentos, isLoading } = useQuery({
     queryKey: ["pipeline", agenciaId],
@@ -49,33 +50,40 @@ export default function Pipeline() {
 
   const handleDrop = async (newStatus: string) => {
     setDropTarget(null);
-    if (!dragId) return;
+    if (!dragId || isDroppingRef.current) return;
 
     const oldStatus = orcamentos?.find((o) => o.id === dragId)?.status;
     if (oldStatus === newStatus) { setDragId(null); return; }
 
-    setJustDropped(dragId);
+    isDroppingRef.current = true;
+    const currentDragId = dragId;
+
+    setJustDropped(currentDragId);
     setTimeout(() => setJustDropped(null), 300);
 
-    const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", dragId);
-    if (error) { toast({ title: "Erro ao mover", variant: "destructive" }); } else {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && agenciaId) {
-        await registrarHistorico({
-          orcamento_id: dragId,
-          usuario_id: user.id,
-          agencia_id: agenciaId,
-          tipo: "status_alterado",
-          status_anterior: oldStatus || null,
-          status_novo: newStatus,
-          descricao: `Status alterado de "${oldStatus}" para "${newStatus}" via Pipeline`,
-        });
+    try {
+      const { error } = await supabase.from("orcamentos").update({ status: newStatus }).eq("id", currentDragId);
+      if (error) { toast({ title: "Erro ao mover", variant: "destructive" }); } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user && agenciaId) {
+          await registrarHistorico({
+            orcamento_id: currentDragId,
+            usuario_id: user.id,
+            agencia_id: agenciaId,
+            tipo: "status_alterado",
+            status_anterior: oldStatus || null,
+            status_novo: newStatus,
+            descricao: `Status alterado de "${oldStatus}" para "${newStatus}" via Pipeline`,
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ["pipeline"] });
+        queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+        queryClient.invalidateQueries({ queryKey: ["historico-orcamento"] });
       }
-      queryClient.invalidateQueries({ queryKey: ["pipeline"] });
-      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
-      queryClient.invalidateQueries({ queryKey: ["historico-orcamento"] });
+    } finally {
+      setDragId(null);
+      isDroppingRef.current = false;
     }
-    setDragId(null);
   };
 
   if (isLoading) return (

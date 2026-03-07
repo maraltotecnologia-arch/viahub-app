@@ -45,7 +45,9 @@ export default function ConfigAssinatura() {
   const [pixLoading, setPixLoading] = useState(false);
   const [pixData, setPixData] = useState<{ encodedImage: string; payload: string; value: number; dueDate: string } | null>(null);
   const pixPollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pixPollingStartRef = useRef<number>(Date.now());
   const [pixPaymentId, setPixPaymentId] = useState<string | null>(null);
+  const POLLING_TIMEOUT = 30 * 60 * 1000; // 30 minutes
 
   const { data: agencia, isLoading } = useQuery({
     queryKey: ["agencia-assinatura", agenciaId],
@@ -126,9 +128,16 @@ export default function ConfigAssinatura() {
 
       setPixData(res.data);
 
-      // Start polling
+      // Start polling with timeout
       if (pixPollingRef.current) clearInterval(pixPollingRef.current);
+      pixPollingStartRef.current = Date.now();
       pixPollingRef.current = setInterval(async () => {
+        if (Date.now() - pixPollingStartRef.current > POLLING_TIMEOUT) {
+          if (pixPollingRef.current) clearInterval(pixPollingRef.current);
+          toast({ title: "QR Code expirado", description: "Gere um novo QR Code para continuar.", variant: "destructive" });
+          setPixModalOpen(false);
+          return;
+        }
         try {
           const checkRes = await supabase.functions.invoke("asaas-verificar-pagamento", {
             body: { payment_id: paymentId },
