@@ -42,9 +42,24 @@ Deno.serve(async (req) => {
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
     const existing = existingUsers?.users?.find((u) => u.email === email);
     if (existing) {
-      return new Response(JSON.stringify({ error: "Este email já está cadastrado no ViaHub." }), {
+      return new Response(JSON.stringify({ error: "Este email já está cadastrado. Faça login ou use outro email." }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Check existing CNPJ
+    if (cnpj) {
+      const cnpjLimpo = cnpj.replace(/\D/g, "");
+      const { data: existingCnpj } = await supabaseAdmin
+        .from("agencias")
+        .select("id")
+        .eq("cnpj", cnpjLimpo)
+        .maybeSingle();
+      if (existingCnpj) {
+        return new Response(JSON.stringify({ error: "Este CNPJ já está cadastrado no ViaHub." }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Map billingType
