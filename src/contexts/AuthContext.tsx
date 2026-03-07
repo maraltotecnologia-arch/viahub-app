@@ -166,13 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  if (loading) return (
-    <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
-      <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
-      <div className="h-8 w-8 rounded-full border-[3px] border-white/20 border-t-[#06B6D4] animate-spin" />
-      <p className="text-white/50 text-sm mt-4">Carregando...</p>
-    </div>
-  );
+  return <AuthContext.Provider value={{ user, loading, refreshUser, signOut, statusPagamento, cargoUsuario }}>{children}</AuthContext.Provider>;
 
   return <AuthContext.Provider value={{ user, loading, refreshUser, signOut, statusPagamento, cargoUsuario }}>{children}</AuthContext.Provider>;
 }
