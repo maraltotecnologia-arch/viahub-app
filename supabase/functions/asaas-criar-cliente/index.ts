@@ -76,8 +76,13 @@ Deno.serve(async (req) => {
     const valor = PLANO_VALOR[plano] || 397;
 
     // Next due date — today (date of registration)
-    const today = new Date();
-    const nextDueStr = today.toISOString().split("T")[0];
+    // Use manual components to avoid UTC timezone shift
+    const todayUTC = new Date();
+    const year = todayUTC.getFullYear();
+    const month = String(todayUTC.getMonth() + 1).padStart(2, "0");
+    const day = String(todayUTC.getDate()).padStart(2, "0");
+    const nextDueStr = `${year}-${month}-${day}`;
+    console.log("[asaas-criar-cliente] nextDueDate:", nextDueStr);
 
     // --- Create or update customer ---
     let customerId = agencia.asaas_customer_id;
@@ -224,9 +229,10 @@ Deno.serve(async (req) => {
       });
 
       // Create UNDEFINED subscription for future months
-      const futureDate = new Date(today);
-      futureDate.setMonth(futureDate.getMonth() + 1);
-      const futureDateStr = futureDate.toISOString().split("T")[0];
+      const futureMonth = todayUTC.getMonth() + 2; // +2 because getMonth is 0-based and we want next month
+      const futureYear = futureMonth > 12 ? year + 1 : year;
+      const futureMonthStr = String(futureMonth > 12 ? futureMonth - 12 : futureMonth).padStart(2, "0");
+      const futureDateStr = `${futureYear}-${futureMonthStr}-${day}`;
 
       const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
         method: "POST",
