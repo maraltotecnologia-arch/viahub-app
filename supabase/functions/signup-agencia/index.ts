@@ -185,13 +185,21 @@ Deno.serve(async (req) => {
     console.log("[signup-agencia] [STEP 5] Criando assinatura Asaas...");
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
-      await fetch(`${supabaseUrl}/functions/v1/asaas-criar-cliente`, {
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const res = await fetch(`${supabaseUrl}/functions/v1/asaas-criar-cliente`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${supabaseAnonKey}` },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceRoleKey}`,
+        },
         body: JSON.stringify({ agencia_id: agencia.id }),
       });
-      console.log("[signup-agencia] [STEP 5 OK] Assinatura Asaas iniciada");
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error("[signup-agencia] [STEP 5 AVISO] Resposta não-ok:", res.status, errBody);
+      } else {
+        console.log("[signup-agencia] [STEP 5 OK] Assinatura Asaas iniciada");
+      }
     } catch (e) {
       console.error("[signup-agencia] [STEP 5 AVISO] Erro Asaas (não bloqueante):", (e as Error).message);
     }
