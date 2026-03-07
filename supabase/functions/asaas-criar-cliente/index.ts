@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { agencia_id, billingType: requestedBillingType } = await req.json();
+    const { agencia_id, billingType: requestedBillingType, creditCard } = await req.json();
     if (!agencia_id) {
       return new Response(JSON.stringify({ error: "agencia_id é obrigatório" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
     }
     const nextDueStr = nextDue.toISOString().split("T")[0];
 
+    // --- Create or update customer ---
     let customerId = agencia.asaas_customer_id;
 
     if (customerId) {
@@ -93,8 +94,8 @@ Deno.serve(async (req) => {
         headers: { "Content-Type": "application/json", "access_token": asaasKey },
         body: JSON.stringify({ cpfCnpj: cnpjLimpo, name: nome, email, phone: telefone, mobilePhone: telefone }),
       });
-      const updateData = await updateRes.json();
       if (!updateRes.ok) {
+        const updateData = await updateRes.json();
         console.error("[asaas-criar-cliente] Erro update cliente:", updateData);
         return new Response(JSON.stringify({ error: "Erro ao atualizar cliente", details: updateData }), {
           status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -128,25 +129,132 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create subscription with billingType
+    // --- PIX: Create standalone payment first, then UNDEFINED subscription ---
+    if (billingType === "PIX") {
+      console.log("[asaas-criar-cliente] Criando cobrança PIX avulsa...");
+      const pixPaymentRes = await fetch(`${ASAAS_BASE}/payments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        body: JSON.stringify({
+          customer: customerId,
+          billingType: "PIX",
+          value: valor,
+          dueDate: nextDueStr,
+          description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano} (1º mês)`,
+        }),
+      });
+      const pixPaymentData = await pixPaymentRes.json();
+      if (!pixPaymentRes.ok) {
+        console.error("[asaas-criar-cliente] Erro cobrança PIX:", pixPaymentData);
+        return new Response(JSON.stringify({ error: "Erro ao criar cobrança PIX", details: pixPaymentData }), {
+          status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log("[asaas-criar-cliente] Cobrança PIX criada:", pixPaymentData.id);
+
+      // Get PIX QR Code
+      let pixQrCode = "";
+      let pixPayload = "";
+      try {
+        const qrRes = await fetch(`${ASAAS_BASE}/payments/${pixPaymentData.id}/pixQrCode`, {
+          headers: { "access_token": asaasKey },
+        });
+        const qrData = await qrRes.json();
+        pixQrCode = qrData.encodedImage || "";
+        pixPayload = qrData.payload || "";
+      } catch (e) {
+        console.error("[asaas-criar-cliente] Erro QR Code:", (e as Error).message);
+      }
+
+      // Save payment
+      await supabaseAdmin.from("asaas_pagamentos").insert({
+        agencia_id,
+        asaas_payment_id: pixPaymentData.id,
+        status: pixPaymentData.status,
+        valor: pixPaymentData.value,
+        vencimento: pixPaymentData.dueDate,
+        forma_pagamento: "PIX",
+        pix_qr_code: pixQrCode,
+        pix_copia_cola: pixPayload,
+      });
+
+      // Create UNDEFINED subscription for future months
+      const futureDate = new Date(nextDue);
+      futureDate.setMonth(futureDate.getMonth() + 1);
+      const futureDateStr = futureDate.toISOString().split("T")[0];
+
+      const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        body: JSON.stringify({
+          customer: customerId,
+          billingType: "UNDEFINED",
+          value: valor,
+          nextDueDate: futureDateStr,
+          cycle: "MONTHLY",
+          description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano}`,
+        }),
+      });
+      const subData = await subRes.json();
+      if (subRes.ok) {
+        await supabaseAdmin.from("agencias").update({
+          asaas_subscription_id: subData.id,
+          data_proximo_vencimento: nextDueStr,
+        }).eq("id", agencia_id);
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        customer_id: customerId,
+        subscription_id: subData?.id,
+        paymentId: pixPaymentData.id,
+        pixQrCode,
+        pixPayload,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // --- CREDIT CARD with transparent checkout ---
+    const subscriptionBody: Record<string, unknown> = {
+      customer: customerId,
+      billingType: billingType === "CREDIT_CARD" ? "CREDIT_CARD" : billingType,
+      value: valor,
+      nextDueDate: nextDueStr,
+      cycle: "MONTHLY",
+      description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano}`,
+    };
+
+    if (billingType === "CREDIT_CARD" && creditCard) {
+      subscriptionBody.creditCard = {
+        holderName: creditCard.holderName,
+        number: creditCard.number,
+        expiryMonth: creditCard.expiryMonth,
+        expiryYear: creditCard.expiryYear,
+        ccv: creditCard.ccv,
+      };
+      subscriptionBody.creditCardHolderInfo = {
+        name: creditCard.holderName,
+        email: email || "",
+        cpfCnpj: cnpjLimpo,
+        postalCode: "00000000",
+        addressNumber: "0",
+        phone: telefone || "",
+      };
+    }
+
     console.log("[asaas-criar-cliente] Criando assinatura...", { plano, valor, nextDueStr, billingType });
     const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "access_token": asaasKey },
-      body: JSON.stringify({
-        customer: customerId,
-        billingType,
-        value: valor,
-        nextDueDate: nextDueStr,
-        cycle: "MONTHLY",
-        description: `ViaHub — Plano ${PLANO_LABEL[plano] || plano}`,
-      }),
+      body: JSON.stringify(subscriptionBody),
     });
 
     const subData = await subRes.json();
     if (!subRes.ok) {
       console.error("[asaas-criar-cliente] Erro assinatura:", subData);
-      return new Response(JSON.stringify({ error: "Erro ao criar assinatura", details: subData }), {
+      const errorMsg = subData.errors?.[0]?.description || "Erro ao criar assinatura";
+      return new Response(JSON.stringify({ error: errorMsg, details: subData }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -158,24 +266,25 @@ Deno.serve(async (req) => {
       data_proximo_vencimento: nextDueStr,
     }).eq("id", agencia_id);
 
-    // Get first payment to return invoiceUrl
+    // Get first payment
     let invoiceUrl: string | undefined;
     let boletoUrl: string | undefined;
+    let boletoLinhaDigitavel: string | undefined;
+    let paymentId: string | undefined;
 
     try {
-      console.log("[asaas-criar-cliente] Buscando primeiro pagamento...");
       const paymentsRes = await fetch(`${ASAAS_BASE}/subscriptions/${subData.id}/payments?limit=1`, {
         headers: { "access_token": asaasKey },
       });
       const paymentsData = await paymentsRes.json();
-      console.log("[asaas-criar-cliente] Payments:", JSON.stringify(paymentsData));
 
       if (paymentsData?.data?.length > 0) {
         const firstPayment = paymentsData.data[0];
         invoiceUrl = firstPayment.invoiceUrl;
         boletoUrl = firstPayment.bankSlipUrl;
+        boletoLinhaDigitavel = firstPayment.nossoNumero;
+        paymentId = firstPayment.id;
 
-        // Save payment to asaas_pagamentos
         await supabaseAdmin.from("asaas_pagamentos").insert({
           agencia_id,
           asaas_payment_id: firstPayment.id,
@@ -197,6 +306,8 @@ Deno.serve(async (req) => {
       subscription_id: subData.id,
       invoiceUrl,
       boletoUrl,
+      boletoLinhaDigitavel,
+      paymentId,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

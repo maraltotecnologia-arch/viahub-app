@@ -19,11 +19,11 @@ Deno.serve(async (req) => {
     );
 
     const body = await req.json();
-    const { email, password, nome_agencia, nome_admin, telefone, cnpj, plano, forma_pagamento } = body;
+    const { email, password, nome_agencia, nome_admin, telefone, cnpj, plano, forma_pagamento, creditCard } = body;
 
     console.log("[signup-agencia] Dados:", JSON.stringify({
       email, nome_agencia, nome_admin, telefone, cnpj, plano, forma_pagamento,
-      has_password: !!password,
+      has_password: !!password, has_creditCard: !!creditCard,
     }));
 
     if (!email || !password || !nome_agencia || !nome_admin || !telefone || !plano || !cnpj) {
@@ -114,45 +114,72 @@ Deno.serve(async (req) => {
     }
     console.log("[signup-agencia] [STEP 3 OK]");
 
-    // Step 4: OTP
-    console.log("[signup-agencia] [STEP 4] Enviando OTP...");
-    const { error: otpError } = await supabaseAdmin.auth.signInWithOtp({
-      email, options: { shouldCreateUser: false },
-    });
-    if (otpError) console.error("[signup-agencia] OTP erro (não bloqueante):", otpError.message);
-    else console.log("[signup-agencia] [STEP 4 OK]");
-
-    // Step 5: Create Asaas customer + subscription (blocking - we need the payment URL)
-    console.log("[signup-agencia] [STEP 5] Criando assinatura Asaas...");
+    // Step 4: Create Asaas customer + subscription (blocking)
+    console.log("[signup-agencia] [STEP 4] Criando assinatura Asaas...");
     let invoiceUrl: string | undefined;
     let boletoUrl: string | undefined;
+    let boletoLinhaDigitavel: string | undefined;
+    let pixQrCode: string | undefined;
+    let pixPayload: string | undefined;
+    let paymentId: string | undefined;
 
     try {
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const asaasBody: Record<string, unknown> = { agencia_id: agencia.id, billingType };
+
+      // Pass credit card data if present
+      if (creditCard && billingType === "CREDIT_CARD") {
+        asaasBody.creditCard = {
+          holderName: creditCard.holderName,
+          number: creditCard.number,
+          expiryMonth: creditCard.expiryMonth,
+          expiryYear: creditCard.expiryYear,
+          ccv: creditCard.ccv,
+        };
+      }
+
       const res = await fetch(`${supabaseUrl}/functions/v1/asaas-criar-cliente`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${serviceRoleKey}`,
         },
-        body: JSON.stringify({ agencia_id: agencia.id, billingType }),
+        body: JSON.stringify(asaasBody),
       });
 
       const asaasResult = await res.json();
-      console.log("[signup-agencia] [STEP 5] Asaas result:", JSON.stringify(asaasResult));
+      console.log("[signup-agencia] [STEP 4] Asaas result:", JSON.stringify(asaasResult));
 
       if (res.ok && asaasResult) {
         invoiceUrl = asaasResult.invoiceUrl;
         boletoUrl = asaasResult.boletoUrl;
+        boletoLinhaDigitavel = asaasResult.boletoLinhaDigitavel;
+        pixQrCode = asaasResult.pixQrCode;
+        pixPayload = asaasResult.pixPayload;
+        paymentId = asaasResult.paymentId;
+
+        if (asaasResult.error) {
+          console.error("[signup-agencia] Asaas error:", asaasResult.error);
+          // Don't fail the whole signup, but pass the error
+        }
       }
     } catch (e) {
-      console.error("[signup-agencia] [STEP 5 AVISO] Erro Asaas:", (e as Error).message);
+      console.error("[signup-agencia] [STEP 4 AVISO] Erro Asaas:", (e as Error).message);
     }
 
     console.log("[signup-agencia] ========== SUCESSO ==========");
 
-    return new Response(JSON.stringify({ success: true, invoiceUrl, boletoUrl }), {
+    return new Response(JSON.stringify({
+      success: true,
+      invoiceUrl,
+      boletoUrl,
+      boletoLinhaDigitavel,
+      pixQrCode,
+      pixPayload,
+      paymentId,
+    }), {
       status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
