@@ -11,6 +11,7 @@ const iconByTipo: Record<string, React.ElementType> = {
   duplicado: Copy,
   editado: Edit,
   edicao_valor: Pencil,
+  whatsapp_enviado: MessageCircle,
 };
 
 const colorByTipo: Record<string, string> = {
@@ -20,6 +21,7 @@ const colorByTipo: Record<string, string> = {
   duplicado: "#94A3B8",
   editado: "#F59E0B",
   edicao_valor: "#F97316",
+  whatsapp_enviado: "#22C55E",
 };
 
 interface Props {

@@ -75,6 +75,9 @@ export default function OrcamentoDetalhe() {
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [showPagoConfirm, setShowPagoConfirm] = useState(false);
   const [markingPago, setMarkingPago] = useState(false);
+  const [sendingEvolution, setSendingEvolution] = useState(false);
+  const [showEvolutionModal, setShowEvolutionModal] = useState(false);
+  const [evolutionPhone, setEvolutionPhone] = useState("");
 
   // Collapsible state with localStorage persistence
   const [historicoOpen, setHistoricoOpen] = useState(() => {
@@ -684,7 +687,26 @@ export default function OrcamentoDetalhe() {
               <Button
                 className="w-full justify-start text-white"
                 style={{ backgroundColor: "#25D366" }}
-                onClick={() => setShowWhatsApp(true)}
+                onClick={async () => {
+                  // Check Evolution API connection
+                  try {
+                    const { data } = await supabase.functions.invoke("whatsapp-status-instancia", {
+                      body: { agencia_id: agenciaId },
+                    });
+                    if (data?.status === "connected") {
+                      setEvolutionPhone((orc.clientes as any)?.telefone?.replace(/\D/g, "") || "");
+                      setShowEvolutionModal(true);
+                      return;
+                    }
+                  } catch (_) { /* fallback to wa.me */ }
+
+                  // Fallback: wa.me
+                  setShowWhatsApp(true);
+                  if (!sessionStorage.getItem("viahub_wpp_tip")) {
+                    sessionStorage.setItem("viahub_wpp_tip", "1");
+                    toast({ title: "💡 Configure o WhatsApp automático em Configurações → WhatsApp para enviar sem abrir o celular." });
+                  }
+                }}
               >
                 <Smartphone className="h-4 w-4 mr-2" /> Enviar via WhatsApp
               </Button>
