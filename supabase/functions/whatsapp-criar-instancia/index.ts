@@ -64,7 +64,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      // If already connected, return early
       if (existing.status === "open" || existing.status === "connected") {
         console.log("[whatsapp-criar] Já conectado");
         return new Response(
@@ -73,7 +72,7 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Delete old instance from Evolution (ignore errors)
+      // Delete old instance from Evolution
       console.log("[whatsapp-criar] Removendo instância antiga:", existing.instance_name);
       try {
         await fetch(`${EVOLUTION_API_URL}/instance/logout/${existing.instance_name}`, {
@@ -93,16 +92,14 @@ Deno.serve(async (req) => {
         console.warn("[whatsapp-criar] Delete falhou (ignorado):", (e as Error).message);
       }
 
-      // Remove DB record
       await supabaseAdmin.from("whatsapp_instancias").delete().eq("id", existing.id);
       console.log("[whatsapp-criar] Registro antigo removido do banco");
     }
 
-    // Generate unique instance name
     const instanceName = `viahub_${agencia_id.replace(/-/g, "").slice(0, 12)}`;
     console.log("[whatsapp-criar] Criando instância:", instanceName);
 
-    // Create instance on Evolution API
+    // Create instance WITHOUT qrcode: true to avoid race condition
     const createRes = await fetch(`${EVOLUTION_API_URL}/instance/create`, {
       method: "POST",
       headers: {
@@ -111,7 +108,6 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         instanceName,
-        qrcode: true,
         integration: "WHATSAPP-BAILEYS",
       }),
     });
@@ -130,19 +126,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Wait a bit for instance to initialize
-    await new Promise((r) => setTimeout(r, 2000));
-
-    // Fetch QR Code
-    console.log("[whatsapp-criar] Buscando QR Code...");
-    const qrRes = await fetch(`${EVOLUTION_API_URL}/instance/connect/${instanceName}`, {
-      headers: { apikey: EVOLUTION_API_KEY },
-    });
-
-    const qrData = await qrRes.json();
-    console.log("[whatsapp-criar] QR status:", qrRes.status, "has base64:", !!qrData?.base64);
-
-    // Save to database
+    // Save to database - polling will handle QR code retrieval
     const { error: insertErr } = await supabaseAdmin.from("whatsapp_instancias").insert({
       agencia_id,
       instance_name: instanceName,
@@ -157,13 +141,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Extract QR code from various possible response formats
-    const qrcode = qrData?.base64 || qrData?.qrcode?.base64 || qrData?.qrcode || null;
-
-    console.log("[whatsapp-criar] SUCESSO. QR disponível:", !!qrcode);
+    console.log("[whatsapp-criar] SUCESSO. QR Code será buscado pelo polling de status.");
 
     return new Response(
-      JSON.stringify({ instanceName, qrcode }),
+      JSON.stringify({ instanceName }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
