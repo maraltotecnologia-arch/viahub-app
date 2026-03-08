@@ -132,13 +132,28 @@ export default function OrcamentoDetalhe() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("agencias")
-        .select("nome_fantasia, email, telefone, logo_url, horario_funcionamento, plano")
+        .select("nome_fantasia, email, telefone, logo_url, horario_funcionamento, plano, whatsapp_mensagem_orcamento")
         .eq("id", agenciaId!)
         .maybeSingle();
       if (error) throw error;
       return data;
     },
   });
+
+  const { data: usuarioData } = useQuery({
+    queryKey: ["usuario-nome", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("usuarios")
+        .select("nome")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const usuarioNome = usuarioData?.nome || "";
+
   // Auto-generate token_publico if missing
   useEffect(() => {
     if (orc && !orc.token_publico) {
@@ -800,12 +815,13 @@ export default function OrcamentoDetalhe() {
             <div className="bg-muted rounded-lg p-3 text-sm text-foreground">
               <p className="text-xs font-medium text-muted-foreground mb-1">Mensagem que será enviada:</p>
               <p className="whitespace-pre-wrap">
-                {(agencia as any)?.whatsapp_mensagem_orcamento
-                  ? (agencia as any).whatsapp_mensagem_orcamento
-                      .replace(/\{nome_cliente\}/g, (orc.clientes as any)?.nome || "Cliente")
-                      .replace(/\{numero_orcamento\}/g, (orc as any).numero_orcamento || "")
-                      .replace(/\{nome_agencia\}/g, agencia?.nome_fantasia || "")
-                  : `Olá ${(orc.clientes as any)?.nome || "Cliente"}! 😊 Segue o orçamento *${(orc as any).numero_orcamento || ""}*.`
+                {((agencia as any)?.whatsapp_mensagem_orcamento || "Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto.\n\n{link_orcamento}\n\nAtenciosamente, {nome_agente}\n{nome_agencia}")
+                  .replace(/\{nome_cliente\}/g, (orc.clientes as any)?.nome || "Cliente")
+                  .replace(/\{numero_orcamento\}/g, (orc as any).numero_orcamento || "")
+                  .replace(/\{titulo_orcamento\}/g, (orc as any).titulo || "sua viagem")
+                  .replace(/\{link_orcamento\}/g, orc.token_publico ? `${window.location.origin}/orcamento/${orc.token_publico}` : "")
+                  .replace(/\{nome_agente\}/g, usuarioNome || "nossa equipe")
+                  .replace(/\{nome_agencia\}/g, agencia?.nome_fantasia || "")
                 }
               </p>
             </div>
@@ -843,12 +859,18 @@ export default function OrcamentoDetalhe() {
                     }
                   }
 
+                  const linkOrcamento = orc.token_publico
+                    ? `${window.location.origin}/orcamento/${orc.token_publico}`
+                    : "";
+
                   const { data, error } = await supabase.functions.invoke("whatsapp-enviar-orcamento", {
                     body: {
                       orcamento_id: id,
                       agencia_id: agenciaId,
                       telefone_destino: evolutionPhone,
                       pdf_base64,
+                      link_orcamento: linkOrcamento,
+                      nome_agente: usuarioNome || "",
                     },
                   });
 

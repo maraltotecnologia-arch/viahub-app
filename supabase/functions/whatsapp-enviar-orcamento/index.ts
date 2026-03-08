@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { orcamento_id, agencia_id, telefone_destino, pdf_base64 } = await req.json();
+    const { orcamento_id, agencia_id, telefone_destino, pdf_base64, link_orcamento, nome_agente } = await req.json();
 
     // Validate phone
     const telFormatado = formatarTelefone(telefone_destino || "");
@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
     // Fetch quote data
     const { data: orcData } = await supabaseAdmin
       .from("orcamentos")
-      .select("numero_orcamento, valor_final, cliente_id, agencia_id, status")
+      .select("numero_orcamento, valor_final, cliente_id, agencia_id, status, titulo")
       .eq("id", orcamento_id)
       .single();
 
@@ -153,11 +153,14 @@ Deno.serve(async (req) => {
     const agenciaNome = agenciaData?.nome_fantasia || "";
     const templateMsg =
       agenciaData?.whatsapp_mensagem_orcamento ||
-      "Olá {nome_cliente}! 😊 Segue em anexo o orçamento *{numero_orcamento}* referente à sua solicitação. Qualquer dúvida estamos à disposição! — {nome_agencia}";
+      "Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto. Confira todas os valores e condições abaixo.\n\nAcessando o link, você consegue aprovar o orçamento ou falar novamente com o seu agente. ⬇️\n\n{link_orcamento}\n\nCaso não consiga acessar o link, o anexo em PDF contém todas as informações para você.\n\nQualquer dúvida ficamos à disposição. 🫱🏼‍🫲🏼\nAtenciosamente, {nome_agente}\n{nome_agencia}";
 
     const mensagem = templateMsg
       .replace(/\{nome_cliente\}/g, clienteNome)
       .replace(/\{numero_orcamento\}/g, orcData?.numero_orcamento || "")
+      .replace(/\{titulo_orcamento\}/g, orcData?.titulo || "sua viagem")
+      .replace(/\{link_orcamento\}/g, link_orcamento || "")
+      .replace(/\{nome_agente\}/g, nome_agente || "nossa equipe")
       .replace(/\{nome_agencia\}/g, agenciaNome);
 
     console.log("[whatsapp-enviar] Enviando texto para:", telFormatado);
