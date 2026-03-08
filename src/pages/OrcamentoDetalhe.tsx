@@ -825,11 +825,30 @@ export default function OrcamentoDetalhe() {
               onClick={async () => {
                 setSendingEvolution(true);
                 try {
+                  // Generate PDF as Base64 on the client
+                  let pdf_base64: string | null = null;
+                  const pdfDataForSend = buildPdfData();
+                  if (pdfDataForSend) {
+                    try {
+                      const pdfBlob = await pdf(<OrcamentoPDFDocument data={pdfDataForSend} />).toBlob();
+                      const arrayBuffer = await pdfBlob.arrayBuffer();
+                      const uint8 = new Uint8Array(arrayBuffer);
+                      let binary = '';
+                      for (let i = 0; i < uint8.byteLength; i++) {
+                        binary += String.fromCharCode(uint8[i]);
+                      }
+                      pdf_base64 = btoa(binary);
+                    } catch (pdfErr) {
+                      console.warn("Erro ao gerar PDF no frontend:", pdfErr);
+                    }
+                  }
+
                   const { data, error } = await supabase.functions.invoke("whatsapp-enviar-orcamento", {
                     body: {
                       orcamento_id: id,
                       agencia_id: agenciaId,
                       telefone_destino: evolutionPhone,
+                      pdf_base64,
                     },
                   });
 
