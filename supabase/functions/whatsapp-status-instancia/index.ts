@@ -103,7 +103,6 @@ Deno.serve(async (req) => {
     } else if (evolutionState === "connecting" || evolutionState === "close") {
       status = "connecting";
 
-      // Always try to wake/connect and fetch QR in both states
       const first = await requestConnect(EVOLUTION_API_URL, EVOLUTION_API_KEY, instanceName);
       qrcode = first.base64Image;
 
@@ -135,14 +134,21 @@ Deno.serve(async (req) => {
       }
     }
 
-    await supabaseAdmin
-      .from("whatsapp_instancias")
-      .update({
-        status: status === "connected" ? "open" : status,
-        numero: numero || null,
-        ultima_verificacao: new Date().toISOString(),
-      })
-      .eq("agencia_id", agencia_id);
+    // Only update DB if status or numero actually changed
+    const newDbStatus = status === "connected" ? "open" : status;
+    const dbStatusChanged = instancia.status !== newDbStatus;
+    const dbNumeroChanged = (numero || null) !== (instancia.numero || null);
+
+    if (dbStatusChanged || dbNumeroChanged) {
+      await supabaseAdmin
+        .from("whatsapp_instancias")
+        .update({
+          status: newDbStatus,
+          numero: numero || null,
+          ultima_verificacao: new Date().toISOString(),
+        })
+        .eq("agencia_id", agencia_id);
+    }
 
     return new Response(
       JSON.stringify({ status, numero, instanceName, qrcode }),
