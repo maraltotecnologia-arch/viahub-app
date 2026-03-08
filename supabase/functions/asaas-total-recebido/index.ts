@@ -8,6 +8,8 @@ const ASAAS_BASE = "https://sandbox.asaas.com/api/v3";
 type AsaasPayment = {
   value?: number;
   netValue?: number;
+  paymentDate?: string | null;
+  clientPaymentDate?: string | null;
 };
 
 type AsaasListResponse = {
