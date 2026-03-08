@@ -81,23 +81,19 @@ export default function ComissoesFinanceiro() {
       const { data, error } = await supabase
         .from("asaas_pagamentos")
         .select("*")
-        .order("created_at", { ascending: false });
+        .in("status", ["RECEIVED", "CONFIRMED"])
+        .gte("pago_em", start.toISOString())
+        .lte("pago_em", end.toISOString())
+        .order("pago_em", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
 
-  const filteredPagamentos = useMemo(() => {
-    if (!pagamentos) return [];
-    return pagamentos.filter((p) => {
-      const d = new Date(p.pago_em || p.created_at);
-      return d >= start && d <= end;
-    });
-  }, [pagamentos, start, end]);
-
-  const totalRecebido = filteredPagamentos
-    .filter(p => p.status === "RECEIVED" || p.status === "CONFIRMED")
-    .reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  const totalRecebido = useMemo(() => {
+    if (!pagamentos) return 0;
+    return pagamentos.reduce((s, p) => s + (Number(p.valor) || 0), 0);
+  }, [pagamentos]);
 
   const mrrEstimado = agencias?.reduce((s, a) => s + (planoPreco[a.plano || "starter"] || 0), 0) ?? 0;
 

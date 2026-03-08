@@ -144,7 +144,7 @@ export default function GlobalSearch() {
   }
 
   return (
-    <div ref={containerRef} className="relative" style={{ width: isMobile ? "100%" : 280 }}>
+    <div ref={containerRef} className="relative w-full">
       <div
         className="flex items-center gap-2 h-9 px-3 rounded-[10px] transition-all duration-150"
         style={{

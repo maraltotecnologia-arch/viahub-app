@@ -78,8 +78,14 @@ export default function AppLayout() {
               </TooltipTrigger>
               <TooltipContent side="bottom">Recolher menu</TooltipContent>
             </Tooltip>
-            <div className="ml-auto flex items-center gap-3">
-              <GlobalSearch />
+            {/* Center — Search bar */}
+            <div className="flex-1 flex justify-center mx-4">
+              <div className="w-full max-w-lg">
+                <GlobalSearch />
+              </div>
+            </div>
+            {/* Right — User info & actions */}
+            <div className="flex items-center gap-3 shrink-0">
               {!isMobile && (
                 <>
                   <span className="text-sm font-medium text-foreground">{displayName}</span>

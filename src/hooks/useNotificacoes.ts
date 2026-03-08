@@ -76,7 +76,7 @@ export default function useNotificacoes() {
       usuario_id: user.id,
       notificacao_id: notificacaoId,
     });
-    queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    queryClient.invalidateQueries({ queryKey: ["notificacoes", user.id] });
   };
 
   const marcarTodasComoLidas = async () => {
@@ -86,7 +86,7 @@ export default function useNotificacoes() {
       notificacao_id: n.id,
     }));
     await supabase.from("notificacoes_lidas").insert(rows);
-    queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    queryClient.invalidateQueries({ queryKey: ["notificacoes", user.id] });
   };
 
   return {
