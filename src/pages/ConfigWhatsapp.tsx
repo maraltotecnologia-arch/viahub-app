@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +22,7 @@ const MENSAGEM_PADRAO = "Olá, {nome_cliente} 😀\n\nO seu orçamento referente
 export default function ConfigWhatsapp() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const agenciaId = useAgenciaId();
 
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -28,6 +30,7 @@ export default function ConfigWhatsapp() {
   const [connecting, setConnecting] = useState(false);
   const [disconnectConfirm, setDisconnectConfirm] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [forcedDisconnected, setForcedDisconnected] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [savingMsg, setSavingMsg] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
@@ -121,6 +124,7 @@ export default function ConfigWhatsapp() {
 
   const handleConnect = async () => {
     if (!agenciaId || connecting) return;
+    setForcedDisconnected(false);
     setConnecting(true);
     setQrCode(null);
     setQrModalOpen(true);
@@ -169,21 +173,26 @@ export default function ConfigWhatsapp() {
       await supabase.functions.invoke("whatsapp-desconectar", {
         body: { agencia_id: agenciaId },
       });
-      // Force local state reset immediately
+
+      // Reset local UI immediately (estado limpo)
       stopPolling();
       setQrCode(null);
       setQrModalOpen(false);
+      setDisconnectConfirm(false);
+      setForcedDisconnected(true);
+
+      // Force clean visual state and clear stale cache
+      queryClient.cancelQueries({ queryKey: ["whatsapp-status", agenciaId] });
+      queryClient.setQueryData(["whatsapp-status", agenciaId], { status: "disconnected" });
+      queryClient.removeQueries({ queryKey: ["whatsapp-status", agenciaId], exact: true });
+
       toast({ title: "WhatsApp desconectado" });
-      // Clear React Query cache for this key so stale data is gone
-      queryClient.removeQueries({ queryKey: ["whatsapp-status", agenciaId] });
-      // Small delay to let backend settle, then reload for clean state
-      setTimeout(() => {
-        window.location.href = "/configuracoes/whatsapp";
-      }, 800);
+      navigate(".", { replace: true });
     } catch (_) {
       toast({ title: formatError("WPP005"), variant: "destructive" });
-      setDisconnecting(false);
       setDisconnectConfirm(false);
+    } finally {
+      setDisconnecting(false);
     }
   };
 
@@ -224,8 +233,8 @@ export default function ConfigWhatsapp() {
     .replace(/\{nome_agente\}/g, "Carlos")
     .replace(/\{nome_agencia\}/g, agenciaData?.nome_fantasia || "Sua Agência");
 
-  const isConnected = wpStatus?.status === "connected";
-  const isDisconnected = !wpStatus || wpStatus.status === "not_configured" || wpStatus.status === "disconnected";
+  const effectiveStatus = forcedDisconnected ? "disconnected" : wpStatus?.status;
+  const isConnected = effectiveStatus === "connected";
 
   // Block UI until agenciaId + status query resolves
   const initialLoading = !agenciaId || statusLoading;
