@@ -99,17 +99,26 @@ export default function ConfigWhatsapp() {
       }
 
       try {
-        const { data } = await supabase.functions.invoke("whatsapp-status-instancia", {
+        const { data, error } = await supabase.functions.invoke("whatsapp-status-instancia", {
           body: { agencia_id: agenciaId },
         });
 
-        if (data?.status === "connected") {
+        // supabase.functions.invoke may return data in error for non-2xx
+        const result = data || (error ? (() => { try { return JSON.parse((error as any)?.message || "{}"); } catch { return null; } })() : null);
+        
+        console.log("[polling] status result:", result?.status, "has qrcode:", !!result?.qrcode);
+
+        if (result?.status === "connected") {
           stopPolling();
           setQrModalOpen(false);
+          setQrCode(null);
           toast({ title: "WhatsApp conectado! ✓" });
           queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
-        } else if (data?.qrcode) {
-          setQrCode(data.qrcode);
+        } else if (result?.qrcode) {
+          const qr = result.qrcode;
+          // Ensure proper data URI format
+          const qrSrc = qr.startsWith("data:") ? qr : `data:image/png;base64,${qr}`;
+          setQrCode(qrSrc);
         }
       } catch (_) { /* ignore polling errors */ }
     }, QR_POLLING_INTERVAL);
@@ -369,7 +378,7 @@ export default function ConfigWhatsapp() {
             {qrCode ? (
               <div className="bg-white p-4 rounded-xl inline-block">
                 <img
-                  src={qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+                  src={qrCode}
                   alt="QR Code WhatsApp"
                   className="max-w-[240px] w-full"
                 />

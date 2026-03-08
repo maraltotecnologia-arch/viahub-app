@@ -129,8 +129,15 @@ Deno.serve(async (req) => {
 
         if (qrRes.ok) {
           const qrData = await qrRes.json();
+          console.log("[whatsapp-status] QR response keys:", Object.keys(qrData || {}));
           qrcode = qrData?.base64 || qrData?.qrcode?.base64 || qrData?.qrcode || null;
-          console.log("[whatsapp-status] QR atualizado:", !!qrcode);
+          if (qrcode) {
+            console.log("[whatsapp-status] QR Code resgatado com sucesso, length:", qrcode.length);
+          } else {
+            console.log("[whatsapp-status] QR Code ainda não disponível");
+          }
+        } else {
+          console.warn("[whatsapp-status] QR connect retornou:", qrRes.status);
         }
       } catch (e) {
         console.warn("[whatsapp-status] Erro ao buscar QR:", (e as Error).message);
