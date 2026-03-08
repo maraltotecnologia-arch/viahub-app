@@ -129,6 +129,7 @@ export default function ConfigWhatsapp() {
     setConnecting(true);
     setQrCode(null);
     setQrModalOpen(true);
+    try {
       const { data, error } = await supabase.functions.invoke("whatsapp-criar-instancia", {
         body: { agencia_id: agenciaId },
       });
