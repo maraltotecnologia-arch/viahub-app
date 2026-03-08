@@ -147,42 +147,40 @@ export default function ConfigWhatsapp() {
         body: { agencia_id: agenciaId },
       });
 
-      if (error) {
-        let parsed: any = null;
-        try { parsed = JSON.parse((error as any)?.message || "{}"); } catch {}
-        if (parsed?.alreadyConnected) {
-          toast({ title: "WhatsApp já está conectado!" });
-          setQrModalOpen(false);
-          queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
-          return;
-        }
-        // If alreadyExists but not connected (i.e. connecting state), just start polling
-        if (parsed?.alreadyExists) {
-          startPolling();
-          return;
-        }
-        throw error;
+      // Try to parse error response body (edge functions may return JSON in error.message)
+      let parsed: any = data;
+      if (error && !data) {
+        try { parsed = JSON.parse((error as any)?.message || "{}"); } catch { parsed = null; }
       }
 
-      // Handle alreadyConnected / alreadyExists from successful response
-      if (data?.alreadyConnected) {
+      // Already connected — close modal, refresh status
+      if (parsed?.alreadyConnected) {
         toast({ title: "WhatsApp já está conectado!" });
         setQrModalOpen(false);
         queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
         return;
       }
 
-      if (data?.alreadyExists) {
-        // Instance exists and is connecting — just poll for QR
+      // Already exists (connecting state) — just start polling for QR
+      if (parsed?.alreadyExists) {
         startPolling();
+        return;
+      }
+
+      // If there was a real error and none of the above matched, show it
+      if (error && !parsed?.success) {
+        console.error("[handleConnect] Edge function error:", error);
+        setQrModalOpen(false);
+        toast({ title: "Erro ao conectar WhatsApp. Tente novamente.", variant: "destructive" });
         return;
       }
 
       // New instance created — start polling for QR
       startPolling();
     } catch (e) {
+      console.error("[handleConnect] Unexpected error:", e);
       setQrModalOpen(false);
-      toast({ title: formatError("WPP002"), variant: "destructive" });
+      toast({ title: "Erro inesperado ao conectar. Tente novamente.", variant: "destructive" });
     } finally {
       setConnecting(false);
     }
@@ -248,11 +246,30 @@ export default function ConfigWhatsapp() {
   const isConnected = wpStatus?.status === "connected";
   const isDisconnected = !wpStatus || wpStatus.status === "not_configured" || wpStatus.status === "disconnected";
 
-  if (statusLoading) {
+  // Block UI until both agenciaId is resolved AND initial status query completes
+  const initialLoading = !agenciaId || statusLoading;
+
+  if (initialLoading) {
     return (
       <div className="space-y-6 animate-fade-in-up">
-        <h2 className="text-2xl font-bold">WhatsApp</h2>
-        <Skeleton className="h-48 w-full" />
+        <h2 className="text-2xl font-bold flex items-center gap-2">
+          <MessageCircle className="h-6 w-6" />
+          WhatsApp
+        </h2>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Status da Conexão</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-8 w-1/3" />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="py-6">
+            <Skeleton className="h-32 w-full" />
+          </CardContent>
+        </Card>
       </div>
     );
   }
