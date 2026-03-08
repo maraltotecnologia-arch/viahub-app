@@ -24,12 +24,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     localStorage.setItem("viahub-theme", theme);
     document.documentElement.setAttribute("data-theme", theme);
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }, [theme]);
 
   // Aplicar tema inicial imediatamente
   useEffect(() => {
     const saved = localStorage.getItem("viahub-theme") || "dark";
     document.documentElement.setAttribute("data-theme", saved);
+    document.documentElement.classList.toggle("dark", saved === "dark");
   }, []);
 
   const toggleTheme = () => {
