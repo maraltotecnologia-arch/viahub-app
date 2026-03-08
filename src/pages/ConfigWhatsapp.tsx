@@ -174,13 +174,14 @@ export default function ConfigWhatsapp() {
       setQrCode(null);
       setQrModalOpen(false);
       toast({ title: "WhatsApp desconectado" });
-      // Invalidate cache so UI reflects disconnected state instantly
-      await queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
-      // Reload the page to ensure clean state
-      window.location.reload();
+      // Clear React Query cache for this key so stale data is gone
+      queryClient.removeQueries({ queryKey: ["whatsapp-status", agenciaId] });
+      // Small delay to let backend settle, then reload for clean state
+      setTimeout(() => {
+        window.location.href = "/configuracoes/whatsapp";
+      }, 800);
     } catch (_) {
       toast({ title: formatError("WPP005"), variant: "destructive" });
-    } finally {
       setDisconnecting(false);
       setDisconnectConfirm(false);
     }
