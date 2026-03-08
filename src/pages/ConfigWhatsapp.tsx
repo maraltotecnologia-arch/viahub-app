@@ -35,6 +35,7 @@ export default function ConfigWhatsapp() {
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartRef = useRef<number>(0);
+  const autoResumedRef = useRef(false);
 
   // Fetch WhatsApp status
   const { data: wpStatus, isLoading: statusLoading } = useQuery({
@@ -48,6 +49,20 @@ export default function ConfigWhatsapp() {
       return data as { status: string; numero?: string; instanceName?: string; qrcode?: string };
     },
   });
+
+  // Auto-resume: if status comes back as "connecting" with a QR, open modal automatically
+  useEffect(() => {
+    if (!wpStatus || autoResumedRef.current) return;
+    if (wpStatus.status === "connecting") {
+      autoResumedRef.current = true;
+      if (wpStatus.qrcode) {
+        const qr = wpStatus.qrcode;
+        setQrCode(qr.startsWith("data:") ? qr : `data:image/png;base64,${qr}`);
+      }
+      setQrModalOpen(true);
+      startPolling();
+    }
+  }, [wpStatus]);
 
   // Fetch agency message template
   const { data: agenciaData } = useQuery({
@@ -92,7 +107,6 @@ export default function ConfigWhatsapp() {
         stopPolling();
         setQrModalOpen(false);
         toast({ title: formatError("WPP006"), variant: "destructive" });
-        // Cleanup instance
         await supabase.functions.invoke("whatsapp-desconectar", {
           body: { agencia_id: agenciaId },
         });
@@ -104,7 +118,6 @@ export default function ConfigWhatsapp() {
           body: { agencia_id: agenciaId },
         });
 
-        // supabase.functions.invoke may return data in error for non-2xx
         const result = data || (error ? (() => { try { return JSON.parse((error as any)?.message || "{}"); } catch { return null; } })() : null);
         
         console.log("[polling] status result:", result?.status, "has qrcode:", !!result?.qrcode);
@@ -117,7 +130,6 @@ export default function ConfigWhatsapp() {
           queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
         } else if (result?.qrcode) {
           const qr = result.qrcode;
-          // Ensure proper data URI format
           const qrSrc = qr.startsWith("data:") ? qr : `data:image/png;base64,${qr}`;
           setQrCode(qrSrc);
         }
@@ -140,21 +152,36 @@ export default function ConfigWhatsapp() {
         try { parsed = JSON.parse((error as any)?.message || "{}"); } catch {}
         if (parsed?.alreadyConnected) {
           toast({ title: "WhatsApp já está conectado!" });
+          setQrModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
+          return;
+        }
+        // If alreadyExists but not connected (i.e. connecting state), just start polling
+        if (parsed?.alreadyExists) {
+          startPolling();
           return;
         }
         throw error;
       }
 
+      // Handle alreadyConnected / alreadyExists from successful response
       if (data?.alreadyConnected) {
         toast({ title: "WhatsApp já está conectado!" });
+        setQrModalOpen(false);
         queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
         return;
       }
 
-      // Modal já aberto para feedback imediato; polling buscará o QR
+      if (data?.alreadyExists) {
+        // Instance exists and is connecting — just poll for QR
+        startPolling();
+        return;
+      }
+
+      // New instance created — start polling for QR
       startPolling();
     } catch (e) {
+      setQrModalOpen(false);
       toast({ title: formatError("WPP002"), variant: "destructive" });
     } finally {
       setConnecting(false);
@@ -180,9 +207,6 @@ export default function ConfigWhatsapp() {
   const handleCancelQr = async () => {
     stopPolling();
     setQrModalOpen(false);
-    await supabase.functions.invoke("whatsapp-desconectar", {
-      body: { agencia_id: agenciaId },
-    });
   };
 
   const handleSaveMessage = async () => {

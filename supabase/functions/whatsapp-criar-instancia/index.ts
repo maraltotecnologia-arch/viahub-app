@@ -64,15 +64,40 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      if (existing.status === "open" || existing.status === "connected") {
-        console.log("[whatsapp-criar] Já conectado");
+      // Check real state in Evolution API before deciding
+      let evolutionState = "unknown";
+      try {
+        const stateRes = await fetch(
+          `${EVOLUTION_API_URL}/instance/connectionState/${existing.instance_name}`,
+          { headers: { apikey: EVOLUTION_API_KEY } }
+        );
+        if (stateRes.ok) {
+          const stateData = await stateRes.json();
+          evolutionState = stateData?.instance?.state || stateData?.state || "unknown";
+        }
+      } catch (e) {
+        console.warn("[whatsapp-criar] Erro ao checar estado:", (e as Error).message);
+      }
+
+      console.log("[whatsapp-criar] Instância existente:", existing.instance_name, "state:", evolutionState);
+
+      // If already open or connecting, reuse — don't delete/recreate
+      if (evolutionState === "open" || evolutionState === "connecting") {
+        const status = evolutionState === "open" ? "connected" : "connecting";
+        console.log("[whatsapp-criar] Reaproveitando instância existente. Status:", status);
         return new Response(
-          JSON.stringify({ alreadyConnected: true }),
+          JSON.stringify({
+            success: true,
+            instanceName: existing.instance_name,
+            status,
+            alreadyExists: true,
+            alreadyConnected: evolutionState === "open",
+          }),
           { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
 
-      // Delete old instance from Evolution
+      // Only delete if close/disconnected/unknown
       console.log("[whatsapp-criar] Removendo instância antiga:", existing.instance_name);
       try {
         await fetch(`${EVOLUTION_API_URL}/instance/logout/${existing.instance_name}`, {
@@ -101,7 +126,6 @@ Deno.serve(async (req) => {
     const instanceName = `viahub_${cleanAgencia.slice(0, 8)}_${suffix}`;
     console.log("[whatsapp-criar] Criando instância:", instanceName);
 
-    // Create instance WITHOUT qrcode: true to avoid race condition
     const createRes = await fetch(`${EVOLUTION_API_URL}/instance/create`, {
       method: "POST",
       headers: {
@@ -128,7 +152,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Save to database - polling will handle QR code retrieval
     const { error: insertErr } = await supabaseAdmin.from("whatsapp_instancias").insert({
       agencia_id,
       instance_name: instanceName,
