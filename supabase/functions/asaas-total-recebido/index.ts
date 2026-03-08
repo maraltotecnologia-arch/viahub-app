@@ -42,6 +42,27 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const { data: agencias, error: agenciasError } = await supabaseAdmin
+      .from("agencias")
+      .select("asaas_customer_id")
+      .not("asaas_customer_id", "is", null);
+
+    if (agenciasError) throw agenciasError;
+
+    const allowedCustomers = new Set((agencias ?? []).map((a) => a.asaas_customer_id).filter(Boolean));
+
+    if (allowedCustomers.size === 0) {
+      return new Response(JSON.stringify({ total: 0 }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const startDate = String(start).slice(0, 10);
     const endDate = String(end).slice(0, 10);
 
