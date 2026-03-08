@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL")?.replace(/\/+$/, "") || "";
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 
