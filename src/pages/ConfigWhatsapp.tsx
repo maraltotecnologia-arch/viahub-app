@@ -122,7 +122,17 @@ export default function ConfigWhatsapp() {
         body: { agencia_id: agenciaId },
       });
 
-      if (error) throw error;
+      if (error) {
+        // Try to parse error body for structured response
+        let parsed: any = null;
+        try { parsed = JSON.parse((error as any)?.message || "{}"); } catch {}
+        if (parsed?.alreadyConnected) {
+          toast({ title: "WhatsApp já está conectado!" });
+          queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
+          return;
+        }
+        throw error;
+      }
 
       if (data?.alreadyConnected) {
         toast({ title: "WhatsApp já está conectado!" });
