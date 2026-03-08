@@ -1,0 +1,6 @@
+ALTER TABLE public.agencias ALTER COLUMN whatsapp_mensagem_orcamento SET DEFAULT E'Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto. Confira todas os valores e condições abaixo.\n\nAcessando o link, você consegue aprovar o orçamento ou falar novamente com o seu agente. ⬇️\n\n{link_orcamento}\n\nCaso não consiga acessar o link, o anexo em PDF contém todas as informações para você.\n\nQualquer dúvida ficamos à disposição. 🫱🏼‍🫲🏼\nAtenciosamente, {nome_agente}\n{nome_agencia}';
+
+UPDATE public.agencias
+SET whatsapp_mensagem_orcamento = E'Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto. Confira todas os valores e condições abaixo.\n\nAcessando o link, você consegue aprovar o orçamento ou falar novamente com o seu agente. ⬇️\n\n{link_orcamento}\n\nCaso não consiga acessar o link, o anexo em PDF contém todas as informações para você.\n\nQualquer dúvida ficamos à disposição. 🫱🏼‍🫲🏼\nAtenciosamente, {nome_agente}\n{nome_agencia}'
+WHERE whatsapp_mensagem_orcamento IS NULL
+   OR whatsapp_mensagem_orcamento = E'Olá {nome_cliente}! 😊 Segue em anexo o orçamento *{numero_orcamento}* referente à sua solicitação. Qualquer dúvida estamos à disposição! — {nome_agencia}';
