@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck, UserCheck } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
+import { maskTelefone } from "@/lib/masks";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import StatusBadge from "@/components/StatusBadge";
@@ -790,7 +791,7 @@ export default function OrcamentoDetalhe() {
               <Input
                 id="evo-phone"
                 placeholder="(11) 99999-9999"
-                value={evolutionPhone}
+                value={maskTelefone(evolutionPhone)}
                 onChange={(e) => setEvolutionPhone(e.target.value.replace(/\D/g, ""))}
               />
               <p className="text-xs text-muted-foreground">DDD + número (ex: 11999999999)</p>
@@ -831,27 +832,32 @@ export default function OrcamentoDetalhe() {
                       telefone_destino: evolutionPhone,
                     },
                   });
-                  if (error) throw error;
-                  if (data?.code) {
-                    if (data.code === "WPP001") {
+
+                  // supabase.functions.invoke puts non-2xx responses in error
+                  const result = data || (error ? (() => { try { return JSON.parse((error as any)?.message || "{}"); } catch { return null; } })() : null);
+
+                  if (result?.code) {
+                    if (result.code === "WPP001") {
                       toast({ title: "WhatsApp desconectado. Reconecte em Configurações → WhatsApp (WPP001)", variant: "destructive" });
-                    } else if (data.code === "WPP004") {
+                    } else if (result.code === "WPP004") {
                       toast({ title: "Número de telefone inválido", variant: "destructive" });
                       setSendingEvolution(false);
                       return;
                     } else {
-                      toast({ title: formatError(data.code), variant: "destructive" });
+                      toast({ title: formatError(result.code), variant: "destructive" });
                     }
                     setShowEvolutionModal(false);
-                  } else if (data?.success) {
+                  } else if (result?.success) {
                     toast({ title: "Orçamento enviado pelo WhatsApp! ✓" });
-                    if (data.pdfFailed) {
+                    if (result.pdfFailed) {
                       toast({ title: "Mensagem enviada, mas o PDF não pôde ser anexado. (WPP003)", variant: "default" });
                     }
                     setShowEvolutionModal(false);
                     queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
                     queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
                     queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+                  } else if (error) {
+                    throw error;
                   }
                 } catch (e) {
                   toast({ title: formatError("WPP003"), variant: "destructive" });
