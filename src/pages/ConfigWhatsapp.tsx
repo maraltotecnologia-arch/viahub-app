@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +22,7 @@ const MENSAGEM_PADRAO = "Olá, {nome_cliente} 😀\n\nO seu orçamento referente
 export default function ConfigWhatsapp() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const agenciaId = useAgenciaId();
 
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -28,6 +30,7 @@ export default function ConfigWhatsapp() {
   const [connecting, setConnecting] = useState(false);
   const [disconnectConfirm, setDisconnectConfirm] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [forcedDisconnected, setForcedDisconnected] = useState(false);
   const [mensagem, setMensagem] = useState("");
   const [savingMsg, setSavingMsg] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
