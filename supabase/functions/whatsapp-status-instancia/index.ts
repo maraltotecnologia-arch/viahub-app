@@ -69,6 +69,7 @@ Deno.serve(async (req) => {
     let numero: string | null = instancia.numero || null;
     let qrcode: string | null = null;
 
+    // Step 1: Get connection state
     try {
       const stateRes = await fetch(
         `${EVOLUTION_API_URL}/instance/connectionState/${instancia.instance_name}`,
@@ -96,7 +97,7 @@ Deno.serve(async (req) => {
       realStatus = "disconnected";
     }
 
-    // Fetch connected phone number if open
+    // Step 2: If connected, fetch phone number
     if (realStatus === "connected") {
       try {
         const fetchRes = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
@@ -119,8 +120,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // If connecting, fetch a fresh QR code
+    // Step 3: If connecting, try MULTIPLE approaches to get QR code
     if (realStatus === "connecting") {
+      // Approach 1: GET /instance/connect/{name} (standard endpoint)
       try {
         const qrRes = await fetch(
           `${EVOLUTION_API_URL}/instance/connect/${instancia.instance_name}`,
@@ -129,18 +131,97 @@ Deno.serve(async (req) => {
 
         if (qrRes.ok) {
           const qrData = await qrRes.json();
-          console.log("[whatsapp-status] QR response keys:", Object.keys(qrData || {}));
-          qrcode = qrData?.base64 || qrData?.qrcode?.base64 || qrData?.qrcode || null;
-          if (qrcode) {
-            console.log("[whatsapp-status] QR Code resgatado com sucesso, length:", qrcode.length);
+          console.log("[whatsapp-status] Payload do connect (GET):", JSON.stringify(qrData));
+
+          // Check multiple paths for base64
+          const base64Image = qrData?.base64 
+            || qrData?.qrcode?.base64 
+            || (typeof qrData?.qrcode === "string" && qrData.qrcode.length > 100 ? qrData.qrcode : null)
+            || null;
+
+          if (base64Image) {
+            qrcode = base64Image;
+            console.log("[whatsapp-status] QR Code resgatado via GET /connect, length:", qrcode!.length);
           } else {
-            console.log("[whatsapp-status] QR Code ainda não disponível");
+            console.log("[whatsapp-status] GET /connect sem QR. count:", qrData?.count);
           }
-        } else {
-          console.warn("[whatsapp-status] QR connect retornou:", qrRes.status);
         }
       } catch (e) {
-        console.warn("[whatsapp-status] Erro ao buscar QR:", (e as Error).message);
+        console.warn("[whatsapp-status] Erro GET /connect:", (e as Error).message);
+      }
+
+      // Approach 2: If GET didn't return QR, try fetchInstances (some versions expose QR there)
+      if (!qrcode) {
+        try {
+          const fetchRes = await fetch(
+            `${EVOLUTION_API_URL}/instance/fetchInstances?instanceName=${instancia.instance_name}`,
+            { headers: { apikey: EVOLUTION_API_KEY } }
+          );
+
+          if (fetchRes.ok) {
+            const fetchData = await fetchRes.json();
+            console.log("[whatsapp-status] fetchInstances payload:", JSON.stringify(fetchData).slice(0, 500));
+
+            // Try to find QR in fetchInstances response
+            const instanceData = Array.isArray(fetchData)
+              ? fetchData.find((i: any) => i.instance?.instanceName === instancia.instance_name)
+              : fetchData;
+
+            const base64FromFetch = instanceData?.qrcode?.base64
+              || instanceData?.qrcode?.pairingCode
+              || instanceData?.qrcode
+              || null;
+
+            if (base64FromFetch && typeof base64FromFetch === "string" && base64FromFetch.length > 100) {
+              qrcode = base64FromFetch;
+              console.log("[whatsapp-status] QR Code resgatado via fetchInstances, length:", qrcode!.length);
+            }
+          }
+        } catch (e) {
+          console.warn("[whatsapp-status] Erro fetchInstances:", (e as Error).message);
+        }
+      }
+
+      // Approach 3: Try POST /instance/connect (some v2 versions require POST)
+      if (!qrcode) {
+        try {
+          const qrResPost = await fetch(
+            `${EVOLUTION_API_URL}/instance/connect/${instancia.instance_name}`,
+            {
+              method: "POST",
+              headers: {
+                apikey: EVOLUTION_API_KEY,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({}),
+            }
+          );
+
+          if (qrResPost.ok) {
+            const qrDataPost = await qrResPost.json();
+            console.log("[whatsapp-status] Payload do connect (POST):", JSON.stringify(qrDataPost));
+
+            const base64Post = qrDataPost?.base64
+              || qrDataPost?.qrcode?.base64
+              || (typeof qrDataPost?.qrcode === "string" && qrDataPost.qrcode.length > 100 ? qrDataPost.qrcode : null)
+              || null;
+
+            if (base64Post) {
+              qrcode = base64Post;
+              console.log("[whatsapp-status] QR Code resgatado via POST /connect, length:", qrcode!.length);
+            } else {
+              console.log("[whatsapp-status] POST /connect sem QR. Payload keys:", Object.keys(qrDataPost || {}));
+            }
+          } else {
+            console.log("[whatsapp-status] POST /connect retornou:", qrResPost.status);
+          }
+        } catch (e) {
+          console.warn("[whatsapp-status] Erro POST /connect:", (e as Error).message);
+        }
+      }
+
+      if (!qrcode) {
+        console.warn("[whatsapp-status] NENHUM método retornou QR Code. Possível bug Evolution API v2 (issue #2430).");
       }
     }
 
@@ -155,7 +236,7 @@ Deno.serve(async (req) => {
       })
       .eq("agencia_id", agencia_id);
 
-    console.log("[whatsapp-status] Sincronizado. Status:", realStatus, "Número:", numero);
+    console.log("[whatsapp-status] Sincronizado. Status:", realStatus, "Número:", numero, "QR:", !!qrcode);
 
     return new Response(
       JSON.stringify({
