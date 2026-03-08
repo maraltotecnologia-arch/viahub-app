@@ -176,6 +176,8 @@ export default function ConfigWhatsapp() {
       toast({ title: "WhatsApp desconectado" });
       // Invalidate cache so UI reflects disconnected state instantly
       await queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
+      // Reload the page to ensure clean state
+      window.location.reload();
     } catch (_) {
       toast({ title: formatError("WPP005"), variant: "destructive" });
     } finally {
