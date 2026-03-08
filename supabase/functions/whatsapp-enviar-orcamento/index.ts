@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,13 +12,9 @@ function formatarTelefone(raw: string): string | null {
 
   let tel = digits.startsWith("55") ? digits : `55${digits}`;
 
-  // Fix 9th digit for Brazilian mobile numbers
-  // Format: 55 + DDD(2) + 9 + number(8) = 13 digits
-  // If we have 55 + DDD(2) + number(8) = 12 digits, add the 9
   if (tel.length === 12) {
     const ddd = tel.slice(2, 4);
     const numero = tel.slice(4);
-    // Mobile numbers in Brazil start with 9 after DDD
     if (!numero.startsWith("9")) {
       tel = `55${ddd}9${numero}`;
     }
@@ -69,7 +64,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { orcamento_id, agencia_id, telefone_destino } = await req.json();
+    const { orcamento_id, agencia_id, telefone_destino, pdf_base64 } = await req.json();
 
     // Validate phone
     const telFormatado = formatarTelefone(telefone_destino || "");
@@ -140,15 +135,13 @@ Deno.serve(async (req) => {
       .single();
 
     let clienteNome = "Cliente";
-    let clienteTelefone: string | null = null;
     if (orcData?.cliente_id) {
       const { data: cli } = await supabaseAdmin
         .from("clientes")
-        .select("nome, telefone")
+        .select("nome")
         .eq("id", orcData.cliente_id)
         .single();
       clienteNome = cli?.nome || "Cliente";
-      clienteTelefone = cli?.telefone || null;
     }
 
     const { data: agenciaData } = await supabaseAdmin
@@ -186,7 +179,6 @@ Deno.serve(async (req) => {
       const errBody = await sendRes.text();
       console.error("[whatsapp-enviar] Erro ao enviar texto:", sendRes.status, errBody);
 
-      // Zombie instance detection
       await supabaseAdmin
         .from("whatsapp_instancias")
         .update({ status: "disconnected" })
@@ -204,61 +196,43 @@ Deno.serve(async (req) => {
     await sendRes.json();
     console.log("[whatsapp-enviar] Texto enviado com sucesso");
 
-    // Try sending PDF as document (non-blocking)
+    // Send PDF if provided by frontend
     let pdfFailed = false;
-    try {
-      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    if (pdf_base64) {
+      try {
+        console.log("[whatsapp-enviar] Enviando PDF via base64, tamanho:", pdf_base64.length);
+        const mediaRes = await fetch(
+          `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
+          {
+            method: "POST",
+            headers: {
+              apikey: EVOLUTION_API_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              number: telFormatado,
+              mediatype: "document",
+              mimetype: "application/pdf",
+              caption: `📄 Orçamento ${orcData?.numero_orcamento || ""}`,
+              media: pdf_base64,
+              fileName: `orcamento_${orcData?.numero_orcamento || "sem-numero"}.pdf`,
+            }),
+          }
+        );
 
-      console.log("[whatsapp-enviar] Baixando PDF interno...");
-      const pdfResponse = await fetch(
-        `${SUPABASE_URL}/functions/v1/gerar-pdf-orcamento?id=${orcamento_id}`,
-        {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${serviceKey}`,
-          },
+        if (!mediaRes.ok) {
+          const mediaErr = await mediaRes.text();
+          console.error("[whatsapp-enviar] Erro Evolution sendMedia:", mediaRes.status, mediaErr);
+          pdfFailed = true;
+        } else {
+          console.log("[whatsapp-enviar] PDF enviado com sucesso");
         }
-      );
-
-      if (!pdfResponse.ok) {
-        const errText = await pdfResponse.text();
-        console.error("[whatsapp-enviar] Erro ao gerar PDF interno:", pdfResponse.status, errText);
-        throw new Error("Falha na geração do PDF interno");
-      }
-
-      // Usar o conversor nativo do Deno (rápido e seguro para memória)
-      const arrayBuffer = await pdfResponse.arrayBuffer();
-      const base64Pdf = encodeBase64(arrayBuffer);
-      console.log("[whatsapp-enviar] PDF convertido para Base64 com sucesso, tamanho:", base64Pdf.length);
-
-      const mediaRes = await fetch(
-        `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
-        {
-          method: "POST",
-          headers: {
-            apikey: EVOLUTION_API_KEY,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            number: telFormatado,
-            mediatype: "document",
-            mimetype: "application/pdf",
-            caption: `📄 Orçamento ${orcData?.numero_orcamento || ""}`,
-            media: base64Pdf,
-            fileName: `orcamento_${orcData?.numero_orcamento || "sem-numero"}.pdf`,
-          }),
-        }
-      );
-
-      if (!mediaRes.ok) {
-        const mediaErr = await mediaRes.text();
-        console.error("[whatsapp-enviar] Erro Evolution sendMedia:", mediaRes.status, mediaErr);
+      } catch (e) {
+        console.warn("[whatsapp-enviar] Erro ao enviar PDF:", (e as Error).message);
         pdfFailed = true;
-      } else {
-        console.log("[whatsapp-enviar] PDF enviado com sucesso via base64");
       }
-    } catch (e) {
-      console.warn("[whatsapp-enviar] Erro ao enviar PDF (ignorado):", (e as Error).message);
+    } else {
+      console.warn("[whatsapp-enviar] pdf_base64 não fornecido, enviando apenas texto");
       pdfFailed = true;
     }
 
