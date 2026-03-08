@@ -83,7 +83,7 @@ export default function ConfigWhatsapp() {
   };
 
   const startPolling = () => {
-    stopPolling();
+    if (pollingRef.current) return;
     pollingStartRef.current = Date.now();
 
     pollingRef.current = setInterval(async () => {
@@ -125,8 +125,10 @@ export default function ConfigWhatsapp() {
   };
 
   const handleConnect = async () => {
+    if (connecting) return;
     setConnecting(true);
-    setQrCode(null); // Reset QR code state
+    setQrCode(null);
+    setQrModalOpen(true);
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-criar-instancia", {
         body: { agencia_id: agenciaId },
@@ -149,8 +151,7 @@ export default function ConfigWhatsapp() {
         return;
       }
 
-      // Open modal immediately — polling will fetch the QR code
-      setQrModalOpen(true);
+      // Modal já aberto para feedback imediato; polling buscará o QR
       startPolling();
     } catch (e) {
       toast({ title: formatError("WPP002"), variant: "destructive" });

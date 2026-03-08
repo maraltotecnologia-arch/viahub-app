@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -62,7 +62,6 @@ Deno.serve(async (req) => {
     const instanceName = instancia.instance_name;
     console.log("[whatsapp-status] Verificando:", instanceName);
 
-    // Step 1: Get connection state from Evolution
     let evolutionState = "close";
     try {
       const stateRes = await fetch(
@@ -78,12 +77,11 @@ Deno.serve(async (req) => {
       console.warn("[whatsapp-status] Erro connectionState:", (e as Error).message);
     }
 
-    let status: string;
+    let status = "disconnected";
     let numero: string | null = instancia.numero || null;
     let qrcode: string | null = null;
 
     if (evolutionState === "open") {
-      // ---- CONNECTED ----
       status = "connected";
       try {
         const fetchRes = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
@@ -92,75 +90,135 @@ Deno.serve(async (req) => {
         if (fetchRes.ok) {
           const instances = await fetchRes.json();
           const found = Array.isArray(instances)
-            ? instances.find((i: any) => i.instance?.instanceName === instanceName)
+            ? instances.find((i: any) => i.instance?.instanceName === instanceName || i.name === instanceName)
             : null;
-          if (found?.instance?.owner) {
-            numero = found.instance.owner.replace("@s.whatsapp.net", "");
-            console.log("[whatsapp-status] Número:", numero);
+          const owner = found?.instance?.owner || found?.ownerJid || null;
+          if (owner) {
+            numero = String(owner).replace("@s.whatsapp.net", "");
           }
         }
       } catch (e) {
-        console.warn("[whatsapp-status] Erro fetchInstances:", (e as Error).message);
+        console.warn("[whatsapp-status] Erro ao buscar número:", (e as Error).message);
       }
     } else if (evolutionState === "connecting" || evolutionState === "close") {
-      // ---- CONNECTING or CLOSE: always call /connect to wake up Baileys ----
       status = "connecting";
-      console.log("[whatsapp-status] Estado", evolutionState, "- chamando /instance/connect para acordar Baileys");
 
-      try {
-        const connectRes = await fetch(
-          `${EVOLUTION_API_URL}/instance/connect/${instanceName}`,
-          { headers: { apikey: EVOLUTION_API_KEY } }
-        );
+      // Always try to wake/connect and fetch QR in both states
+      const first = await requestConnect(EVOLUTION_API_URL, EVOLUTION_API_KEY, instanceName);
+      qrcode = first.base64Image;
 
-        if (connectRes.ok) {
-          const qrData = await connectRes.json();
-          console.log("[whatsapp-status] Payload /connect:", JSON.stringify(qrData).slice(0, 300));
+      // Fallback for Baileys socket hang (count:0)
+      if (!qrcode && first.isStuck) {
+        console.warn("[whatsapp-status] Baileys travado (count:0). Executando reset leve (logout + reconnect)");
 
-          const base64Image = qrData?.base64
-            || qrData?.qrcode?.base64
-            || (typeof qrData?.qrcode === "string" && qrData.qrcode.length > 100 ? qrData.qrcode : null);
-
-          if (base64Image) {
-            qrcode = base64Image;
-            console.log("[whatsapp-status] QR Code resgatado com sucesso, length:", qrcode!.length);
-          } else {
-            console.log("[whatsapp-status] /connect sem QR ainda. count:", qrData?.count);
-          }
-        } else {
-          console.log("[whatsapp-status] /connect retornou:", connectRes.status);
+        try {
+          await fetch(`${EVOLUTION_API_URL}/instance/logout/${instanceName}`, {
+            method: "DELETE",
+            headers: { apikey: EVOLUTION_API_KEY },
+          });
+        } catch (e) {
+          console.warn("[whatsapp-status] Logout de recuperação falhou:", (e as Error).message);
         }
-      } catch (e) {
-        console.warn("[whatsapp-status] Erro /connect:", (e as Error).message);
+
+        await new Promise((r) => setTimeout(r, 1000));
+
+        const second = await requestConnect(EVOLUTION_API_URL, EVOLUTION_API_KEY, instanceName);
+        qrcode = second.base64Image;
       }
-    } else {
-      // ---- Any other state: disconnected ----
-      status = "disconnected";
-      console.log("[whatsapp-status] Estado não mapeado:", evolutionState, "-> disconnected");
+
+      if (!qrcode) {
+        qrcode = await tryExtractQrFromFetchInstances(EVOLUTION_API_URL, EVOLUTION_API_KEY, instanceName);
+      }
+
+      if (qrcode) {
+        console.log("[whatsapp-status] QR Code resgatado com sucesso");
+      }
     }
 
-    // Sync DB
-    const dbStatus = status === "connected" ? "open" : status;
     await supabaseAdmin
       .from("whatsapp_instancias")
       .update({
-        status: dbStatus,
+        status: status === "connected" ? "open" : status,
         numero: numero || null,
         ultima_verificacao: new Date().toISOString(),
       })
       .eq("agencia_id", agencia_id);
-
-    console.log("[whatsapp-status] Final:", status, "QR:", !!qrcode);
 
     return new Response(
       JSON.stringify({ status, numero, instanceName, qrcode }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("[whatsapp-status] Erro fatal:", (err as Error).message);
+    console.error("[whatsapp-status] Erro fatal:", (err as Error).message, (err as Error).stack);
     return new Response(
       JSON.stringify({ error: (err as Error).message, code: "SYS001" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
+
+async function requestConnect(baseUrl: string, apiKey: string, instanceName: string) {
+  try {
+    const connectRes = await fetch(`${baseUrl}/instance/connect/${instanceName}`, {
+      headers: { apikey: apiKey },
+    });
+
+    if (!connectRes.ok) {
+      console.log("[whatsapp-status] /connect retornou:", connectRes.status);
+      return { base64Image: null as string | null, isStuck: false };
+    }
+
+    const qrData = await connectRes.json();
+    console.log("[whatsapp-status] Payload /connect:", JSON.stringify(qrData));
+
+    const base64Image =
+      qrData?.base64 ||
+      qrData?.qrcode?.base64 ||
+      (typeof qrData?.qrcode === "string" && qrData.qrcode.length > 100 ? qrData.qrcode : null) ||
+      null;
+
+    const count = qrData?.count ?? qrData?.qrcode?.count;
+    const isStuck = !base64Image && count === 0;
+
+    if (!base64Image) {
+      console.log("[whatsapp-status] /connect sem QR ainda. count:", count);
+    }
+
+    return { base64Image, isStuck };
+  } catch (e) {
+    console.warn("[whatsapp-status] Erro /connect:", (e as Error).message);
+    return { base64Image: null as string | null, isStuck: false };
+  }
+}
+
+async function tryExtractQrFromFetchInstances(baseUrl: string, apiKey: string, instanceName: string): Promise<string | null> {
+  try {
+    const fetchRes = await fetch(`${baseUrl}/instance/fetchInstances`, {
+      headers: { apikey: apiKey },
+    });
+
+    if (!fetchRes.ok) return null;
+
+    const instances = await fetchRes.json();
+    const found = Array.isArray(instances)
+      ? instances.find((i: any) => i.instance?.instanceName === instanceName || i.name === instanceName)
+      : instances;
+
+    const base64Image =
+      found?.qrcode?.base64 ||
+      found?.qrcode?.pairingCode ||
+      found?.qrcode ||
+      found?.instance?.qrcode?.base64 ||
+      null;
+
+    if (typeof base64Image === "string" && base64Image.length > 100) {
+      console.log("[whatsapp-status] QR recuperado via fetchInstances");
+      return base64Image;
+    }
+
+    return null;
+  } catch (e) {
+    console.warn("[whatsapp-status] Erro fetchInstances fallback:", (e as Error).message);
+    return null;
+  }
+}
