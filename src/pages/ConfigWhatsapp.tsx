@@ -378,7 +378,7 @@ export default function ConfigWhatsapp() {
             {qrCode ? (
               <div className="bg-white p-4 rounded-xl inline-block">
                 <img
-                  src={qrCode.startsWith("data:") ? qrCode : `data:image/png;base64,${qrCode}`}
+                  src={qrCode}
                   alt="QR Code WhatsApp"
                   className="max-w-[240px] w-full"
                 />
