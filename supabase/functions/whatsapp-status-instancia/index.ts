@@ -46,6 +46,13 @@ Deno.serve(async (req) => {
 
     const { agencia_id } = await req.json();
 
+    if (!agencia_id) {
+      return new Response(
+        JSON.stringify({ error: "ID da agência não fornecido", code: "SYS002" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { data: instancia } = await supabaseAdmin
       .from("whatsapp_instancias")
       .select("*")
