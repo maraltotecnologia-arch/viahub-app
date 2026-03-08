@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { AlertTriangle, CheckCircle2, MessageCircle, Wifi, WifiOff, ChevronDown, Loader2 } from "lucide-react";
@@ -35,7 +34,6 @@ export default function ConfigWhatsapp() {
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartRef = useRef<number>(0);
-  const autoResumedRef = useRef(false);
 
   // Fetch WhatsApp status
   const { data: wpStatus, isLoading: statusLoading } = useQuery({
@@ -49,20 +47,6 @@ export default function ConfigWhatsapp() {
       return data as { status: string; numero?: string; instanceName?: string; qrcode?: string };
     },
   });
-
-  // Auto-resume: if status comes back as "connecting" with a QR, open modal automatically
-  useEffect(() => {
-    if (!wpStatus || autoResumedRef.current) return;
-    if (wpStatus.status === "connecting") {
-      autoResumedRef.current = true;
-      if (wpStatus.qrcode) {
-        const qr = wpStatus.qrcode;
-        setQrCode(qr.startsWith("data:") ? qr : `data:image/png;base64,${qr}`);
-      }
-      setQrModalOpen(true);
-      startPolling();
-    }
-  }, [wpStatus]);
 
   // Fetch agency message template
   const { data: agenciaData } = useQuery({
@@ -119,8 +103,6 @@ export default function ConfigWhatsapp() {
         });
 
         const result = data || (error ? (() => { try { return JSON.parse((error as any)?.message || "{}"); } catch { return null; } })() : null);
-        
-        console.log("[polling] status result:", result?.status, "has qrcode:", !!result?.qrcode);
 
         if (result?.status === "connected") {
           stopPolling();
@@ -147,13 +129,11 @@ export default function ConfigWhatsapp() {
         body: { agencia_id: agenciaId },
       });
 
-      // Try to parse error response body (edge functions may return JSON in error.message)
       let parsed: any = data;
       if (error && !data) {
         try { parsed = JSON.parse((error as any)?.message || "{}"); } catch { parsed = null; }
       }
 
-      // Already connected — close modal, refresh status
       if (parsed?.alreadyConnected) {
         toast({ title: "WhatsApp já está conectado!" });
         setQrModalOpen(false);
@@ -161,13 +141,11 @@ export default function ConfigWhatsapp() {
         return;
       }
 
-      // Already exists (connecting state) — just start polling for QR
       if (parsed?.alreadyExists) {
         startPolling();
         return;
       }
 
-      // If there was a real error and none of the above matched, show it
       if (error && !parsed?.success) {
         console.error("[handleConnect] Edge function error:", error);
         setQrModalOpen(false);
@@ -175,7 +153,6 @@ export default function ConfigWhatsapp() {
         return;
       }
 
-      // New instance created — start polling for QR
       startPolling();
     } catch (e) {
       console.error("[handleConnect] Unexpected error:", e);
@@ -226,12 +203,8 @@ export default function ConfigWhatsapp() {
   const formatNumero = (num: string) => {
     if (!num) return "";
     const clean = num.replace(/\D/g, "");
-    if (clean.length === 13) {
-      return `(${clean.slice(2, 4)}) ${clean.slice(4, 9)}-${clean.slice(9)}`;
-    }
-    if (clean.length === 12) {
-      return `(${clean.slice(2, 4)}) ${clean.slice(4, 8)}-${clean.slice(8)}`;
-    }
+    if (clean.length === 13) return `(${clean.slice(2, 4)}) ${clean.slice(4, 9)}-${clean.slice(9)}`;
+    if (clean.length === 12) return `(${clean.slice(2, 4)}) ${clean.slice(4, 8)}-${clean.slice(8)}`;
     return num;
   };
 
@@ -246,37 +219,23 @@ export default function ConfigWhatsapp() {
   const isConnected = wpStatus?.status === "connected";
   const isDisconnected = !wpStatus || wpStatus.status === "not_configured" || wpStatus.status === "disconnected";
 
-  // Block UI until both agenciaId is resolved AND initial status query completes
+  // Block UI until agenciaId + status query resolves
   const initialLoading = !agenciaId || statusLoading;
 
   if (initialLoading) {
     return (
-      <div className="space-y-6 animate-fade-in-up">
-        <h2 className="text-2xl font-bold flex items-center gap-2">
-          <MessageCircle className="h-6 w-6" />
-          WhatsApp
-        </h2>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Status da Conexão</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Skeleton className="h-10 w-3/4" />
-            <Skeleton className="h-8 w-1/3" />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="py-6">
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Carregando configurações...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      <h2 className="text-2xl font-bold flex items-center gap-2">
+      <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground">
         <MessageCircle className="h-6 w-6" />
         WhatsApp
       </h2>
@@ -370,18 +329,18 @@ export default function ConfigWhatsapp() {
             </div>
           </div>
 
-          {/* Preview — WhatsApp bubble simulation */}
+          {/* Preview — WhatsApp bubble (always light, identity-preserving) */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização</p>
-            <div className="bg-[#efeae2] rounded-xl p-4" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
-              <div className="bg-[#E7FFDB] rounded-lg rounded-tl-none shadow-sm p-4 max-w-[90%]">
-                <p className="text-sm text-[#111B21] whitespace-pre-wrap leading-relaxed">{previewMsg}</p>
-                <p className="text-[10px] text-[#667781] text-right mt-1">agora</p>
+            <div className="rounded-xl p-4" style={{ backgroundColor: "#efeae2", backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+              <div className="rounded-lg rounded-tl-none shadow-sm p-4 max-w-[90%]" style={{ backgroundColor: "#E7FFDB" }}>
+                <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: "#111B21" }}>{previewMsg}</p>
+                <p className="text-right mt-1" style={{ fontSize: "10px", color: "#667781" }}>agora</p>
               </div>
               {/* PDF attachment simulation */}
-              <div className="bg-white border border-slate-200 rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[65%] flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <div className="rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[65%] flex items-center gap-3" style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0" }}>
+                <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#FEF2F2" }}>
+                  <svg className="h-5 w-5" style={{ color: "#EF4444" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
@@ -389,8 +348,8 @@ export default function ConfigWhatsapp() {
                   </svg>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs font-medium text-slate-700 truncate">orcamento_ORC-2026-0001.pdf</p>
-                  <p className="text-[10px] text-slate-400">PDF · Documento</p>
+                  <p className="text-xs font-medium truncate" style={{ color: "#334155" }}>orcamento_ORC-2026-0001.pdf</p>
+                  <p style={{ fontSize: "10px", color: "#94A3B8" }}>PDF · Documento</p>
                 </div>
               </div>
             </div>
@@ -460,7 +419,7 @@ export default function ConfigWhatsapp() {
               <p>4. Aponte a câmera para o QR Code</p>
             </div>
 
-            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-xs text-yellow-600 dark:text-yellow-400 text-center">
+            <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 text-xs text-center" style={{ color: "hsl(var(--warning))" }}>
               O QR Code expira em 60 segundos. Se expirar, feche e tente novamente.
             </div>
           </div>
