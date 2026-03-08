@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL");
+    const EVOLUTION_API_URL = Deno.env.get("EVOLUTION_API_URL")?.replace(/\/+$/, "") || "";
     const EVOLUTION_API_KEY = Deno.env.get("EVOLUTION_API_KEY");
 
     if (!EVOLUTION_API_URL || !EVOLUTION_API_KEY) {
