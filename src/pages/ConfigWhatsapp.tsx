@@ -138,7 +138,7 @@ export default function ConfigWhatsapp() {
   };
 
   const handleConnect = async () => {
-    if (connecting) return;
+    if (!agenciaId || connecting) return;
     setConnecting(true);
     setQrCode(null);
     setQrModalOpen(true);

@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     const { agencia_id } = await req.json();
     if (!agencia_id) {
       return new Response(
-        JSON.stringify({ error: "agencia_id obrigatório" }),
+        JSON.stringify({ error: "ID da agência não fornecido", code: "SYS002" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -142,6 +142,22 @@ Deno.serve(async (req) => {
     console.log("[whatsapp-criar] Create status:", createRes.status, "response:", JSON.stringify(createData));
 
     if (!createRes.ok) {
+      // Check if Evolution API says instance already exists — recover instead of failing
+      const errMsg = JSON.stringify(createData).toLowerCase();
+      if (errMsg.includes("already") || errMsg.includes("exists") || errMsg.includes("já existe")) {
+        console.log("[whatsapp-criar] Evolution diz que instância já existe. Recuperando...");
+        const { error: upsertErr } = await supabaseAdmin.from("whatsapp_instancias").upsert({
+          agencia_id,
+          instance_name: instanceName,
+          status: "connecting",
+        }, { onConflict: "agencia_id" });
+        if (upsertErr) console.warn("[whatsapp-criar] Upsert recovery error:", upsertErr.message);
+        return new Response(
+          JSON.stringify({ success: true, instanceName, status: "connecting", alreadyExists: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
         JSON.stringify({
           error: "Erro ao criar instância WhatsApp",
