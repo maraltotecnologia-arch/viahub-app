@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertTriangle, CheckCircle2, MessageCircle, Wifi, WifiOff, ChevronDown } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Wifi, WifiOff, ChevronDown, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -117,13 +117,13 @@ export default function ConfigWhatsapp() {
 
   const handleConnect = async () => {
     setConnecting(true);
+    setQrCode(null); // Reset QR code state
     try {
       const { data, error } = await supabase.functions.invoke("whatsapp-criar-instancia", {
         body: { agencia_id: agenciaId },
       });
 
       if (error) {
-        // Try to parse error body for structured response
         let parsed: any = null;
         try { parsed = JSON.parse((error as any)?.message || "{}"); } catch {}
         if (parsed?.alreadyConnected) {
@@ -140,7 +140,10 @@ export default function ConfigWhatsapp() {
         return;
       }
 
-      setQrCode(data?.qrcode || null);
+      // Open modal immediately — QR may be null, polling will fetch it
+      if (data?.qrcode) {
+        setQrCode(data.qrcode);
+      }
       setQrModalOpen(true);
       startPolling();
     } catch (e) {
@@ -372,7 +375,8 @@ export default function ConfigWhatsapp() {
                 />
               </div>
             ) : (
-              <div className="h-[240px] w-[240px] bg-muted rounded-xl flex items-center justify-center">
+              <div className="h-[240px] w-[240px] bg-muted rounded-xl flex flex-col items-center justify-center gap-3">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
               </div>
             )}
