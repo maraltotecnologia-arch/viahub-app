@@ -169,8 +169,13 @@ export default function ConfigWhatsapp() {
       await supabase.functions.invoke("whatsapp-desconectar", {
         body: { agencia_id: agenciaId },
       });
+      // Force local state reset immediately
+      stopPolling();
+      setQrCode(null);
+      setQrModalOpen(false);
       toast({ title: "WhatsApp desconectado" });
-      queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
+      // Invalidate cache so UI reflects disconnected state instantly
+      await queryClient.invalidateQueries({ queryKey: ["whatsapp-status", agenciaId] });
     } catch (_) {
       toast({ title: formatError("WPP005"), variant: "destructive" });
     } finally {
