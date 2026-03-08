@@ -39,43 +39,53 @@ Deno.serve(async (req) => {
       });
     }
 
-    let offset = 0;
-    const limit = 100;
-    let hasMore = true;
-    let total = 0;
+    const startDate = String(start).slice(0, 10);
+    const endDate = String(end).slice(0, 10);
 
-    while (hasMore) {
-      const url = new URL(`${ASAAS_BASE}/payments`);
-      url.searchParams.set("status", "RECEIVED");
-      url.searchParams.set("paymentDate[ge]", start);
-      url.searchParams.set("paymentDate[le]", end);
-      url.searchParams.set("limit", String(limit));
-      url.searchParams.set("offset", String(offset));
+    const sumStatus = async (status: "RECEIVED" | "CONFIRMED") => {
+      let offset = 0;
+      const limit = 100;
+      let hasMore = true;
+      let subtotal = 0;
 
-      const res = await fetch(url.toString(), {
-        headers: {
-          access_token: asaasKey,
-          "Content-Type": "application/json",
-        },
-      });
+      while (hasMore) {
+        const url = new URL(`${ASAAS_BASE}/payments`);
+        url.searchParams.set("status", status);
+        url.searchParams.set("limit", String(limit));
+        url.searchParams.set("offset", String(offset));
 
-      if (!res.ok) {
-        const errText = await res.text();
-        console.error("[asaas-total-recebido] erro API Asaas:", errText);
-        return new Response(JSON.stringify({ error: "Falha ao consultar Asaas" }), {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        const res = await fetch(url.toString(), {
+          headers: {
+            access_token: asaasKey,
+            "Content-Type": "application/json",
+          },
         });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.error("[asaas-total-recebido] erro API Asaas:", errText);
+          throw new Error("Falha ao consultar Asaas");
+        }
+
+        const payload = (await res.json()) as AsaasListResponse;
+        const rows = payload.data ?? [];
+
+        subtotal += rows.reduce((acc, item) => {
+          const paidDate = item.paymentDate ?? item.clientPaymentDate;
+          if (!paidDate) return acc;
+          const paidDateOnly = paidDate.slice(0, 10);
+          if (paidDateOnly < startDate || paidDateOnly > endDate) return acc;
+          return acc + Number(item.netValue ?? item.value ?? 0);
+        }, 0);
+
+        hasMore = Boolean(payload.hasMore);
+        offset += limit;
       }
 
-      const payload = (await res.json()) as AsaasListResponse;
-      const rows = payload.data ?? [];
+      return subtotal;
+    };
 
-      total += rows.reduce((acc, item) => acc + Number(item.netValue ?? item.value ?? 0), 0);
-
-      hasMore = Boolean(payload.hasMore);
-      offset += limit;
-    }
+    const total = (await sumStatus("RECEIVED")) + (await sumStatus("CONFIRMED"));
 
     return new Response(JSON.stringify({ total }), {
       status: 200,
