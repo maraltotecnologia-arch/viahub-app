@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
-import useAgenciaId from "@/hooks/useAgenciaId";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -59,7 +58,6 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 export default function ComissoesFinanceiro() {
   const navigate = useNavigate();
   const { isSuperadmin, loading: roleLoading } = useUserRole();
-  const agenciaId = useAgenciaId();
   const [periodo, setPeriodo] = useState("mes_atual");
 
   const { start, end } = useMemo(() => getDateRange(periodo), [periodo]);
@@ -78,26 +76,20 @@ export default function ComissoesFinanceiro() {
     },
   });
 
-  const { data: pagamentos } = useQuery({
-    queryKey: ["comissoes-pagamentos", periodo],
+  const { data: totalAsaasRecebido = 0 } = useQuery({
+    queryKey: ["comissoes-recebido-asaas", start, end],
     enabled: isSuperadmin,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("asaas_pagamentos")
-        .select("*")
-        .in("status", ["RECEIVED", "CONFIRMED"])
-        .gte("pago_em", start)
-        .lte("pago_em", end)
-        .order("pago_em", { ascending: false });
+      const { data, error } = await supabase.functions.invoke("asaas-total-recebido", {
+        body: { start, end },
+      });
+
       if (error) throw error;
-      return data;
+      return Number((data as { total?: number })?.total ?? 0);
     },
   });
 
-  const totalRecebido = useMemo(() => {
-    if (!pagamentos) return 0;
-    return pagamentos.reduce((s, p) => s + (Number(p.valor) || 0), 0);
-  }, [pagamentos]);
+  const totalRecebido = totalAsaasRecebido;
 
   const mrrEstimado = agencias?.reduce((s, a) => s + (planoPreco[a.plano || "starter"] || 0), 0) ?? 0;
 
