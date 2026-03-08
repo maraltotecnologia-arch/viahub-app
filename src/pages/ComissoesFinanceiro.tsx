@@ -26,27 +26,31 @@ const periodos = [
   { value: "ano", label: "Este ano" },
 ];
 
-function getDateRange(periodo: string): { start: Date; end: Date } {
+/** Build ISO strings anchored to Brasília (UTC-3) so edge-of-month payments land correctly */
+function getDateRange(periodo: string): { start: string; end: string } {
   const now = new Date();
-  const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-  let start: Date;
+  // Use Brasília offset: build dates as "YYYY-MM-DDT00:00:00-03:00"
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const brStart = (y: number, m: number) => `${y}-${pad(m + 1)}-01T00:00:00-03:00`;
+  const brEnd = (y: number, m: number) => {
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    return `${y}-${pad(m + 1)}-${pad(lastDay)}T23:59:59.999-03:00`;
+  };
 
   switch (periodo) {
     case "mes_anterior":
-      start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      return { start, end: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999) };
+      return {
+        start: brStart(now.getFullYear(), now.getMonth() - 1),
+        end: brEnd(now.getFullYear(), now.getMonth() - 1),
+      };
     case "3_meses":
-      start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
-      return { start, end };
+      return { start: brStart(now.getFullYear(), now.getMonth() - 2), end: brEnd(now.getFullYear(), now.getMonth()) };
     case "6_meses":
-      start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-      return { start, end };
+      return { start: brStart(now.getFullYear(), now.getMonth() - 5), end: brEnd(now.getFullYear(), now.getMonth()) };
     case "ano":
-      start = new Date(now.getFullYear(), 0, 1);
-      return { start, end };
+      return { start: brStart(now.getFullYear(), 0), end: brEnd(now.getFullYear(), now.getMonth()) };
     default: // mes_atual
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
-      return { start, end };
+      return { start: brStart(now.getFullYear(), now.getMonth()), end: brEnd(now.getFullYear(), now.getMonth()) };
   }
 }
 
@@ -82,8 +86,8 @@ export default function ComissoesFinanceiro() {
         .from("asaas_pagamentos")
         .select("*")
         .in("status", ["RECEIVED", "CONFIRMED"])
-        .gte("pago_em", start.toISOString())
-        .lte("pago_em", end.toISOString())
+        .gte("pago_em", start)
+        .lte("pago_em", end)
         .order("pago_em", { ascending: false });
       if (error) throw error;
       return data;
@@ -190,10 +194,11 @@ export default function ComissoesFinanceiro() {
                   const statusPgto = (a as any).status_pagamento || "ativo";
                   const proxVenc = a.data_proximo_vencimento;
                   const statusColor: Record<string, string> = {
-                    ativo: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-                    inadimplente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
-                    bloqueado: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-                    cancelado: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300",
+                    ativo: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
+                    pendente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400",
+                    inadimplente: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
+                    bloqueado: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400",
+                    cancelado: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400",
                   };
                   return (
                     <TableRow key={a.id}>
