@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { encodeBase64 } from "https://deno.land/std@0.224.0/encoding/base64.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -206,31 +207,29 @@ Deno.serve(async (req) => {
     // Try sending PDF as document (non-blocking)
     let pdfFailed = false;
     try {
-      // Fetch PDF internally with auth to avoid Evolution API auth issues
+      const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+
+      console.log("[whatsapp-enviar] Baixando PDF interno...");
       const pdfResponse = await fetch(
         `${SUPABASE_URL}/functions/v1/gerar-pdf-orcamento?id=${orcamento_id}`,
         {
           method: "GET",
           headers: {
-            "Authorization": authHeader || `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+            "Authorization": `Bearer ${serviceKey}`,
           },
         }
       );
 
       if (!pdfResponse.ok) {
-        throw new Error(`Falha ao gerar PDF interno: ${pdfResponse.status} ${pdfResponse.statusText}`);
+        const errText = await pdfResponse.text();
+        console.error("[whatsapp-enviar] Erro ao gerar PDF interno:", pdfResponse.status, errText);
+        throw new Error("Falha na geração do PDF interno");
       }
 
-      // Convert ArrayBuffer to Base64 (Deno-compatible)
+      // Usar o conversor nativo do Deno (rápido e seguro para memória)
       const arrayBuffer = await pdfResponse.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
-      let binary = "";
-      for (let i = 0; i < uint8Array.byteLength; i++) {
-        binary += String.fromCharCode(uint8Array[i]);
-      }
-      const base64Pdf = btoa(binary);
-
-      console.log("[whatsapp-enviar] PDF gerado internamente, tamanho base64:", base64Pdf.length);
+      const base64Pdf = encodeBase64(arrayBuffer);
+      console.log("[whatsapp-enviar] PDF convertido para Base64 com sucesso, tamanho:", base64Pdf.length);
 
       const mediaRes = await fetch(
         `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
@@ -253,7 +252,7 @@ Deno.serve(async (req) => {
 
       if (!mediaRes.ok) {
         const mediaErr = await mediaRes.text();
-        console.warn("[whatsapp-enviar] PDF falhou (não-bloqueante):", mediaRes.status, mediaErr);
+        console.error("[whatsapp-enviar] Erro Evolution sendMedia:", mediaRes.status, mediaErr);
         pdfFailed = true;
       } else {
         console.log("[whatsapp-enviar] PDF enviado com sucesso via base64");
