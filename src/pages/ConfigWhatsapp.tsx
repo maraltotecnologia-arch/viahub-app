@@ -149,10 +149,7 @@ export default function ConfigWhatsapp() {
         return;
       }
 
-      // Open modal immediately — QR may be null, polling will fetch it
-      if (data?.qrcode) {
-        setQrCode(data.qrcode);
-      }
+      // Open modal immediately — polling will fetch the QR code
       setQrModalOpen(true);
       startPolling();
     } catch (e) {
