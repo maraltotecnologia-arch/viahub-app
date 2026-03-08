@@ -801,41 +801,60 @@ export default function OrcamentoDetalhe() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="evo-phone">Número do destinatário</Label>
+            {/* Phone field */}
+            <div className="space-y-1.5">
+              <Label htmlFor="evo-phone" className="text-sm font-medium">Número do destinatário</Label>
               <Input
                 id="evo-phone"
                 placeholder="(11) 99999-9999"
                 value={maskTelefone(evolutionPhone)}
                 onChange={(e) => setEvolutionPhone(e.target.value.replace(/\D/g, ""))}
+                className="border-slate-200"
               />
               <p className="text-xs text-muted-foreground">DDD + número (ex: 11999999999)</p>
             </div>
 
-            <div className="bg-muted rounded-lg p-3 text-sm text-foreground">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Mensagem que será enviada:</p>
-              <p className="whitespace-pre-wrap">
-                {((agencia as any)?.whatsapp_mensagem_orcamento || "Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto.\n\n{link_orcamento}\n\nAtenciosamente, {nome_agente}\n{nome_agencia}")
-                  .replace(/\{nome_cliente\}/g, (orc.clientes as any)?.nome || "Cliente")
-                  .replace(/\{numero_orcamento\}/g, (orc as any).numero_orcamento || "")
-                  .replace(/\{titulo_orcamento\}/g, (orc as any).titulo || "sua viagem")
-                  .replace(/\{link_orcamento\}/g, orc.token_publico ? `${window.location.origin}/orcamento/${orc.token_publico}` : "")
-                  .replace(/\{nome_agente\}/g, usuarioNome || "nossa equipe")
-                  .replace(/\{nome_agencia\}/g, agencia?.nome_fantasia || "")
-                }
-              </p>
+            {/* WhatsApp chat bubble */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-2">Mensagem que será enviada:</p>
+              <div className="bg-[#efeae2] rounded-xl p-4" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+                <div className="bg-[#E7FFDB] rounded-lg rounded-tl-none shadow-sm p-4 max-w-[95%]">
+                  <p className="text-sm text-[#111B21] whitespace-pre-wrap leading-relaxed">
+                    {((agencia as any)?.whatsapp_mensagem_orcamento || "Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto.\n\n{link_orcamento}\n\nAtenciosamente, {nome_agente}\n{nome_agencia}")
+                      .replace(/\{nome_cliente\}/g, (orc.clientes as any)?.nome || "Cliente")
+                      .replace(/\{numero_orcamento\}/g, (orc as any).numero_orcamento || "")
+                      .replace(/\{titulo_orcamento\}/g, (orc as any).titulo || "sua viagem")
+                      .replace(/\{link_orcamento\}/g, orc.token_publico ? `${window.location.origin}/orcamento/${orc.token_publico}` : "")
+                      .replace(/\{nome_agente\}/g, usuarioNome || "nossa equipe")
+                      .replace(/\{nome_agencia\}/g, agencia?.nome_fantasia || "")
+                    }
+                  </p>
+                  <p className="text-[10px] text-[#667781] text-right mt-1">agora</p>
+                </div>
+                {/* PDF attachment card */}
+                <div className="bg-white border border-slate-200 rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[75%] flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <line x1="16" y1="13" x2="8" y2="13" />
+                      <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-slate-700 truncate">orcamento_{(orc as any).numero_orcamento || "001"}.pdf</p>
+                    <p className="text-[10px] text-slate-400">PDF · Documento</p>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              📄 O PDF do orçamento será anexado automaticamente
-            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEvolutionModal(false)} disabled={sendingEvolution}>
               Cancelar
             </Button>
             <Button
-              className="text-white"
+              className="text-white hover:opacity-90"
               style={{ backgroundColor: "#25D366" }}
               disabled={sendingEvolution || evolutionPhone.replace(/\D/g, "").length < 10}
               onClick={async () => {

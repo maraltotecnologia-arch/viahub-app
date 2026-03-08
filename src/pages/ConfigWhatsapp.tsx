@@ -329,10 +329,30 @@ export default function ConfigWhatsapp() {
             </div>
           </div>
 
-          {/* Preview */}
-          <div className="bg-muted rounded-lg p-4 space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Pré-visualização</p>
-            <p className="text-sm text-foreground whitespace-pre-wrap">{previewMsg}</p>
+          {/* Preview — WhatsApp bubble simulation */}
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização</p>
+            <div className="bg-[#efeae2] rounded-xl p-4" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+              <div className="bg-[#E7FFDB] rounded-lg rounded-tl-none shadow-sm p-4 max-w-[90%]">
+                <p className="text-sm text-[#111B21] whitespace-pre-wrap leading-relaxed">{previewMsg}</p>
+                <p className="text-[10px] text-[#667781] text-right mt-1">agora</p>
+              </div>
+              {/* PDF attachment simulation */}
+              <div className="bg-white border border-slate-200 rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[65%] flex items-center gap-3">
+                <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
+                  <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-700 truncate">orcamento_ORC-2026-0001.pdf</p>
+                  <p className="text-[10px] text-slate-400">PDF · Documento</p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <Button onClick={handleSaveMessage} disabled={savingMsg}>
