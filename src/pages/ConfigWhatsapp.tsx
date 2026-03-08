@@ -235,7 +235,6 @@ export default function ConfigWhatsapp() {
 
   const effectiveStatus = forcedDisconnected ? "disconnected" : wpStatus?.status;
   const isConnected = effectiveStatus === "connected";
-  const isDisconnected = !effectiveStatus || effectiveStatus === "not_configured" || effectiveStatus === "disconnected";
 
   // Block UI until agenciaId + status query resolves
   const initialLoading = !agenciaId || statusLoading;
