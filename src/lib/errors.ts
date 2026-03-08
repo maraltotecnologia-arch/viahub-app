@@ -65,6 +65,14 @@ export const ERROR_MESSAGES: Record<string, string> = {
   CFG003: "Erro ao salvar configurações gerais",
   CFG004: "Erro ao fazer upload de logo",
 
+  // WPP — WhatsApp
+  WPP001: "WhatsApp não conectado",
+  WPP002: "Erro ao criar instância WhatsApp",
+  WPP003: "Erro ao enviar mensagem",
+  WPP004: "Número de telefone inválido",
+  WPP005: "Erro ao desconectar WhatsApp",
+  WPP006: "QR Code expirado — tente novamente",
+
   // SYS — System
   SYS001: "Erro inesperado. Tente novamente",
   SYS002: "Sem conexão com o servidor",
