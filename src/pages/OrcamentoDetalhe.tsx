@@ -139,6 +139,21 @@ export default function OrcamentoDetalhe() {
       return data;
     },
   });
+
+  const { data: usuarioData } = useQuery({
+    queryKey: ["usuario-nome", user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("usuarios")
+        .select("nome")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const usuarioNome = usuarioData?.nome || "";
+
   // Auto-generate token_publico if missing
   useEffect(() => {
     if (orc && !orc.token_publico) {
