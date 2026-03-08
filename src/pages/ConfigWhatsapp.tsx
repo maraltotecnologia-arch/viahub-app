@@ -233,8 +233,9 @@ export default function ConfigWhatsapp() {
     .replace(/\{nome_agente\}/g, "Carlos")
     .replace(/\{nome_agencia\}/g, agenciaData?.nome_fantasia || "Sua Agência");
 
-  const isConnected = wpStatus?.status === "connected";
-  const isDisconnected = !wpStatus || wpStatus.status === "not_configured" || wpStatus.status === "disconnected";
+  const effectiveStatus = forcedDisconnected ? "disconnected" : wpStatus?.status;
+  const isConnected = effectiveStatus === "connected";
+  const isDisconnected = !effectiveStatus || effectiveStatus === "not_configured" || effectiveStatus === "disconnected";
 
   // Block UI until agenciaId + status query resolves
   const initialLoading = !agenciaId || statusLoading;
