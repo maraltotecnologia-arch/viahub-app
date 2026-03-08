@@ -51,6 +51,8 @@ Deno.serve(async (req) => {
       while (hasMore) {
         const url = new URL(`${ASAAS_BASE}/payments`);
         url.searchParams.set("status", status);
+        url.searchParams.set("paymentDate[ge]", startDate);
+        url.searchParams.set("paymentDate[le]", endDate);
         url.searchParams.set("limit", String(limit));
         url.searchParams.set("offset", String(offset));
 
