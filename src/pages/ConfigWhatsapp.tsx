@@ -215,6 +215,9 @@ export default function ConfigWhatsapp() {
   const previewMsg = mensagem
     .replace(/\{nome_cliente\}/g, "João Silva")
     .replace(/\{numero_orcamento\}/g, "ORC-2026-0001")
+    .replace(/\{titulo_orcamento\}/g, "Pacote Maldivas 7 dias")
+    .replace(/\{link_orcamento\}/g, "https://viahub.app/orcamento/abc123")
+    .replace(/\{nome_agente\}/g, "Carlos")
     .replace(/\{nome_agencia\}/g, agenciaData?.nome_fantasia || "Sua Agência");
 
   const isConnected = wpStatus?.status === "connected";
@@ -315,13 +318,13 @@ export default function ConfigWhatsapp() {
             <Textarea
               rows={4}
               value={mensagem}
-              onChange={(e) => setMensagem(e.target.value.slice(0, 500))}
+              onChange={(e) => setMensagem(e.target.value.slice(0, 1000))}
               placeholder="Mensagem padrão do WhatsApp..."
-              maxLength={500}
+              maxLength={1000}
             />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Variáveis: {"{nome_cliente}"} {"{numero_orcamento}"} {"{nome_agencia}"}</span>
-              <span>{mensagem.length}/500</span>
+              <span>Variáveis: {"{nome_cliente}"} {"{titulo_orcamento}"} {"{link_orcamento}"} {"{nome_agente}"} {"{nome_agencia}"}</span>
+              <span>{mensagem.length}/1000</span>
             </div>
           </div>
 
