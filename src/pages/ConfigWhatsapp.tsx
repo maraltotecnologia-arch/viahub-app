@@ -17,6 +17,7 @@ import { formatError } from "@/lib/errors";
 
 const QR_POLLING_INTERVAL = 3000;
 const QR_TIMEOUT = 3 * 60 * 1000; // 3 minutes
+const MENSAGEM_PADRAO = "Olá, {nome_cliente} 😀\n\nO seu orçamento referente a {titulo_orcamento} está pronto. Confira todas os valores e condições abaixo.\n\nAcessando o link, você consegue aprovar o orçamento ou falar novamente com o seu agente. ⬇️\n\n{link_orcamento}\n\nCaso não consiga acessar o link, o anexo em PDF contém todas as informações para você.\n\nQualquer dúvida ficamos à disposição. 🫱🏼‍🫲🏼\nAtenciosamente, {nome_agente}\n{nome_agencia}";
 
 export default function ConfigWhatsapp() {
   const { toast } = useToast();
@@ -64,7 +65,7 @@ export default function ConfigWhatsapp() {
 
   useEffect(() => {
     if (agenciaData) {
-      setMensagem((agenciaData as any)?.whatsapp_mensagem_orcamento || "");
+      setMensagem((agenciaData as any)?.whatsapp_mensagem_orcamento || MENSAGEM_PADRAO);
     }
   }, [agenciaData]);
 
