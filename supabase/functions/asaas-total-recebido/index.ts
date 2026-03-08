@@ -70,13 +70,7 @@ Deno.serve(async (req) => {
         const payload = (await res.json()) as AsaasListResponse;
         const rows = payload.data ?? [];
 
-        subtotal += rows.reduce((acc, item) => {
-          const paidDate = item.paymentDate ?? item.clientPaymentDate;
-          if (!paidDate) return acc;
-          const paidDateOnly = paidDate.slice(0, 10);
-          if (paidDateOnly < startDate || paidDateOnly > endDate) return acc;
-          return acc + Number(item.netValue ?? item.value ?? 0);
-        }, 0);
+        subtotal += rows.reduce((acc, item) => acc + Number(item.netValue ?? item.value ?? 0), 0);
 
         hasMore = Boolean(payload.hasMore);
         offset += limit;
