@@ -280,10 +280,11 @@ export default function AdminAgencias() {
                       const statusPgto = (a as any).status_pagamento || "ativo";
                       const proxVenc = (a as any).data_proximo_vencimento;
                       const statusColor: Record<string, string> = {
-                        ativo: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-                        inadimplente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300",
-                        bloqueado: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-                        cancelado: "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300",
+                        ativo: "bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400",
+                        pendente: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400",
+                        inadimplente: "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400",
+                        bloqueado: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400",
+                        cancelado: "bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400",
                       };
                       return (
                         <TableRow key={a.id}>
