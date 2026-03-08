@@ -60,38 +60,31 @@ Deno.serve(async (req) => {
     }
 
     const instanceName = instancia.instance_name;
-    console.log("[whatsapp-status] Verificando:", instanceName, "DB status:", instancia.status);
+    console.log("[whatsapp-status] Verificando:", instanceName);
 
-    // Step 1: Get connection state
-    let realStatus = "disconnected";
-    let numero: string | null = instancia.numero || null;
-    let qrcode: string | null = null;
-
+    // Step 1: Get connection state from Evolution
+    let evolutionState = "close";
     try {
       const stateRes = await fetch(
         `${EVOLUTION_API_URL}/instance/connectionState/${instanceName}`,
         { headers: { apikey: EVOLUTION_API_KEY } }
       );
-
       if (stateRes.ok) {
         const stateData = await stateRes.json();
-        const state = stateData?.instance?.state || stateData?.state || "close";
-        console.log("[whatsapp-status] Evolution state:", state);
-
-        if (state === "open") {
-          realStatus = "connected";
-        } else if (state === "connecting") {
-          realStatus = "connecting";
-        } else {
-          realStatus = "disconnected";
-        }
+        evolutionState = stateData?.instance?.state || stateData?.state || "close";
+        console.log("[whatsapp-status] Evolution state:", evolutionState);
       }
     } catch (e) {
       console.warn("[whatsapp-status] Erro connectionState:", (e as Error).message);
     }
 
-    // Step 2: If connected, fetch phone number
-    if (realStatus === "connected") {
+    let status: string;
+    let numero: string | null = instancia.numero || null;
+    let qrcode: string | null = null;
+
+    if (evolutionState === "open") {
+      // ---- CONNECTED ----
+      status = "connected";
       try {
         const fetchRes = await fetch(`${EVOLUTION_API_URL}/instance/fetchInstances`, {
           headers: { apikey: EVOLUTION_API_KEY },
@@ -103,20 +96,51 @@ Deno.serve(async (req) => {
             : null;
           if (found?.instance?.owner) {
             numero = found.instance.owner.replace("@s.whatsapp.net", "");
+            console.log("[whatsapp-status] Número:", numero);
           }
         }
       } catch (e) {
         console.warn("[whatsapp-status] Erro fetchInstances:", (e as Error).message);
       }
-    }
+    } else if (evolutionState === "connecting" || evolutionState === "close") {
+      // ---- CONNECTING or CLOSE: always call /connect to wake up Baileys ----
+      status = "connecting";
+      console.log("[whatsapp-status] Estado", evolutionState, "- chamando /instance/connect para acordar Baileys");
 
-    // Step 3: If connecting, fetch QR code with kickstart logic
-    if (realStatus === "connecting") {
-      qrcode = await fetchQrWithKickstart(EVOLUTION_API_URL, EVOLUTION_API_KEY, instanceName);
+      try {
+        const connectRes = await fetch(
+          `${EVOLUTION_API_URL}/instance/connect/${instanceName}`,
+          { headers: { apikey: EVOLUTION_API_KEY } }
+        );
+
+        if (connectRes.ok) {
+          const qrData = await connectRes.json();
+          console.log("[whatsapp-status] Payload /connect:", JSON.stringify(qrData).slice(0, 300));
+
+          const base64Image = qrData?.base64
+            || qrData?.qrcode?.base64
+            || (typeof qrData?.qrcode === "string" && qrData.qrcode.length > 100 ? qrData.qrcode : null);
+
+          if (base64Image) {
+            qrcode = base64Image;
+            console.log("[whatsapp-status] QR Code resgatado com sucesso, length:", qrcode!.length);
+          } else {
+            console.log("[whatsapp-status] /connect sem QR ainda. count:", qrData?.count);
+          }
+        } else {
+          console.log("[whatsapp-status] /connect retornou:", connectRes.status);
+        }
+      } catch (e) {
+        console.warn("[whatsapp-status] Erro /connect:", (e as Error).message);
+      }
+    } else {
+      // ---- Any other state: disconnected ----
+      status = "disconnected";
+      console.log("[whatsapp-status] Estado não mapeado:", evolutionState, "-> disconnected");
     }
 
     // Sync DB
-    const dbStatus = realStatus === "connected" ? "open" : realStatus;
+    const dbStatus = status === "connected" ? "open" : status;
     await supabaseAdmin
       .from("whatsapp_instancias")
       .update({
@@ -126,10 +150,10 @@ Deno.serve(async (req) => {
       })
       .eq("agencia_id", agencia_id);
 
-    console.log("[whatsapp-status] Final:", realStatus, "QR:", !!qrcode);
+    console.log("[whatsapp-status] Final:", status, "QR:", !!qrcode);
 
     return new Response(
-      JSON.stringify({ status: realStatus, numero, instanceName, qrcode }),
+      JSON.stringify({ status, numero, instanceName, qrcode }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
@@ -140,83 +164,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-/**
- * Fetch QR code from Evolution API with "kickstart" logic.
- * If Baileys is stuck (returns count:0), force logout and retry.
- */
-async function fetchQrWithKickstart(
-  baseUrl: string,
-  apikey: string,
-  instanceName: string
-): Promise<string | null> {
-  // Attempt 1: GET /instance/connect
-  let base64 = await tryGetQr(baseUrl, apikey, instanceName);
-  if (base64) {
-    console.log("[whatsapp-status] QR obtido na primeira tentativa");
-    return base64;
-  }
-
-  // If we got here, Baileys is likely stuck. Execute kickstart.
-  console.log("[whatsapp-status] Baileys travado (count:0). Executando Force Logout kickstart...");
-
-  try {
-    await fetch(`${baseUrl}/instance/logout/${instanceName}`, {
-      method: "DELETE",
-      headers: { apikey },
-    });
-  } catch (e) {
-    console.warn("[whatsapp-status] Kickstart logout falhou:", (e as Error).message);
-  }
-
-  // Wait for Baileys to reset
-  await new Promise((r) => setTimeout(r, 1500));
-
-  // Attempt 2: Try connect again after kickstart
-  base64 = await tryGetQr(baseUrl, apikey, instanceName);
-  if (base64) {
-    console.log("[whatsapp-status] QR obtido após kickstart!");
-    return base64;
-  }
-
-  console.warn("[whatsapp-status] QR ainda não disponível após kickstart.");
-  return null;
-}
-
-async function tryGetQr(
-  baseUrl: string,
-  apikey: string,
-  instanceName: string
-): Promise<string | null> {
-  try {
-    const res = await fetch(`${baseUrl}/instance/connect/${instanceName}`, {
-      headers: { apikey },
-    });
-
-    if (!res.ok) {
-      console.log("[whatsapp-status] GET /connect retornou:", res.status);
-      return null;
-    }
-
-    const data = await res.json();
-    console.log("[whatsapp-status] Payload /connect:", JSON.stringify(data).slice(0, 200));
-
-    // Extract base64 from multiple possible paths
-    const b64 =
-      data?.base64 ||
-      data?.qrcode?.base64 ||
-      (typeof data?.qrcode === "string" && data.qrcode.length > 100 ? data.qrcode : null);
-
-    if (b64) return b64;
-
-    // Check if stuck (count: 0)
-    if (data?.count === 0 || data?.qrcode?.count === 0) {
-      console.log("[whatsapp-status] Baileys retornou count:0 (travado)");
-    }
-
-    return null;
-  } catch (e) {
-    console.warn("[whatsapp-status] Erro GET /connect:", (e as Error).message);
-    return null;
-  }
-}
