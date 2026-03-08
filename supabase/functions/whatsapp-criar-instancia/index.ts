@@ -96,7 +96,9 @@ Deno.serve(async (req) => {
       console.log("[whatsapp-criar] Registro antigo removido do banco");
     }
 
-    const instanceName = `viahub_${agencia_id.replace(/-/g, "").slice(0, 12)}`;
+    const cleanAgencia = agencia_id.replace(/-/g, "");
+    const suffix = Date.now().toString(36).slice(-6);
+    const instanceName = `viahub_${cleanAgencia.slice(0, 8)}_${suffix}`;
     console.log("[whatsapp-criar] Criando instância:", instanceName);
 
     // Create instance WITHOUT qrcode: true to avoid race condition
