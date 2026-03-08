@@ -96,7 +96,10 @@ Deno.serve(async (req) => {
         const payload = (await res.json()) as AsaasListResponse;
         const rows = payload.data ?? [];
 
-        subtotal += rows.reduce((acc, item) => acc + Number(item.netValue ?? item.value ?? 0), 0);
+        subtotal += rows.reduce((acc, item) => {
+          if (!item.customer || !allowedCustomers.has(item.customer)) return acc;
+          return acc + Number(item.netValue ?? item.value ?? 0);
+        }, 0);
 
         hasMore = Boolean(payload.hasMore);
         offset += limit;
