@@ -206,7 +206,31 @@ Deno.serve(async (req) => {
     // Try sending PDF as document (non-blocking)
     let pdfFailed = false;
     try {
-      const pdfUrl = `${SUPABASE_URL}/functions/v1/gerar-pdf-orcamento?id=${orcamento_id}`;
+      // Fetch PDF internally with auth to avoid Evolution API auth issues
+      const pdfResponse = await fetch(
+        `${SUPABASE_URL}/functions/v1/gerar-pdf-orcamento?id=${orcamento_id}`,
+        {
+          method: "GET",
+          headers: {
+            "Authorization": authHeader || `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+        }
+      );
+
+      if (!pdfResponse.ok) {
+        throw new Error(`Falha ao gerar PDF interno: ${pdfResponse.status} ${pdfResponse.statusText}`);
+      }
+
+      // Convert ArrayBuffer to Base64 (Deno-compatible)
+      const arrayBuffer = await pdfResponse.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < uint8Array.byteLength; i++) {
+        binary += String.fromCharCode(uint8Array[i]);
+      }
+      const base64Pdf = btoa(binary);
+
+      console.log("[whatsapp-enviar] PDF gerado internamente, tamanho base64:", base64Pdf.length);
 
       const mediaRes = await fetch(
         `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
@@ -221,7 +245,7 @@ Deno.serve(async (req) => {
             mediatype: "document",
             mimetype: "application/pdf",
             caption: `📄 Orçamento ${orcData?.numero_orcamento || ""}`,
-            media: pdfUrl,
+            media: base64Pdf,
             fileName: `orcamento_${orcData?.numero_orcamento || "sem-numero"}.pdf`,
           }),
         }
@@ -232,7 +256,7 @@ Deno.serve(async (req) => {
         console.warn("[whatsapp-enviar] PDF falhou (não-bloqueante):", mediaRes.status, mediaErr);
         pdfFailed = true;
       } else {
-        console.log("[whatsapp-enviar] PDF enviado com sucesso");
+        console.log("[whatsapp-enviar] PDF enviado com sucesso via base64");
       }
     } catch (e) {
       console.warn("[whatsapp-enviar] Erro ao enviar PDF (ignorado):", (e as Error).message);
