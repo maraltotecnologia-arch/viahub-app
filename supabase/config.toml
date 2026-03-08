@@ -47,3 +47,15 @@ verify_jwt = false
 
 [functions.asaas-atualizar-cliente]
 verify_jwt = false
+
+[functions.whatsapp-criar-instancia]
+verify_jwt = false
+
+[functions.whatsapp-status-instancia]
+verify_jwt = false
+
+[functions.whatsapp-desconectar]
+verify_jwt = false
+
+[functions.whatsapp-enviar-orcamento]
+verify_jwt = false

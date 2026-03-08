@@ -35,6 +35,7 @@ export type Database = {
           plano: string | null
           status_pagamento: string | null
           telefone: string | null
+          whatsapp_mensagem_orcamento: string | null
         }
         Insert: {
           asaas_customer_id?: string | null
@@ -56,6 +57,7 @@ export type Database = {
           plano?: string | null
           status_pagamento?: string | null
           telefone?: string | null
+          whatsapp_mensagem_orcamento?: string | null
         }
         Update: {
           asaas_customer_id?: string | null
@@ -77,6 +79,7 @@ export type Database = {
           plano?: string | null
           status_pagamento?: string | null
           telefone?: string | null
+          whatsapp_mensagem_orcamento?: string | null
         }
         Relationships: []
       }
@@ -850,6 +853,47 @@ export type Database = {
             foreignKeyName: "usuarios_agencia_id_fkey"
             columns: ["agencia_id"]
             isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      whatsapp_instancias: {
+        Row: {
+          agencia_id: string
+          atualizado_em: string | null
+          criado_em: string | null
+          id: string
+          instance_name: string
+          numero: string | null
+          status: string | null
+          ultima_verificacao: string | null
+        }
+        Insert: {
+          agencia_id: string
+          atualizado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          instance_name: string
+          numero?: string | null
+          status?: string | null
+          ultima_verificacao?: string | null
+        }
+        Update: {
+          agencia_id?: string
+          atualizado_em?: string | null
+          criado_em?: string | null
+          id?: string
+          instance_name?: string
+          numero?: string | null
+          status?: string | null
+          ultima_verificacao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_instancias_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: true
             referencedRelation: "agencias"
             referencedColumns: ["id"]
           },
