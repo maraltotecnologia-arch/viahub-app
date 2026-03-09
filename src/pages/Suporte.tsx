@@ -237,12 +237,48 @@ export default function Suporte() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Anexos (Opcional)</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button type="button" variant="outline" size="sm" className="gap-2">
-                      <Paperclip className="h-4 w-4" />
-                      Anexar Print/Arquivo
-                    </Button>
-                    <span className="text-xs text-muted-foreground">Máx. 5MB (PNG, JPG, PDF)</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        Anexar Print/Arquivo
+                      </Button>
+                      <span className="text-xs text-muted-foreground">Máx. 5MB (PNG, JPG, PDF)</span>
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {anexos.map((file, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm"
+                          >
+                            <FileIcon className="h-3 w-3" />
+                            <span className="max-w-[150px] truncate">{file.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeAnexo(index)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
