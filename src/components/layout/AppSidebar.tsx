@@ -16,6 +16,7 @@ import useAlertas from "@/hooks/useAlertas";
 import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { isDark } = useTheme();
