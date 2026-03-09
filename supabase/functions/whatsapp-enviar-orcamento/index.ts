@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
     console.log("[whatsapp-enviar] Enviando texto para:", telFormatado);
 
     // Send text message
-    const sendRes = await fetch(
+    const sendRes = await fetchWithTimeout(
       `${EVOLUTION_API_URL}/message/sendText/${instancia.instance_name}`,
       {
         method: "POST",
@@ -177,7 +177,8 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ number: telFormatado, text: mensagem }),
-      }
+      },
+      15000
     );
 
     if (!sendRes.ok) {
