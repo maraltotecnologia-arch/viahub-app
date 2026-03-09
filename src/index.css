@@ -152,8 +152,8 @@ body {
   background-color: var(--bg-hover) !important;
 }
 
-/* Botões no dark mode */
-[data-theme="dark"] button {
+/* Botões no dark mode — escopo app */
+[data-theme="dark"] body[data-viahub-scope="app"] button {
   color: var(--text-primary);
 }
 
