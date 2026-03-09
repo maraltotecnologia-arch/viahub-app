@@ -283,9 +283,10 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("[asaas-webhook] Erro:", (err as Error).message);
-    return new Response(JSON.stringify({ error: (err as Error).message }), {
-      status: 500,
+    // CRITICAL: Always return 200 to prevent Asaas from re-queuing webhooks in a loop
+    console.error("[asaas-webhook] Erro:", (err as Error).message, (err as Error).stack);
+    return new Response(JSON.stringify({ received: true, error: (err as Error).message }), {
+      status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

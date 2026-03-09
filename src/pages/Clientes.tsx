@@ -19,6 +19,7 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
 import { formatError } from "@/lib/errors";
 import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
+import { clienteSchema } from "@/lib/validators";
 
 const PAGE_SIZE = 20;
 
@@ -83,23 +84,41 @@ export default function Clientes() {
   const totalPages = Math.ceil((data?.count ?? 0) / PAGE_SIZE);
 
   const handleCreate = async () => {
-    if (!nome.trim()) return;
+    // Validate with Zod
+    const parsed = clienteSchema.safeParse({ nome, email, telefone, cpf });
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0]?.message || "Dados inválidos";
+      toast({ title: firstError, variant: "destructive" });
+      return;
+    }
     if (!agenciaId) {
       toast({ title: "Erro ao identificar agência", variant: "destructive" });
       return;
     }
     setSaving(true);
-    const { error } = await supabase
-      .from("clientes")
-      .insert({ agencia_id: agenciaId, nome, email: email || null, telefone: telefone.replace(/\D/g, "") || null, cpf: cpf.replace(/\D/g, "") || null });
-    if (error) {
-      toast({ title: formatError("CLI001"), variant: "destructive" });
-    } else {
-      toast({ title: "Cliente criado com sucesso!" });
-      queryClient.invalidateQueries({ queryKey: ["clientes"] });
-      setOpen(false); setNome(""); setEmail(""); setTelefone(""); setCpf("");
+    try {
+      const { error } = await supabase
+        .from("clientes")
+        .insert({
+          agencia_id: agenciaId,
+          nome: parsed.data.nome,
+          email: parsed.data.email || null,
+          telefone: telefone.replace(/\D/g, "") || null,
+          cpf: cpf.replace(/\D/g, "") || null,
+        });
+      if (error) {
+        toast({ title: formatError("CLI001"), variant: "destructive" });
+      } else {
+        toast({ title: "Cliente criado com sucesso!" });
+        queryClient.invalidateQueries({ queryKey: ["clientes"] });
+        setOpen(false); setNome(""); setEmail(""); setTelefone(""); setCpf("");
+      }
+    } catch (err) {
+      toast({ title: "Erro inesperado ao criar cliente", variant: "destructive" });
+      console.error("[Clientes] handleCreate error:", err);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   return (

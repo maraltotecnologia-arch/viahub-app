@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { fetchWithTimeout } from "../_shared/fetch-with-timeout.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -96,9 +97,10 @@ Deno.serve(async (req) => {
 
     if (!isConnected) {
       try {
-        const stateRes = await fetch(
+        const stateRes = await fetchWithTimeout(
           `${EVOLUTION_API_URL}/instance/connectionState/${instancia.instance_name}`,
-          { headers: { apikey: EVOLUTION_API_KEY } }
+          { headers: { apikey: EVOLUTION_API_KEY } },
+          10000
         );
         if (stateRes.ok) {
           const stateData = await stateRes.json();
@@ -166,7 +168,7 @@ Deno.serve(async (req) => {
     console.log("[whatsapp-enviar] Enviando texto para:", telFormatado);
 
     // Send text message
-    const sendRes = await fetch(
+    const sendRes = await fetchWithTimeout(
       `${EVOLUTION_API_URL}/message/sendText/${instancia.instance_name}`,
       {
         method: "POST",
@@ -175,7 +177,8 @@ Deno.serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ number: telFormatado, text: mensagem }),
-      }
+      },
+      15000
     );
 
     if (!sendRes.ok) {
@@ -204,7 +207,7 @@ Deno.serve(async (req) => {
     if (pdf_base64) {
       try {
         console.log("[whatsapp-enviar] Enviando PDF via base64, tamanho:", pdf_base64.length);
-        const mediaRes = await fetch(
+        const mediaRes = await fetchWithTimeout(
           `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
           {
             method: "POST",
@@ -220,7 +223,8 @@ Deno.serve(async (req) => {
               media: pdf_base64,
               fileName: `orcamento_${orcData?.numero_orcamento || "sem-numero"}.pdf`,
             }),
-          }
+          },
+          30000
         );
 
         if (!mediaRes.ok) {
