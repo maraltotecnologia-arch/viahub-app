@@ -105,8 +105,32 @@ export default function AdminChamados() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket-details"] });
       toast({ title: "Status atualizado com sucesso!" });
     }
+  });
+
+  const enviarMensagem = useMutation({
+    mutationFn: async () => {
+      if (!novaMensagem.trim() || !user) return;
+      
+      const { error } = await supabase
+        .from("ticket_mensagens")
+        .insert({
+          ticket_id: selectedTicketId!,
+          usuario_id: user.id,
+          mensagem: novaMensagem.trim(),
+          is_superadmin: true
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setNovaMensagem("");
+      refetchMensagens();
+      queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+      toast({ title: "Mensagem enviada!" });
+    },
   });
 
   const ticketsFiltrados = tickets.filter(t => {
