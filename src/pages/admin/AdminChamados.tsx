@@ -176,14 +176,49 @@ export default function AdminChamados() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ticketsFiltrados.map((ticket) => (
-                <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4">{ticket.id}</TableCell>
-                  <TableCell>{ticket.agencia}</TableCell>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Carregando chamados...
+                  </TableCell>
+                </TableRow>
+              ) : ticketsFiltrados.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Nenhum chamado encontrado.
+                  </TableCell>
+                </TableRow>
+              ) : ticketsFiltrados.map((ticket) => (
+                <TableRow key={ticket.id} className="hover:bg-muted/50 transition-colors">
+                  <TableCell className="font-medium pl-4">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
+                  <TableCell>{(ticket.agencias as any)?.nome_fantasia || "Agência desconhecida"}</TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
-                  <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell className="text-right text-muted-foreground pr-4">{ticket.data}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 p-0 px-2 flex items-center gap-2 hover:bg-muted">
+                          {getStatusBadge(ticket.status)}
+                          <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Aberto" })}>
+                          Marcar como Aberto
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Em Análise" })}>
+                          Marcar como Em Análise
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Resolvido" })}>
+                          Marcar como Resolvido
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground pr-4">
+                    {ticket.criado_em ? format(new Date(ticket.criado_em), "dd/MM/yyyy") : "-"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
