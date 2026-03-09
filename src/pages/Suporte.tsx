@@ -210,13 +210,28 @@ export default function Suporte() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_TICKETS.map((ticket) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Carregando chamados...
+                  </TableCell>
+                </TableRow>
+              ) : tickets.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Nenhum chamado aberto ainda.
+                  </TableCell>
+                </TableRow>
+              ) : tickets.map((ticket) => (
                 <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4 sm:pl-0">{ticket.id}</TableCell>
+                  <TableCell className="font-medium pl-4 sm:pl-0">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
                   <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell className="text-right text-muted-foreground pr-4 sm:pr-0">{ticket.data}</TableCell>
+                  <TableCell className="text-right text-muted-foreground pr-4 sm:pr-0">
+                    {ticket.criado_em ? format(new Date(ticket.criado_em), "dd/MM/yyyy") : "-"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

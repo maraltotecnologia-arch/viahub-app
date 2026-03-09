@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { Search, AlertCircle, CheckCircle2, Clock, LifeBuoy } from "lucide-react";
+import { Search, AlertCircle, CheckCircle2, Clock, LifeBuoy, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-const MOCK_TICKETS = [
-  { id: "TKT-1035", agencia: "ViajaBem Turismo", assunto: "Sugestão: Integração com novo fornecedor", status: "Aberto", prioridade: "Média", data: "15/10/2023" },
-  { id: "TKT-1034", agencia: "Mundo Afora Viagens", assunto: "Erro no faturamento", status: "Em Análise", prioridade: "Crítica", data: "14/10/2023" },
-  { id: "TKT-1033", agencia: "Destinos & Cia", assunto: "Como alterar a logo?", status: "Resolvido", prioridade: "Baixa", data: "13/10/2023" },
-  { id: "TKT-1032", agencia: "Horizonte Turismo", assunto: "Sistema lento", status: "Em Análise", prioridade: "Alta", data: "12/10/2023" },
-  { id: "TKT-1031", agencia: "Global Explorer", assunto: "Dúvida sobre WhatsApp", status: "Aberto", prioridade: "Média", data: "12/10/2023" },
-];
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function AdminChamados() {
   const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
