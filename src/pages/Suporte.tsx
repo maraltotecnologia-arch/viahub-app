@@ -46,6 +46,27 @@ export default function Suporte() {
 
   const createTicket = useMutation({
     mutationFn: async () => {
+      setUploading(true);
+      
+      // Upload files first
+      const uploadedUrls: string[] = [];
+      for (const file of anexos) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${agenciaId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('ticket-anexos')
+          .upload(fileName, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage
+          .from('ticket-anexos')
+          .getPublicUrl(fileName);
+        
+        uploadedUrls.push(urlData.publicUrl);
+      }
+      
       const { error } = await supabase
         .from("tickets")
         .insert({
@@ -54,7 +75,8 @@ export default function Suporte() {
           categoria,
           prioridade,
           descricao,
-          status: "Aberto"
+          status: "Aberto",
+          anexos: uploadedUrls
         });
       
       if (error) throw error;
@@ -66,12 +88,15 @@ export default function Suporte() {
       setCategoria("");
       setPrioridade("");
       setDescricao("");
+      setAnexos([]);
+      setUploading(false);
       toast({
         title: "Chamado aberto com sucesso!",
         description: "Nossa equipe analisará sua solicitação em breve.",
       });
     },
     onError: (error) => {
+      setUploading(false);
       toast({
         title: "Erro ao abrir chamado",
         description: "Ocorreu um erro ao tentar enviar sua solicitação.",
@@ -81,9 +106,41 @@ export default function Suporte() {
     }
   });
 
-  const handleOpenTicket = (e: React.FormEvent) => {
-    e.preventDefault();
-    createTicket.mutate();
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `O arquivo ${file.name} excede o limite de 5MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      // Check file type
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Tipo inválido",
+          description: `O arquivo ${file.name} não é um tipo permitido (PNG, JPG, PDF).`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    setAnexos(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAnexo = (index: number) => {
+    setAnexos(prev => prev.filter((_, i) => i !== index));
   };
 
   const getStatusBadge = (status: string) => {
