@@ -103,6 +103,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
         <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
         <Route path="/configuracoes/templates" element={<ConfigTemplates />} />
         <Route path="/configuracoes/whatsapp" element={<ConfigWhatsapp />} />
+        <Route path="/configuracoes/ia" element={<ConfigIA />} />
         <Route path="/admin/agencias" element={<AdminAgencias />} />
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />

@@ -83,6 +83,7 @@ export function AppSidebar() {
     { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
     { title: "Templates", url: "/configuracoes/templates", icon: FileText },
     { title: "WhatsApp", url: "/configuracoes/whatsapp", icon: MessageCircle },
+    { title: "Inteligência Artificial", url: "/configuracoes/ia", icon: Sparkles },
   ];
 
   const adminItems = [
