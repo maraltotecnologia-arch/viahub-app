@@ -175,8 +175,8 @@ export default function AdminChamados() {
               <Clock className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Em Análise</p>
-              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Em Análise").length}</h3>
+              <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Em Andamento").length}</h3>
             </div>
           </CardContent>
         </Card>
