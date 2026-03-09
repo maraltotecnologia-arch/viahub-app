@@ -486,7 +486,7 @@ export default function Relatorios() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                       <XAxis dataKey="name" fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} />
                       <YAxis fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-secondary)' }} />
                       <Bar dataKey="valor" fill="#2563EB" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
