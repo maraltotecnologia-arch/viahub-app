@@ -30,6 +30,8 @@ import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
+import AdminChamados from "./pages/admin/AdminChamados";
+import Suporte from "./pages/Suporte";
 import Metas from "./pages/Metas";
 import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import PagamentoPendente from "./pages/PagamentoPendente";
@@ -108,6 +110,8 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
         <Route path="/admin/notificacoes" element={<AdminNotificacoes />} />
+        <Route path="/admin/chamados" element={<AdminChamados />} />
+        <Route path="/suporte" element={<Suporte />} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>

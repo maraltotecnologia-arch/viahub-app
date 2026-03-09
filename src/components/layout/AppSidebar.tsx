@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Bot } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Bot, LifeBuoy } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import AICopilotModal from "@/components/ai/AICopilotModal";
@@ -92,6 +92,7 @@ export function AppSidebar() {
   const adminItems = [
     { title: "Agências", url: "/admin/agencias", icon: Building2 },
     { title: "Mensalidades", url: "/financeiro/comissoes", icon: Percent },
+    { title: "Chamados", url: "/admin/chamados", icon: LifeBuoy },
     { title: "Notificações", url: "/admin/notificacoes", icon: Bell, badge: recentNotifCount ?? 0 },
   ];
 
@@ -206,6 +207,28 @@ export function AppSidebar() {
 
         {/* Spacer to push footer down */}
         <div className="flex-1" />
+
+        {/* Ajuda e Suporte (Agency only) */}
+        {!isSuperadmin && (
+          <SidebarGroup className="py-1 px-2 mt-auto border-t border-sidebar-border/50">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip={collapsed ? "Ajuda & Suporte" : undefined}>
+                    <NavLink
+                      to="/suporte"
+                      title={collapsed ? "Ajuda & Suporte" : undefined}
+                      className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
+                    >
+                      <LifeBuoy className="h-4 w-4 shrink-0 opacity-80" />
+                      {!collapsed && <span className="flex-1">Ajuda & Suporte</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       {/* Footer */}
