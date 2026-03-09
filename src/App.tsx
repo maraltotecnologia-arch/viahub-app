@@ -25,6 +25,7 @@ import ConfigAssinatura from "./pages/ConfigAssinatura";
 import ConfigUsuarios from "./pages/ConfigUsuarios";
 import ConfigTemplates from "./pages/ConfigTemplates";
 import ConfigWhatsapp from "./pages/ConfigWhatsapp";
+import ConfigIA from "./pages/ConfigIA";
 import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
