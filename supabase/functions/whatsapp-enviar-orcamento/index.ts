@@ -97,9 +97,10 @@ Deno.serve(async (req) => {
 
     if (!isConnected) {
       try {
-        const stateRes = await fetch(
+        const stateRes = await fetchWithTimeout(
           `${EVOLUTION_API_URL}/instance/connectionState/${instancia.instance_name}`,
-          { headers: { apikey: EVOLUTION_API_KEY } }
+          { headers: { apikey: EVOLUTION_API_KEY } },
+          10000
         );
         if (stateRes.ok) {
           const stateData = await stateRes.json();
