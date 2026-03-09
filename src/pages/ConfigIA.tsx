@@ -114,47 +114,33 @@ export default function ConfigIA() {
                 A IA aplicará essas margens automaticamente sobre o preço de custo (net) encontrado nos fornecedores antes de gerar o orçamento.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="rounded-lg border p-4 bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted border border-border">
-                      <Plane className="h-4 w-4 text-muted-foreground" />
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { label: "Voos", icon: Plane, value: markupVoos, setter: setMarkupVoos },
+                  { label: "Hotéis", icon: Hotel, value: markupHoteis, setter: setMarkupHoteis },
+                  { label: "Passeios", icon: Map, value: markupPasseios, setter: setMarkupPasseios },
+                  { label: "Pacotes", icon: Briefcase, value: markupPacotes, setter: setMarkupPacotes },
+                  { label: "Transfers", icon: Car, value: markupTransfers, setter: setMarkupTransfers },
+                  { label: "Seguros", icon: ShieldCheck, value: markupSeguros, setter: setMarkupSeguros },
+                ].map(({ label, icon: Icon, value, setter }) => (
+                  <div key={label} className="rounded-lg border p-4 bg-muted/30 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted border border-border">
+                        <Icon className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                      <Label className="text-sm font-medium">{label}</Label>
                     </div>
-                    <Label className="text-sm font-medium">Voos</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" min={0} max={100} value={markupVoos} onChange={(e) => setMarkupVoos(e.target.value)} className="w-full" />
-                    <span className="text-sm font-medium text-muted-foreground shrink-0">%</span>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border p-4 bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted border border-border">
-                      <Hotel className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                      <Input type="number" min={0} max={100} value={value} onChange={(e) => setter(e.target.value)} className="w-full" />
+                      <span className="text-sm font-medium text-muted-foreground shrink-0">%</span>
                     </div>
-                    <Label className="text-sm font-medium">Hotéis</Label>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" min={0} max={100} value={markupHoteis} onChange={(e) => setMarkupHoteis(e.target.value)} className="w-full" />
-                    <span className="text-sm font-medium text-muted-foreground shrink-0">%</span>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border p-4 bg-muted/30 space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-muted border border-border">
-                      <Map className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <Label className="text-sm font-medium">Passeios / Pacotes</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Input type="number" min={0} max={100} value={markupPasseios} onChange={(e) => setMarkupPasseios(e.target.value)} className="w-full" />
-                    <span className="text-sm font-medium text-muted-foreground shrink-0">%</span>
-                  </div>
-                </div>
+                ))}
               </div>
+              <p className="text-xs text-muted-foreground">
+                Dica: Deixe em branco para que a IA utilize a margem padrão definida no perfil da sua agência.
+              </p>
             </CardContent>
           </Card>
 
