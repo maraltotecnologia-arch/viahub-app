@@ -211,11 +211,11 @@ export default function AdminChamados() {
               Abertos
             </Button>
             <Button 
-              variant={filtroStatus === "Em Análise" ? "secondary" : "ghost"} 
+              variant={filtroStatus === "Em Andamento" ? "secondary" : "ghost"} 
               size="sm"
-              onClick={() => setFiltroStatus("Em Análise")}
+              onClick={() => setFiltroStatus("Em Andamento")}
             >
-              Pendentes
+              Em Andamento
             </Button>
             <Button 
               variant={filtroStatus === "Resolvido" ? "secondary" : "ghost"} 
