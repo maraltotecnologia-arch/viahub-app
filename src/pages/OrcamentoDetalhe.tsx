@@ -211,7 +211,11 @@ export default function OrcamentoDetalhe() {
       toast({ title: "PDF gerado com sucesso!" });
     } catch (e) {
       console.error("Erro ao gerar PDF:", e);
-      toast({ title: formatError("ORC006"), variant: "destructive" });
+      toast({ 
+        title: "Não foi possível gerar o PDF", 
+        description: "Verifique as imagens inseridas ou tente novamente.", 
+        variant: "destructive" 
+      });
     } finally {
       setGeneratingPdf(false);
     }
