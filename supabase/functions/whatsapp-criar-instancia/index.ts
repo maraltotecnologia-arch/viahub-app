@@ -68,9 +68,10 @@ Deno.serve(async (req) => {
       // Check real state in Evolution API before deciding
       let evolutionState = "unknown";
       try {
-        const stateRes = await fetch(
+        const stateRes = await fetchWithTimeout(
           `${EVOLUTION_API_URL}/instance/connectionState/${existing.instance_name}`,
-          { headers: { apikey: EVOLUTION_API_KEY } }
+          { headers: { apikey: EVOLUTION_API_KEY } },
+          10000
         );
         if (stateRes.ok) {
           const stateData = await stateRes.json();
