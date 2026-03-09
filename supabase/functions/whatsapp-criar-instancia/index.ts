@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
     const instanceName = `viahub_${cleanAgencia.slice(0, 8)}_${suffix}`;
     console.log("[whatsapp-criar] Criando instância:", instanceName);
 
-    const createRes = await fetch(`${EVOLUTION_API_URL}/instance/create`, {
+    const createRes = await fetchWithTimeout(`${EVOLUTION_API_URL}/instance/create`, {
       method: "POST",
       headers: {
         apikey: EVOLUTION_API_KEY,
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
         instanceName,
         integration: "WHATSAPP-BAILEYS",
       }),
-    });
+    }, 15000);
 
     const createData = await createRes.json();
     console.log("[whatsapp-criar] Create status:", createRes.status, "response:", JSON.stringify(createData));

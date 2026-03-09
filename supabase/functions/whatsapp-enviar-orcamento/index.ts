@@ -207,7 +207,7 @@ Deno.serve(async (req) => {
     if (pdf_base64) {
       try {
         console.log("[whatsapp-enviar] Enviando PDF via base64, tamanho:", pdf_base64.length);
-        const mediaRes = await fetch(
+        const mediaRes = await fetchWithTimeout(
           `${EVOLUTION_API_URL}/message/sendMedia/${instancia.instance_name}`,
           {
             method: "POST",
@@ -223,7 +223,8 @@ Deno.serve(async (req) => {
               media: pdf_base64,
               fileName: `orcamento_${orcData?.numero_orcamento || "sem-numero"}.pdf`,
             }),
-          }
+          },
+          30000
         );
 
         if (!mediaRes.ok) {
