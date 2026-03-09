@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Sparkles } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
@@ -83,6 +83,7 @@ export function AppSidebar() {
     { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
     { title: "Templates", url: "/configuracoes/templates", icon: FileText },
     { title: "WhatsApp", url: "/configuracoes/whatsapp", icon: MessageCircle },
+    { title: "Inteligência Artificial", url: "/configuracoes/ia", icon: Sparkles },
   ];
 
   const adminItems = [

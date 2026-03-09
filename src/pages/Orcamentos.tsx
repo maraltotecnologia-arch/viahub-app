@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle, FileText } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle, FileText, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import AICopilotModal from "@/components/ai/AICopilotModal";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -50,6 +51,7 @@ export default function Orcamentos() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const handleSort = (campo: string, direcao: "asc" | "desc") => {
     setOrdenacao({ campo, direcao });
@@ -101,9 +103,19 @@ export default function Orcamentos() {
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Orçamentos</h2>
-        <Button variant="gradient" asChild>
-          <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setAiModalOpen(true)}
+            className="gap-2 font-semibold text-white border-0 shadow-md hover:shadow-lg transition-all"
+            style={{ background: "var(--accent-gradient)" }}
+          >
+            <Sparkles className="h-4 w-4" />
+            Gerar com IA ✨
+          </Button>
+          <Button variant="gradient" asChild>
+            <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
+          </Button>
+        </div>
       </div>
 
       {filtroAlerta && filtroLabels[filtroAlerta] && (
@@ -256,6 +268,7 @@ export default function Orcamentos() {
           )}
         </CardContent>
       </Card>
+      <AICopilotModal open={aiModalOpen} onOpenChange={setAiModalOpen} />
     </div>
     </TooltipProvider>
   );

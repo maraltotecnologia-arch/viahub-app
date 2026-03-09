@@ -25,6 +25,7 @@ import ConfigAssinatura from "./pages/ConfigAssinatura";
 import ConfigUsuarios from "./pages/ConfigUsuarios";
 import ConfigTemplates from "./pages/ConfigTemplates";
 import ConfigWhatsapp from "./pages/ConfigWhatsapp";
+import ConfigIA from "./pages/ConfigIA";
 import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
@@ -102,6 +103,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
         <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
         <Route path="/configuracoes/templates" element={<ConfigTemplates />} />
         <Route path="/configuracoes/whatsapp" element={<ConfigWhatsapp />} />
+        <Route path="/configuracoes/ia" element={<ConfigIA />} />
         <Route path="/admin/agencias" element={<AdminAgencias />} />
         <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
         <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
