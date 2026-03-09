@@ -61,6 +61,40 @@ export default function AdminChamados() {
     },
   });
 
+  const { data: ticketDetails } = useQuery({
+    queryKey: ["ticket-details", selectedTicketId],
+    enabled: !!selectedTicketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select(`
+          *,
+          agencias(nome_fantasia)
+        `)
+        .eq("id", selectedTicketId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: mensagens = [], refetch: refetchMensagens } = useQuery({
+    queryKey: ["ticket-mensagens", selectedTicketId],
+    enabled: !!selectedTicketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_mensagens")
+        .select(`
+          *,
+          usuarios(nome, cargo)
+        `)
+        .eq("ticket_id", selectedTicketId!)
+        .order("criado_em", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const updateStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string, status: string }) => {
       const { error } = await supabase
