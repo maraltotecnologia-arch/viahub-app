@@ -128,6 +128,7 @@ export function AppSidebar() {
     );
 
   return (
+    <>
     <Sidebar
       collapsible="icon"
       className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
