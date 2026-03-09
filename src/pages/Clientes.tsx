@@ -117,7 +117,10 @@ export default function Clientes() {
               <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
               <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 00000-0000" value={telefone} onChange={(e) => setTelefone(maskTelefone(e.target.value))} /></div>
               <div className="space-y-2"><Label>CPF / CNPJ</Label><Input placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(maskCPFouCNPJ(e.target.value))} /></div>
-              <Button variant="gradient" className="w-full" onClick={handleCreate} disabled={saving}>{saving ? "Salvando..." : "Salvar Cliente"}</Button>
+              <Button variant="gradient" className="w-full" onClick={handleCreate} disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {saving ? "Salvando..." : "Salvar Cliente"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
