@@ -127,34 +127,34 @@ export default function Suporte() {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="assunto">Assunto</Label>
-                  <Input id="assunto" placeholder="Ex: Problema ao enviar orçamento" required />
+                  <Input id="assunto" placeholder="Ex: Problema ao enviar orçamento" required value={assunto} onChange={e => setAssunto(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="categoria">Categoria</Label>
-                    <Select required>
+                    <Select required value={categoria} onValueChange={setCategoria}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="duvida">Dúvida</SelectItem>
-                        <SelectItem value="bug">Bug / Erro</SelectItem>
-                        <SelectItem value="melhoria">Sugestão de Melhoria</SelectItem>
-                        <SelectItem value="financeiro">Financeiro</SelectItem>
+                        <SelectItem value="Dúvida">Dúvida</SelectItem>
+                        <SelectItem value="Bug / Erro">Bug / Erro</SelectItem>
+                        <SelectItem value="Sugestão de Melhoria">Sugestão de Melhoria</SelectItem>
+                        <SelectItem value="Financeiro">Financeiro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="prioridade">Prioridade</Label>
-                    <Select required>
+                    <Select required value={prioridade} onValueChange={setPrioridade}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="baixa">Baixa</SelectItem>
-                        <SelectItem value="media">Média</SelectItem>
-                        <SelectItem value="alta">Alta</SelectItem>
-                        <SelectItem value="critica">Crítica</SelectItem>
+                        <SelectItem value="Baixa">Baixa</SelectItem>
+                        <SelectItem value="Média">Média</SelectItem>
+                        <SelectItem value="Alta">Alta</SelectItem>
+                        <SelectItem value="Crítica">Crítica</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -166,6 +166,8 @@ export default function Suporte() {
                     placeholder="Detalhe o que aconteceu, onde e como podemos reproduzir..." 
                     className="min-h-[120px]" 
                     required 
+                    value={descricao}
+                    onChange={e => setDescricao(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -181,7 +183,10 @@ export default function Suporte() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button type="submit">Enviar Chamado</Button>
+                <Button type="submit" disabled={createTicket.isPending}>
+                  {createTicket.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar Chamado
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
