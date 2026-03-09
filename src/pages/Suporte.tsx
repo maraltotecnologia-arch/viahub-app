@@ -143,6 +143,11 @@ export default function Suporte() {
     setAnexos(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleOpenTicket = (e: React.FormEvent) => {
+    e.preventDefault();
+    createTicket.mutate();
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Aberto": return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20">Aberto</Badge>;
