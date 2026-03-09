@@ -197,7 +197,7 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
     <Card className="rounded-2xl" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center">
             <Target className="h-5 w-5" />
           </div>
           <div className="flex-1">
@@ -372,10 +372,10 @@ function SuperadminDashboard() {
   const churnDiff = (metrics?.churnAtual ?? 0) - (metrics?.churnAnterior ?? 0);
 
   const metricCards = [
-    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-100 text-blue-600" },
-    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-100 text-violet-600" },
-    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600" },
-    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600" },
+    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400" },
+    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400" },
+    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400" },
+    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400" },
   ];
 
   const medalhas = ["🥇", "🥈", "🥉"];
@@ -401,7 +401,7 @@ function SuperadminDashboard() {
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-100 text-cyan-600">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/15 text-cyan-500 dark:bg-cyan-500/20 dark:text-cyan-400">
                 <Percent className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
               </div>
               <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
@@ -424,7 +424,7 @@ function SuperadminDashboard() {
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400">
                 <UserX className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
               </div>
               <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
@@ -528,7 +528,7 @@ function SuperadminDashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                   <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                   <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC', fontSize: '12px' }} labelStyle={{ color: '#F8FAFC', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: '#CBD5E1' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                   <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px' }} labelStyle={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: 'var(--text-secondary)' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -645,11 +645,11 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   });
 
   const metricCards = [
-    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-100 text-blue-600", subtitle: "" },
-    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-100 text-emerald-600", subtitle: "" },
-    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-100 text-green-600", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
-    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-100 text-violet-600", subtitle: "" },
-    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-100 text-orange-600", subtitle: "" },
+    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400", subtitle: "" },
+    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400", subtitle: "" },
+    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-500/15 text-green-500 dark:bg-green-500/20 dark:text-green-400", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
+    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400", subtitle: "" },
+    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400", subtitle: "" },
   ];
 
   return (
@@ -676,7 +676,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                   <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                   <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC', fontSize: '12px' }} labelStyle={{ color: '#F8FAFC', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: '#CBD5E1' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                   <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px' }} labelStyle={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: 'var(--text-secondary)' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

@@ -12,27 +12,16 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
-  Superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
-  Administrador: "bg-blue-50 text-blue-700 border border-blue-200",
-  Agente: "bg-green-50 text-green-700 border border-green-200",
-  Financeiro: "bg-amber-50 text-amber-700 border border-amber-200",
+  Superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30",
+  Administrador: "bg-blue-500/15 text-blue-600 border border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+  Agente: "bg-green-500/15 text-green-600 border border-green-500/30 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
+  Financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
 };
 
 function CargoBadge({ cargo }: { cargo: string }) {
-  const { isDark } = useTheme();
   const cls = CARGO_BADGE_CLASSES[cargo] || "bg-muted text-muted-foreground border border-border";
-  const darkStyleByCargo: Record<string, React.CSSProperties> = {
-    Superadmin: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
-    Administrador: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
-    Agente: { background: "rgba(16,185,129,0.25)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.4)" },
-    Financeiro: { background: "rgba(245,158,11,0.22)", color: "#FCD34D", border: "1px solid rgba(245,158,11,0.4)" },
-  };
-  const style = isDark ? (darkStyleByCargo[cargo] ?? { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" }) : undefined;
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${!isDark ? cls : ""}`}
-      style={style}
-    >
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>
       {cargo}
     </span>
   );

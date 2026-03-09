@@ -445,18 +445,18 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-green-600" /> Total Recebido
+                  <BadgeCheck className="h-4 w-4 text-green-500 dark:text-green-400" /> Total Recebido
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-green-600">{fmt(totalRecebido)}</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{fmt(totalRecebido)}</p>
                 <p className="text-xs text-muted-foreground mt-1">confirmado pelos agentes</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-600" /> Ticket Médio Recebido
+                  <TrendingUp className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Ticket Médio Recebido
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -466,7 +466,7 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <PieChartIcon className="h-4 w-4 text-cyan-600" /> % Convertido em Caixa
+                  <PieChartIcon className="h-4 w-4 text-cyan-500 dark:text-cyan-400" /> % Convertido em Caixa
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -486,7 +486,7 @@ export default function Relatorios() {
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                       <XAxis dataKey="name" fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} />
                       <YAxis fontSize={11} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={{ stroke: 'var(--border-color)' }} tickLine={{ stroke: 'var(--border-color)' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} labelClassName="font-medium" contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-secondary)' }} />
                       <Bar dataKey="valor" fill="#2563EB" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -505,7 +505,7 @@ export default function Relatorios() {
                       <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" label={({ name, value }) => `${name} ${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%`}>
                         {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                       </Pie>
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-secondary)' }} />
                       <Legend wrapperStyle={{ color: 'var(--text-secondary)' }} />
                     </PieChart>
                   </ResponsiveContainer>

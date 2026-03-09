@@ -28,10 +28,10 @@ const CARGO_LABELS: Record<string, string> = {
 };
 
 const CARGO_CLASSES: Record<string, string> = {
-  superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
-  admin: "bg-blue-50 text-blue-700 border border-blue-200",
-  agente: "bg-green-50 text-green-700 border border-green-200",
-  financeiro: "bg-amber-50 text-amber-700 border border-amber-200",
+  superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30",
+  admin: "bg-blue-500/15 text-blue-600 border border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+  agente: "bg-green-500/15 text-green-600 border border-green-500/30 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
+  financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
 };
 
 export default function ConfigUsuarios() {
@@ -222,8 +222,7 @@ export default function ConfigUsuarios() {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={!isDark ? (CARGO_CLASSES[u.cargo || "agente"] || "") : ""}
-                      style={isDark ? cargoBadgeDarkStyle(u.cargo || "agente") : undefined}
+                      className={CARGO_CLASSES[u.cargo || "agente"] || ""}
                     >
                       {CARGO_LABELS[u.cargo || "agente"] || u.cargo}
                     </Badge>

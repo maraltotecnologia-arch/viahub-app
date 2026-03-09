@@ -163,7 +163,7 @@ export default function ClienteDetalhe() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-100 text-green-600">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-green-500/15 text-green-500 dark:bg-green-500/20 dark:text-green-400">
               <BadgeCheck className="h-[22px] w-[22px]" />
             </div>
             <div>
