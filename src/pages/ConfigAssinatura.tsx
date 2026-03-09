@@ -205,7 +205,7 @@ export default function ConfigAssinatura() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl animate-fade-in">
+    <div className="space-y-6 w-full animate-fade-in">
       <h2 className="text-2xl font-bold">Assinatura</h2>
 
       {/* SEÇÃO A — Plano atual */}

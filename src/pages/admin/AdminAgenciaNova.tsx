@@ -151,7 +151,7 @@ export default function AdminAgenciaNova() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in max-w-2xl">
+    <div className="space-y-6 animate-fade-in w-full">
       <h2 className="text-2xl font-bold">Nova Agência</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
