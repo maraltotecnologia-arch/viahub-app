@@ -466,7 +466,7 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <PieChartIcon className="h-4 w-4 text-cyan-600" /> % Convertido em Caixa
+                  <PieChartIcon className="h-4 w-4 text-cyan-500 dark:text-cyan-400" /> % Convertido em Caixa
                 </CardTitle>
               </CardHeader>
               <CardContent>
