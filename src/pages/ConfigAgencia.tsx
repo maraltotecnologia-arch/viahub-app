@@ -153,7 +153,7 @@ export default function ConfigAgencia() {
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
   return (
-    <div className="space-y-6 max-w-3xl animate-fade-in">
+    <div className="space-y-6 w-full animate-fade-in">
       <h2 className="text-2xl font-bold">Configurações da Agência</h2>
 
       {/* Logo */}

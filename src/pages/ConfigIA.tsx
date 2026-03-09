@@ -115,7 +115,7 @@ export default function ConfigIA() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                 {[
                   { label: "Voos", icon: Plane, value: markupVoos, setter: setMarkupVoos },
                   { label: "Hotéis", icon: Hotel, value: markupHoteis, setter: setMarkupHoteis },
