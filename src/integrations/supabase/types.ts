@@ -817,6 +817,92 @@ export type Database = {
           },
         ]
       }
+      ticket_mensagens: {
+        Row: {
+          criado_em: string
+          id: string
+          is_superadmin: boolean
+          mensagem: string
+          ticket_id: string
+          usuario_id: string
+        }
+        Insert: {
+          criado_em?: string
+          id?: string
+          is_superadmin?: boolean
+          mensagem: string
+          ticket_id: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          id?: string
+          is_superadmin?: boolean
+          mensagem?: string
+          ticket_id?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_mensagens_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "tickets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_mensagens_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tickets: {
+        Row: {
+          agencia_id: string
+          assunto: string
+          atualizado_em: string
+          categoria: string
+          criado_em: string
+          descricao: string
+          id: string
+          prioridade: string
+          status: string
+        }
+        Insert: {
+          agencia_id: string
+          assunto: string
+          atualizado_em?: string
+          categoria: string
+          criado_em?: string
+          descricao: string
+          id?: string
+          prioridade: string
+          status?: string
+        }
+        Update: {
+          agencia_id?: string
+          assunto?: string
+          atualizado_em?: string
+          categoria?: string
+          criado_em?: string
+          descricao?: string
+          id?: string
+          prioridade?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tickets_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       usuarios: {
         Row: {
           agencia_id: string | null
