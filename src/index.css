@@ -60,20 +60,25 @@ body {
               color 300ms ease;
 }
 
-/* Forçar contraste de tipografia no dark mode */
-[data-theme="dark"] h1,
-[data-theme="dark"] h2,
-[data-theme="dark"] h3,
-[data-theme="dark"] p,
-[data-theme="dark"] span,
-[data-theme="dark"] label {
+/* Forçar contraste de tipografia no dark mode — escopo app */
+[data-theme="dark"] body[data-viahub-scope="app"] h1,
+[data-theme="dark"] body[data-viahub-scope="app"] h2,
+[data-theme="dark"] body[data-viahub-scope="app"] h3 {
   color: var(--text-primary);
 }
 
-[data-theme="dark"] .text-muted-foreground,
-[data-theme="dark"] [class*="text-gray"],
-[data-theme="dark"] [class*="text-slate"] {
+/* Muted text in dark mode — only override non-semantic classes */
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-4"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-5"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-4"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-5"] {
   color: var(--text-secondary) !important;
+}
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-8"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-9"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-8"],
+[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-9"] {
+  color: var(--text-primary) !important;
 }
 
 /* CONTRASTE (dark) — escopado para páginas autenticadas */
