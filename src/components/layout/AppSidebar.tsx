@@ -207,6 +207,28 @@ export function AppSidebar() {
 
         {/* Spacer to push footer down */}
         <div className="flex-1" />
+
+        {/* Ajuda e Suporte (Agency only) */}
+        {!isSuperadmin && (
+          <SidebarGroup className="py-1 px-2 mt-auto border-t border-sidebar-border/50">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild tooltip={collapsed ? "Ajuda & Suporte" : undefined}>
+                    <NavLink
+                      to="/suporte"
+                      title={collapsed ? "Ajuda & Suporte" : undefined}
+                      className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
+                    >
+                      <LifeBuoy className="h-4 w-4 shrink-0 opacity-80" />
+                      {!collapsed && <span className="flex-1">Ajuda & Suporte</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       {/* Footer */}
