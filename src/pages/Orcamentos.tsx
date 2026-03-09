@@ -51,6 +51,7 @@ export default function Orcamentos() {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const handleSort = (campo: string, direcao: "asc" | "desc") => {
     setOrdenacao({ campo, direcao });
