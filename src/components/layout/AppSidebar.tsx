@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Sparkles } from "lucide-react";
+import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Bot } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import AICopilotModal from "@/components/ai/AICopilotModal";
@@ -86,7 +86,7 @@ export function AppSidebar() {
     { title: "Usuários", url: "/configuracoes/usuarios", icon: Users },
     { title: "Templates", url: "/configuracoes/templates", icon: FileText },
     { title: "WhatsApp", url: "/configuracoes/whatsapp", icon: MessageCircle },
-    { title: "Inteligência Artificial", url: "/configuracoes/ia", icon: Sparkles },
+    { title: "Inteligência Artificial", url: "/configuracoes/ia", icon: Bot },
   ];
 
   const adminItems = [
@@ -161,13 +161,18 @@ export function AppSidebar() {
               {mainItems.filter(i => i.show).map(renderItem)}
               {/* AI Copilot shortcut */}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={collapsed ? "Copiloto IA" : undefined}>
+                <SidebarMenuButton asChild tooltip={collapsed ? "Assistente IA" : undefined}>
                   <button
                     onClick={() => setAiModalOpen(true)}
                     className={navCls(false)}
                   >
-                    <Sparkles className="h-4 w-4 shrink-0 opacity-80" />
-                    {!collapsed && <span className="flex-1">Copiloto IA</span>}
+                    <Bot className="h-4 w-4 shrink-0 opacity-80" />
+                    {!collapsed && (
+                      <span className="flex-1 flex items-center gap-2">
+                        Assistente IA
+                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded bg-white/10 text-white/50">Pro</span>
+                      </span>
+                    )}
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
