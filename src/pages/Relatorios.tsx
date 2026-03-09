@@ -456,7 +456,7 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-blue-600" /> Ticket Médio Recebido
+                  <TrendingUp className="h-4 w-4 text-blue-500 dark:text-blue-400" /> Ticket Médio Recebido
                 </CardTitle>
               </CardHeader>
               <CardContent>
