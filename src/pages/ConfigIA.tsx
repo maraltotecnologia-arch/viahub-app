@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { Bot, Brain, Plane, Hotel, Map, MessageCircle, Save } from "lucide-react";
+import { Bot, Brain, Plane, Hotel, Map, MessageCircle, Save, Briefcase, Car, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import useAgenciaPlano from "@/hooks/useAgenciaPlano";
 import AIPaywall from "@/components/ai/AIPaywall";
