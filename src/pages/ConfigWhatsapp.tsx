@@ -310,16 +310,16 @@ export default function ConfigWhatsapp() {
         </CardContent>
       </Card>
 
-      {/* Zombie warning */}
-      {wpStatus?.status === "disconnected" && (
+      {/* Zombie warning — graceful handling for abrupt phone disconnection */}
+      {!forcedDisconnected && wpStatus?.status === "disconnected" && (
         <Card className="border-yellow-500/30 bg-yellow-500/5">
           <CardContent className="flex items-start gap-3 py-4">
             <AlertTriangle className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-medium text-foreground">Sua conexão com o WhatsApp foi perdida</p>
-              <p className="text-sm text-muted-foreground">Reconecte para continuar enviando orçamentos.</p>
+              <p className="text-sm text-muted-foreground">Isso pode acontecer se o WhatsApp foi desconectado pelo celular. Reconecte para continuar enviando orçamentos.</p>
               <Button size="sm" className="mt-2" onClick={handleConnect} disabled={connecting}>
-                Reconectar agora
+                {connecting ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Reconectando...</> : "Reconectar agora"}
               </Button>
             </div>
           </CardContent>
