@@ -12,10 +12,10 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
-  Superadmin: "bg-purple-50 text-purple-700 border border-purple-200",
-  Administrador: "bg-blue-50 text-blue-700 border border-blue-200",
-  Agente: "bg-green-50 text-green-700 border border-green-200",
-  Financeiro: "bg-amber-50 text-amber-700 border border-amber-200",
+  Superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30",
+  Administrador: "bg-blue-500/15 text-blue-600 border border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
+  Agente: "bg-green-500/15 text-green-600 border border-green-500/30 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
+  Financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
 };
 
 function CargoBadge({ cargo }: { cargo: string }) {
