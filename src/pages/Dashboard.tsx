@@ -399,16 +399,16 @@ function SuperadminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxa de Conversão Média */}
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-cyan-100 text-cyan-600">
-                <Percent className="h-[22px] w-[22px]" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-100 text-cyan-600">
+                <Percent className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
               </div>
-              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
             </div>
             {conversaoLoading ? <Skeleton className="h-8 w-24" /> : (
-              <>
-                <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
                   {convAtual.toFixed(1)}%
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: convDiff >= 0 ? "#16A34A" : "#EF4444" }}>
