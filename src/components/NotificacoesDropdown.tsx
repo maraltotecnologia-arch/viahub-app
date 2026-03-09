@@ -57,9 +57,11 @@ export default function NotificacoesDropdown() {
         </div>
         <div className="max-h-80 overflow-y-auto">
           {notificacoes.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center flex items-center justify-center min-h-[120px]">
-              Nenhuma notificação no momento
-            </p>
+            <div className="py-10 text-center">
+              <Bell className="h-10 w-10 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Nenhuma notificação</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Você está em dia!</p>
+            </div>
           ) : (
             notificacoes.map((n) => (
               <NotificacaoItem key={n.id} n={n} onRead={() => marcarComoLida(n.id)} />

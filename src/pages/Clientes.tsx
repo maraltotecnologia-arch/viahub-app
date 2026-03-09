@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight, Users } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, Users, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,7 +117,10 @@ export default function Clientes() {
               <div className="space-y-2"><Label>Email</Label><Input type="email" placeholder="email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
               <div className="space-y-2"><Label>Telefone</Label><Input placeholder="(00) 00000-0000" value={telefone} onChange={(e) => setTelefone(maskTelefone(e.target.value))} /></div>
               <div className="space-y-2"><Label>CPF / CNPJ</Label><Input placeholder="000.000.000-00" value={cpf} onChange={(e) => setCpf(maskCPFouCNPJ(e.target.value))} /></div>
-              <Button variant="gradient" className="w-full" onClick={handleCreate} disabled={saving}>{saving ? "Salvando..." : "Salvar Cliente"}</Button>
+              <Button variant="gradient" className="w-full" onClick={handleCreate} disabled={saving}>
+                {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {saving ? "Salvando..." : "Salvar Cliente"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

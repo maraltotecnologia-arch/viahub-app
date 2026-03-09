@@ -557,7 +557,13 @@ function SuperadminDashboard() {
                     </div>
                   </Link>
                 ))}
-                {recentes?.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum orçamento ainda</p>}
+                {recentes?.length === 0 && (
+                  <div className="py-8 text-center">
+                    <FileText className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhum orçamento ainda</p>
+                    <Link to="/admin/agencias/nova" className="text-xs text-primary hover:underline mt-1 inline-block">Cadastrar primeira agência →</Link>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -699,7 +705,13 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                     </div>
                   </Link>
                 ))}
-                {recentes?.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum orçamento ainda</p>}
+                {recentes?.length === 0 && (
+                  <div className="py-8 text-center">
+                    <FileText className="h-10 w-10 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhum orçamento ainda</p>
+                    <Link to="/orcamentos/novo" className="text-xs text-primary hover:underline mt-1 inline-block">Criar primeiro orçamento →</Link>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
