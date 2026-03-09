@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { LifeBuoy, Plus, Paperclip, Loader2, X, FileIcon } from "lucide-react";
+import { LifeBuoy, Plus, Paperclip, Loader2, X, FileIcon, Send, CheckCircle2, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +9,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import useAgenciaId from "@/hooks/useAgenciaId";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+import { getTicketVisualId } from "@/lib/ticket-utils";
 
 export default function Suporte() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,10 +27,13 @@ export default function Suporte() {
   const [descricao, setDescricao] = useState("");
   const [anexos, setAnexos] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [novaMensagem, setNovaMensagem] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const agenciaId = useAgenciaId();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: tickets = [], isLoading } = useQuery({
@@ -42,6 +49,37 @@ export default function Suporte() {
       return data;
     },
     enabled: !!agenciaId,
+  });
+
+  const { data: ticketDetails } = useQuery({
+    queryKey: ["ticket-details", selectedTicketId],
+    enabled: !!selectedTicketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("id", selectedTicketId!)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: mensagens = [], refetch: refetchMensagens } = useQuery({
+    queryKey: ["ticket-mensagens", selectedTicketId],
+    enabled: !!selectedTicketId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_mensagens")
+        .select(`
+          *,
+          usuarios(nome, cargo)
+        `)
+        .eq("ticket_id", selectedTicketId!)
+        .order("criado_em", { ascending: true });
+      if (error) throw error;
+      return data;
+    },
   });
 
   const createTicket = useMutation({
@@ -106,6 +144,45 @@ export default function Suporte() {
     }
   });
 
+  const enviarMensagem = useMutation({
+    mutationFn: async () => {
+      if (!novaMensagem.trim() || !user) return;
+      
+      const { error } = await supabase
+        .from("ticket_mensagens")
+        .insert({
+          ticket_id: selectedTicketId!,
+          usuario_id: user.id,
+          mensagem: novaMensagem.trim(),
+          is_superadmin: false
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setNovaMensagem("");
+      refetchMensagens();
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      toast({ title: "Mensagem enviada!" });
+    },
+  });
+
+  const marcarResolvido = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ status: "Resolvido" })
+        .eq("id", selectedTicketId!);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["ticket-details"] });
+      toast({ title: "Chamado marcado como resolvido!" });
+    },
+  });
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
@@ -151,7 +228,8 @@ export default function Suporte() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Aberto": return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20">Aberto</Badge>;
-      case "Em Análise": return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20">Em Análise</Badge>;
+      case "Em Andamento": return <Badge className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20">Em Andamento</Badge>;
+      case "Aguardando Cliente": return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20">Aguardando Cliente</Badge>;
       case "Resolvido": return <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20">Resolvido</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
@@ -166,6 +244,8 @@ export default function Suporte() {
       default: return <Badge variant="outline">{prioridade}</Badge>;
     }
   };
+
+  const isTicketResolved = ticketDetails?.status === "Resolvido";
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -325,8 +405,14 @@ export default function Suporte() {
                   </TableCell>
                 </TableRow>
               ) : tickets.map((ticket) => (
-                <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4 sm:pl-0">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
+                <TableRow 
+                  key={ticket.id} 
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => setSelectedTicketId(ticket.id)}
+                >
+                  <TableCell className="font-medium pl-4 sm:pl-0">
+                    {getTicketVisualId(ticket.prioridade, ticket.ticket_number)}
+                  </TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
                   <TableCell>{getStatusBadge(ticket.status)}</TableCell>
@@ -339,6 +425,98 @@ export default function Suporte() {
           </Table>
         </CardContent>
       </Card>
+
+      <Sheet open={!!selectedTicketId} onOpenChange={() => setSelectedTicketId(null)}>
+        <SheetContent side="right" className="sm:max-w-[600px] w-full p-0 flex flex-col">
+          {ticketDetails && (
+            <>
+              <SheetHeader className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <SheetTitle className="text-xl">
+                    {getTicketVisualId(ticketDetails.prioridade, ticketDetails.ticket_number)} - {ticketDetails.assunto}
+                  </SheetTitle>
+                  {getStatusBadge(ticketDetails.status)}
+                </div>
+                <SheetDescription className="text-left">
+                  {ticketDetails.descricao}
+                </SheetDescription>
+                <div className="flex gap-2 pt-2">
+                  {getPriorityBadge(ticketDetails.prioridade)}
+                  <Badge variant="outline">{ticketDetails.categoria}</Badge>
+                </div>
+              </SheetHeader>
+
+              <ScrollArea className="flex-1 px-6 py-4">
+                <div className="space-y-4">
+                  {mensagens.map((msg: any) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex ${msg.is_superadmin ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className={`max-w-[80%] rounded-lg p-3 ${
+                        msg.is_superadmin 
+                          ? 'bg-slate-100 dark:bg-slate-800' 
+                          : 'bg-primary/10'
+                      }`}>
+                        {msg.is_superadmin && (
+                          <Badge variant="secondary" className="mb-2 text-xs">Suporte Técnico</Badge>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap">{msg.mensagem}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {format(new Date(msg.criado_em), "dd/MM/yyyy 'às' HH:mm")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="border-t px-6 py-4">
+                {isTicketResolved ? (
+                  <div className="flex items-center gap-2 text-muted-foreground justify-center py-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-sm">Este chamado foi encerrado.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder="Digite sua mensagem..."
+                        value={novaMensagem}
+                        onChange={(e) => setNovaMensagem(e.target.value)}
+                        className="flex-1 min-h-[80px]"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-between">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => marcarResolvido.mutate()}
+                        disabled={marcarResolvido.isPending}
+                      >
+                        {marcarResolvido.isPending && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                        Marcar como Resolvido
+                      </Button>
+                      <Button 
+                        size="sm"
+                        onClick={() => enviarMensagem.mutate()}
+                        disabled={!novaMensagem.trim() || enviarMensagem.isPending}
+                      >
+                        {enviarMensagem.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 h-4 w-4" />
+                        )}
+                        Enviar Resposta
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
