@@ -284,10 +284,11 @@ export default function Suporte() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={createTicket.isPending}>
-                  {createTicket.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Enviar Chamado
+                <Button type="submit" disabled={createTicket.isPending || uploading}>
+                  {(createTicket.isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {uploading ? "Enviando arquivos..." : "Enviar Chamado"}
                 </Button>
+              </DialogFooter>
               </DialogFooter>
             </form>
           </DialogContent>
