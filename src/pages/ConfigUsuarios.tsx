@@ -222,8 +222,7 @@ export default function ConfigUsuarios() {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={!isDark ? (CARGO_CLASSES[u.cargo || "agente"] || "") : ""}
-                      style={isDark ? cargoBadgeDarkStyle(u.cargo || "agente") : undefined}
+                      className={CARGO_CLASSES[u.cargo || "agente"] || ""}
                     >
                       {CARGO_LABELS[u.cargo || "agente"] || u.cargo}
                     </Badge>

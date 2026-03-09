@@ -215,7 +215,7 @@ export default function Metas() {
                 <CardHeader className="pb-3">
                   <div className="flex items-center gap-3">
                     <div
-                      className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0"
+                      className="h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold text-primary-foreground shrink-0"
                       style={{ background: "linear-gradient(135deg, #2563EB, #7C3AED)" }}
                     >
                       {initials}

@@ -19,20 +19,9 @@ const CARGO_BADGE_CLASSES: Record<string, string> = {
 };
 
 function CargoBadge({ cargo }: { cargo: string }) {
-  const { isDark } = useTheme();
   const cls = CARGO_BADGE_CLASSES[cargo] || "bg-muted text-muted-foreground border border-border";
-  const darkStyleByCargo: Record<string, React.CSSProperties> = {
-    Superadmin: { background: "rgba(139,92,246,0.25)", color: "#C4B5FD", border: "1px solid rgba(139,92,246,0.4)" },
-    Administrador: { background: "rgba(37,99,235,0.25)", color: "#93C5FD", border: "1px solid rgba(37,99,235,0.4)" },
-    Agente: { background: "rgba(16,185,129,0.25)", color: "#6EE7B7", border: "1px solid rgba(16,185,129,0.4)" },
-    Financeiro: { background: "rgba(245,158,11,0.22)", color: "#FCD34D", border: "1px solid rgba(245,158,11,0.4)" },
-  };
-  const style = isDark ? (darkStyleByCargo[cargo] ?? { background: "rgba(100,116,139,0.25)", color: "#CBD5E1", border: "1px solid rgba(100,116,139,0.4)" }) : undefined;
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${!isDark ? cls : ""}`}
-      style={style}
-    >
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>
       {cargo}
     </span>
   );
