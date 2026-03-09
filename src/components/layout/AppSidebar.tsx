@@ -92,6 +92,7 @@ export function AppSidebar() {
   const adminItems = [
     { title: "Agências", url: "/admin/agencias", icon: Building2 },
     { title: "Mensalidades", url: "/financeiro/comissoes", icon: Percent },
+    { title: "Chamados", url: "/admin/chamados", icon: LifeBuoy },
     { title: "Notificações", url: "/admin/notificacoes", icon: Bell, badge: recentNotifCount ?? 0 },
   ];
 
