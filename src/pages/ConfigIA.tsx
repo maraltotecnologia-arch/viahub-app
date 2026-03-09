@@ -26,7 +26,7 @@ export default function ConfigIA() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up max-w-4xl">
+    <div className="space-y-6 animate-fade-in-up w-full">
       {/* Page header */}
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-muted border border-border">
