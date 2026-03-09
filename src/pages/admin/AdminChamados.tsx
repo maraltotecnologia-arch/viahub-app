@@ -19,8 +19,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function AdminChamados() {
   const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [novaMensagem, setNovaMensagem] = useState("");
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
