@@ -445,7 +445,7 @@ export default function Relatorios() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <BadgeCheck className="h-4 w-4 text-green-600" /> Total Recebido
+                  <BadgeCheck className="h-4 w-4 text-green-500 dark:text-green-400" /> Total Recebido
                 </CardTitle>
               </CardHeader>
               <CardContent>
