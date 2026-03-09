@@ -76,22 +76,22 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
         borderColor: "var(--border-color)",
       }}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
-            <Icon className="h-[22px] w-[22px]" />
+          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
           </div>
-          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{title}</span>
+          <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>{title}</span>
         </div>
         {isLoading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <>
-            <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+          <div className="min-w-0">
+            <p className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
               {value}
             </p>
-            {subtitle && <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
-          </>
+            {subtitle && <p className="text-xs mt-1 truncate" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
+          </div>
         )}
       </CardContent>
     </Card>
@@ -389,7 +389,7 @@ function SuperadminDashboard() {
       </div>
 
       {/* Linha 1 — Métricas operacionais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} />
         ))}
@@ -399,46 +399,46 @@ function SuperadminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxa de Conversão Média */}
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-cyan-100 text-cyan-600">
-                <Percent className="h-[22px] w-[22px]" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-100 text-cyan-600">
+                <Percent className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
               </div>
-              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
             </div>
             {conversaoLoading ? <Skeleton className="h-8 w-24" /> : (
-              <>
-                <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
                   {convAtual.toFixed(1)}%
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: convDiff >= 0 ? "#16A34A" : "#EF4444" }}>
                   {convDiff >= 0 ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
                   {Math.abs(convDiff).toFixed(1)}% vs mês anterior
                 </p>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
 
         {/* Churn do Mês */}
         <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-12 w-12 rounded-xl flex items-center justify-center bg-red-100 text-red-600">
-                <UserX className="h-[22px] w-[22px]" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-red-100 text-red-600">
+                <UserX className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
               </div>
-              <span className="text-sm" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
             </div>
             {metricsLoading ? <Skeleton className="h-8 w-24" /> : (
-              <>
-                <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+              <div className="min-w-0">
+                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
                   {metrics?.churnAtual ?? 0} {(metrics?.churnAtual ?? 0) === 1 ? "agência" : "agências"}
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: churnDiff <= 0 ? "#16A34A" : "#EF4444" }}>
                   {churnDiff <= 0 ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
                   {Math.abs(churnDiff)} vs mês anterior
                 </p>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -656,7 +656,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
     <div className="space-y-6 animate-fade-in-up">
       <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} subtitle={m.subtitle} />
         ))}

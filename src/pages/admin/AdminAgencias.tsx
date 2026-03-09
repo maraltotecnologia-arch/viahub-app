@@ -128,27 +128,27 @@ export default function AdminAgencias() {
 
         <TabsContent value="agencias">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Total de Agências</CardTitle>
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>Total de Agências</CardTitle>
+                  <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{total}</div></CardContent>
+                <CardContent className="px-4 sm:px-6"><div className="text-xl sm:text-2xl font-bold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{total}</div></CardContent>
               </Card>
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
+                <CardContent className="px-4 sm:px-6"><div className="text-xl sm:text-2xl font-bold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
               </Card>
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Estimado</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>MRR Estimado</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
+                <CardContent className="px-4 sm:px-6"><div className="text-xl sm:text-2xl font-bold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
               </Card>
             </div>
 
@@ -243,20 +243,20 @@ export default function AdminAgencias() {
 
         <TabsContent value="mensalidades">
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>MRR Mensalidades</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>MRR Mensalidades</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
+                <CardContent className="px-4 sm:px-6"><div className="text-xl sm:text-2xl font-bold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{fmt(mrr)}</div></CardContent>
               </Card>
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="text-xs sm:text-sm font-medium truncate" style={{ color: 'var(--text-secondary)' }}>Agências Ativas</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent><div className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
+                <CardContent className="px-4 sm:px-6"><div className="text-xl sm:text-2xl font-bold truncate min-w-0" style={{ color: 'var(--text-primary)' }}>{ativas}</div></CardContent>
               </Card>
             </div>
 
