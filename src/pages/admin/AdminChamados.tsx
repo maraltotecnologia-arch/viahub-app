@@ -36,9 +36,41 @@ export default function AdminChamados() {
     }
   };
 
-  const ticketsFiltrados = filtroStatus 
-    ? MOCK_TICKETS.filter(t => t.status === filtroStatus)
-    : MOCK_TICKETS;
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ["admin-tickets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select(`
+          *,
+          agencias(nome_fantasia)
+        `)
+        .order("criado_em", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+      toast({ title: "Status atualizado com sucesso!" });
+    }
+  });
+
+  const ticketsFiltrados = tickets.filter(t => {
+    if (filtroStatus && t.status !== filtroStatus) return false;
+    if (busca && !t.assunto.toLowerCase().includes(busca.toLowerCase()) && !(t.agencias as any)?.nome_fantasia?.toLowerCase().includes(busca.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
