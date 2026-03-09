@@ -21,6 +21,9 @@ export default function Suporte() {
   const [categoria, setCategoria] = useState("");
   const [prioridade, setPrioridade] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [anexos, setAnexos] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const agenciaId = useAgenciaId();
