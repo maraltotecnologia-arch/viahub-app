@@ -1,6 +1,7 @@
 import { Bell, Info, AlertTriangle, Wrench, CreditCard } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import useNotificacoes, { type Notificacao } from "@/hooks/useNotificacoes";
 
 const tipoConfig: Record<string, { icon: typeof Info; colorClass: string }> = {
@@ -33,6 +34,14 @@ function NotificacaoItem({ n, onRead }: { n: Notificacao; onRead: () => void }) 
 
 export default function NotificacoesDropdown() {
   const { notificacoes, total, marcarComoLida, marcarTodasComoLidas } = useNotificacoes();
+  const navigate = useNavigate();
+
+  const handleNotificacaoClick = async (n: Notificacao) => {
+    await marcarComoLida(n.id);
+    if (n.link) {
+      navigate(n.link);
+    }
+  };
 
   return (
     <Popover>
@@ -64,7 +73,7 @@ export default function NotificacoesDropdown() {
             </div>
           ) : (
             notificacoes.map((n) => (
-              <NotificacaoItem key={n.id} n={n} onRead={() => marcarComoLida(n.id)} />
+              <NotificacaoItem key={n.id} n={n} onRead={() => handleNotificacaoClick(n)} />
             ))
           )}
         </div>
