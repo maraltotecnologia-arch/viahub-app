@@ -642,6 +642,7 @@ export type Database = {
           criado_em: string | null
           destinatario: string | null
           id: string
+          link: string | null
           mensagem: string
           status_pagamento_alvo: string | null
           tipo: string | null
@@ -653,6 +654,7 @@ export type Database = {
           criado_em?: string | null
           destinatario?: string | null
           id?: string
+          link?: string | null
           mensagem: string
           status_pagamento_alvo?: string | null
           tipo?: string | null
@@ -664,6 +666,7 @@ export type Database = {
           criado_em?: string | null
           destinatario?: string | null
           id?: string
+          link?: string | null
           mensagem?: string
           status_pagamento_alvo?: string | null
           tipo?: string | null
