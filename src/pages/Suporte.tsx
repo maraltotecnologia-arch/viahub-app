@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LifeBuoy, Plus, Paperclip } from "lucide-react";
+import { LifeBuoy, Plus, Paperclip, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,24 +10,77 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-
-const MOCK_TICKETS = [
-  { id: "TKT-1024", assunto: "Dúvida sobre configuração de markup", status: "Resolvido", prioridade: "Baixa", data: "10/10/2023" },
-  { id: "TKT-1029", assunto: "Erro ao gerar PDF de orçamento", status: "Aberto", prioridade: "Alta", data: "12/10/2023" },
-  { id: "TKT-1035", assunto: "Sugestão: Integração com novo fornecedor", status: "Em Análise", prioridade: "Média", data: "15/10/2023" },
-];
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import useAgenciaId from "@/hooks/useAgenciaId";
+import { format } from "date-fns";
 
 export default function Suporte() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [assunto, setAssunto] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [prioridade, setPrioridade] = useState("");
+  const [descricao, setDescricao] = useState("");
+  
   const { toast } = useToast();
+  const agenciaId = useAgenciaId();
+  const queryClient = useQueryClient();
+
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ["tickets", agenciaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("agencia_id", agenciaId)
+        .order("criado_em", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!agenciaId,
+  });
+
+  const createTicket = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("tickets")
+        .insert({
+          agencia_id: agenciaId,
+          assunto,
+          categoria,
+          prioridade,
+          descricao,
+          status: "Aberto"
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      setIsModalOpen(false);
+      setAssunto("");
+      setCategoria("");
+      setPrioridade("");
+      setDescricao("");
+      toast({
+        title: "Chamado aberto com sucesso!",
+        description: "Nossa equipe analisará sua solicitação em breve.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao abrir chamado",
+        description: "Ocorreu um erro ao tentar enviar sua solicitação.",
+        variant: "destructive",
+      });
+      console.error(error);
+    }
+  });
 
   const handleOpenTicket = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsModalOpen(false);
-    toast({
-      title: "Chamado aberto com sucesso!",
-      description: "Nossa equipe analisará sua solicitação em breve.",
-    });
+    createTicket.mutate();
   };
 
   const getStatusBadge = (status: string) => {
