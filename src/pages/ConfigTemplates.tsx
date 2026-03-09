@@ -49,7 +49,7 @@ export default function ConfigTemplates() {
   if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-32 w-full" /></div>;
 
   return (
-    <div className="space-y-6 max-w-3xl animate-fade-in flex-1 flex flex-col">
+    <div className="space-y-6 w-full animate-fade-in flex-1 flex flex-col">
       <h2 className="text-2xl font-bold">Templates de Orçamento</h2>
 
       {(!templates || templates.length === 0) ? (
