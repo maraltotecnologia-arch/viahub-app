@@ -268,6 +268,7 @@ export default function Orcamentos() {
           )}
         </CardContent>
       </Card>
+      <AICopilotModal open={aiModalOpen} onOpenChange={setAiModalOpen} />
     </div>
     </TooltipProvider>
   );
