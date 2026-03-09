@@ -16,6 +16,9 @@ export default function ConfigIA() {
   const [markupVoos, setMarkupVoos] = useState("15");
   const [markupHoteis, setMarkupHoteis] = useState("12");
   const [markupPasseios, setMarkupPasseios] = useState("20");
+  const [markupPacotes, setMarkupPacotes] = useState("18");
+  const [markupTransfers, setMarkupTransfers] = useState("10");
+  const [markupSeguros, setMarkupSeguros] = useState("8");
   const [botWhatsapp, setBotWhatsapp] = useState(false);
 
   const handleSave = () => {
