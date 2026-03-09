@@ -18,6 +18,7 @@ import StatusBadge from "@/components/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
+import AICopilotModal from "@/components/ai/AICopilotModal";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
