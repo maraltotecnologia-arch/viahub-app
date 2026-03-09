@@ -301,6 +301,92 @@ export default function AdminChamados() {
           </Table>
         </CardContent>
       </Card>
+
+      <Sheet open={!!selectedTicketId} onOpenChange={() => setSelectedTicketId(null)}>
+        <SheetContent side="right" className="sm:max-w-[600px] w-full p-0 flex flex-col">
+          {ticketDetails && (
+            <>
+              <SheetHeader className="px-6 py-4 border-b">
+                <div className="flex items-center justify-between">
+                  <SheetTitle className="text-xl">
+                    {getTicketVisualId(ticketDetails.prioridade, ticketDetails.ticket_number)} - {ticketDetails.assunto}
+                  </SheetTitle>
+                  {getStatusBadge(ticketDetails.status)}
+                </div>
+                <SheetDescription className="text-left">
+                  <span className="font-medium">Agência:</span> {(ticketDetails.agencias as any)?.nome_fantasia || "N/A"}
+                </SheetDescription>
+                <SheetDescription className="text-left mt-2">
+                  {ticketDetails.descricao}
+                </SheetDescription>
+                <div className="flex gap-2 pt-2">
+                  {getPriorityBadge(ticketDetails.prioridade)}
+                  <Badge variant="outline">{ticketDetails.categoria}</Badge>
+                </div>
+              </SheetHeader>
+
+              <ScrollArea className="flex-1 px-6 py-4">
+                <div className="space-y-4">
+                  {mensagens.map((msg: any) => (
+                    <div 
+                      key={msg.id} 
+                      className={`flex ${msg.is_superadmin ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className={`max-w-[80%] rounded-lg p-3 ${
+                        msg.is_superadmin 
+                          ? 'bg-slate-100 dark:bg-slate-800' 
+                          : 'bg-primary/10'
+                      }`}>
+                        {msg.is_superadmin && (
+                          <Badge variant="secondary" className="mb-2 text-xs">Suporte Técnico</Badge>
+                        )}
+                        <p className="text-sm whitespace-pre-wrap">{msg.mensagem}</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {format(new Date(msg.criado_em), "dd/MM/yyyy 'às' HH:mm")}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              <div className="border-t px-6 py-4">
+                {ticketDetails.status === "Resolvido" ? (
+                  <div className="flex items-center gap-2 text-muted-foreground justify-center py-2">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span className="text-sm">Este chamado foi encerrado.</span>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <Textarea
+                        placeholder="Digite sua resposta..."
+                        value={novaMensagem}
+                        onChange={(e) => setNovaMensagem(e.target.value)}
+                        className="flex-1 min-h-[80px]"
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button 
+                        size="sm"
+                        onClick={() => enviarMensagem.mutate()}
+                        disabled={!novaMensagem.trim() || enviarMensagem.isPending}
+                      >
+                        {enviarMensagem.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="mr-2 h-4 w-4" />
+                        )}
+                        Enviar Resposta
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
