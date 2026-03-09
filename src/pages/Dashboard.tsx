@@ -438,7 +438,7 @@ function SuperadminDashboard() {
                   {churnDiff <= 0 ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
                   {Math.abs(churnDiff)} vs mês anterior
                 </p>
-              </>
+              </div>
             )}
           </CardContent>
         </Card>
