@@ -158,6 +158,18 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.filter(i => i.show).map(renderItem)}
+              {/* AI Copilot shortcut */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={collapsed ? "Copiloto IA" : undefined}>
+                  <button
+                    onClick={() => setAiModalOpen(true)}
+                    className={`flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-1.5"} rounded-lg text-sm transition-all duration-150 text-amber-300/90 hover:bg-amber-400/15 hover:text-amber-200 font-medium`}
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span className="flex-1">Copiloto IA ✨</span>}
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
