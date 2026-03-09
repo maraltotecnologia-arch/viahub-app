@@ -289,7 +289,6 @@ export default function Suporte() {
                   {uploading ? "Enviando arquivos..." : "Enviar Chamado"}
                 </Button>
               </DialogFooter>
-              </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
