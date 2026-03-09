@@ -28,7 +28,8 @@ export default function AdminChamados() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Aberto": return <Badge className="bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-blue-500/20">Aberto</Badge>;
-      case "Em Análise": return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20">Em Análise</Badge>;
+      case "Em Andamento": return <Badge className="bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-purple-500/20">Em Andamento</Badge>;
+      case "Aguardando Cliente": return <Badge className="bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20">Aguardando Cliente</Badge>;
       case "Resolvido": return <Badge className="bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border-emerald-500/20">Resolvido</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
