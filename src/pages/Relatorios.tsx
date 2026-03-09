@@ -505,7 +505,7 @@ export default function Relatorios() {
                       <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={2} dataKey="value" label={({ name, value }) => `${name} ${pieTotal > 0 ? ((value / pieTotal) * 100).toFixed(0) : 0}%`}>
                         {pieData.map((_, idx) => <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />)}
                       </Pie>
-                      <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC' }} labelStyle={{ color: '#F8FAFC' }} itemStyle={{ color: '#CBD5E1' }} />
+                      <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-primary)' }} itemStyle={{ color: 'var(--text-secondary)' }} />
                       <Legend wrapperStyle={{ color: 'var(--text-secondary)' }} />
                     </PieChart>
                   </ResponsiveContainer>

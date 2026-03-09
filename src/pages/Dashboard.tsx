@@ -197,7 +197,7 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
     <Card className="rounded-2xl" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center">
             <Target className="h-5 w-5" />
           </div>
           <div className="flex-1">

@@ -415,7 +415,7 @@ body {
   border-color: var(--border-color) !important;
 }
 
-[data-theme="dark"] label {
+[data-theme="dark"] body[data-viahub-scope="app"] label {
   color: var(--text-secondary) !important;
 }
 
