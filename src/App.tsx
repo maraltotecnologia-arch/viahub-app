@@ -30,6 +30,8 @@ import AdminAgencias from "./pages/admin/AdminAgencias";
 import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
 import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
 import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
+import AdminChamados from "./pages/admin/AdminChamados";
+import Suporte from "./pages/Suporte";
 import Metas from "./pages/Metas";
 import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import PagamentoPendente from "./pages/PagamentoPendente";
