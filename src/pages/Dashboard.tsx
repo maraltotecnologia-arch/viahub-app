@@ -76,22 +76,22 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
         borderColor: "var(--border-color)",
       }}
     >
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 mb-3">
-          <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${iconBg}`}>
-            <Icon className="h-[22px] w-[22px]" />
+          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
           </div>
-          <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{title}</span>
+          <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>{title}</span>
         </div>
         {isLoading ? (
           <Skeleton className="h-8 w-24" />
         ) : (
-          <>
-            <p className="text-[28px] font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+          <div className="min-w-0">
+            <p className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
               {value}
             </p>
-            {subtitle && <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
-          </>
+            {subtitle && <p className="text-xs mt-1 truncate" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
+          </div>
         )}
       </CardContent>
     </Card>
