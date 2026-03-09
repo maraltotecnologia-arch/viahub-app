@@ -87,7 +87,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Abertos</p>
-              <h3 className="text-2xl font-bold">12</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Aberto").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -98,7 +98,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Críticos</p>
-              <h3 className="text-2xl font-bold">2</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.prioridade === "Crítica").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -109,7 +109,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Em Análise</p>
-              <h3 className="text-2xl font-bold">5</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Em Análise").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -119,8 +119,8 @@ export default function AdminChamados() {
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Resolvidos (Hoje)</p>
-              <h3 className="text-2xl font-bold">8</h3>
+              <p className="text-sm font-medium text-muted-foreground">Resolvidos</p>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Resolvido").length}</h3>
             </div>
           </CardContent>
         </Card>
