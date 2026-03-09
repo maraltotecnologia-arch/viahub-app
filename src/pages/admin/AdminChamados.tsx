@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { Search, AlertCircle, CheckCircle2, Clock, LifeBuoy } from "lucide-react";
+import { Search, AlertCircle, CheckCircle2, Clock, LifeBuoy, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-const MOCK_TICKETS = [
-  { id: "TKT-1035", agencia: "ViajaBem Turismo", assunto: "Sugestão: Integração com novo fornecedor", status: "Aberto", prioridade: "Média", data: "15/10/2023" },
-  { id: "TKT-1034", agencia: "Mundo Afora Viagens", assunto: "Erro no faturamento", status: "Em Análise", prioridade: "Crítica", data: "14/10/2023" },
-  { id: "TKT-1033", agencia: "Destinos & Cia", assunto: "Como alterar a logo?", status: "Resolvido", prioridade: "Baixa", data: "13/10/2023" },
-  { id: "TKT-1032", agencia: "Horizonte Turismo", assunto: "Sistema lento", status: "Em Análise", prioridade: "Alta", data: "12/10/2023" },
-  { id: "TKT-1031", agencia: "Global Explorer", assunto: "Dúvida sobre WhatsApp", status: "Aberto", prioridade: "Média", data: "12/10/2023" },
-];
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function AdminChamados() {
   const [filtroStatus, setFiltroStatus] = useState<string | null>(null);
+  const [busca, setBusca] = useState("");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -36,9 +36,41 @@ export default function AdminChamados() {
     }
   };
 
-  const ticketsFiltrados = filtroStatus 
-    ? MOCK_TICKETS.filter(t => t.status === filtroStatus)
-    : MOCK_TICKETS;
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ["admin-tickets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select(`
+          *,
+          agencias(nome_fantasia)
+        `)
+        .order("criado_em", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const updateStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: string, status: string }) => {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ status })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
+      toast({ title: "Status atualizado com sucesso!" });
+    }
+  });
+
+  const ticketsFiltrados = tickets.filter(t => {
+    if (filtroStatus && t.status !== filtroStatus) return false;
+    if (busca && !t.assunto.toLowerCase().includes(busca.toLowerCase()) && !(t.agencias as any)?.nome_fantasia?.toLowerCase().includes(busca.toLowerCase())) return false;
+    return true;
+  });
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
@@ -55,7 +87,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Total Abertos</p>
-              <h3 className="text-2xl font-bold">12</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Aberto").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -66,7 +98,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Críticos</p>
-              <h3 className="text-2xl font-bold">2</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.prioridade === "Crítica").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -77,7 +109,7 @@ export default function AdminChamados() {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Em Análise</p>
-              <h3 className="text-2xl font-bold">5</h3>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Em Análise").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -87,8 +119,8 @@ export default function AdminChamados() {
               <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Resolvidos (Hoje)</p>
-              <h3 className="text-2xl font-bold">8</h3>
+              <p className="text-sm font-medium text-muted-foreground">Resolvidos</p>
+              <h3 className="text-2xl font-bold">{tickets.filter(t => t.status === "Resolvido").length}</h3>
             </div>
           </CardContent>
         </Card>
@@ -128,7 +160,7 @@ export default function AdminChamados() {
           </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar chamado..." className="pl-8 w-full" />
+            <Input placeholder="Buscar chamado..." className="pl-8 w-full" value={busca} onChange={e => setBusca(e.target.value)} />
           </div>
         </div>
         <CardContent className="p-0">
@@ -144,14 +176,49 @@ export default function AdminChamados() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ticketsFiltrados.map((ticket) => (
-                <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4">{ticket.id}</TableCell>
-                  <TableCell>{ticket.agencia}</TableCell>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Carregando chamados...
+                  </TableCell>
+                </TableRow>
+              ) : ticketsFiltrados.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    Nenhum chamado encontrado.
+                  </TableCell>
+                </TableRow>
+              ) : ticketsFiltrados.map((ticket) => (
+                <TableRow key={ticket.id} className="hover:bg-muted/50 transition-colors">
+                  <TableCell className="font-medium pl-4">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
+                  <TableCell>{(ticket.agencias as any)?.nome_fantasia || "Agência desconhecida"}</TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
-                  <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell className="text-right text-muted-foreground pr-4">{ticket.data}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 p-0 px-2 flex items-center gap-2 hover:bg-muted">
+                          {getStatusBadge(ticket.status)}
+                          <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Aberto" })}>
+                          Marcar como Aberto
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Em Análise" })}>
+                          Marcar como Em Análise
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Resolvido" })}>
+                          Marcar como Resolvido
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground pr-4">
+                    {ticket.criado_em ? format(new Date(ticket.criado_em), "dd/MM/yyyy") : "-"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

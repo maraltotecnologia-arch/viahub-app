@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LifeBuoy, Plus, Paperclip } from "lucide-react";
+import { LifeBuoy, Plus, Paperclip, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,24 +10,77 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-
-const MOCK_TICKETS = [
-  { id: "TKT-1024", assunto: "Dúvida sobre configuração de markup", status: "Resolvido", prioridade: "Baixa", data: "10/10/2023" },
-  { id: "TKT-1029", assunto: "Erro ao gerar PDF de orçamento", status: "Aberto", prioridade: "Alta", data: "12/10/2023" },
-  { id: "TKT-1035", assunto: "Sugestão: Integração com novo fornecedor", status: "Em Análise", prioridade: "Média", data: "15/10/2023" },
-];
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import useAgenciaId from "@/hooks/useAgenciaId";
+import { format } from "date-fns";
 
 export default function Suporte() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [assunto, setAssunto] = useState("");
+  const [categoria, setCategoria] = useState("");
+  const [prioridade, setPrioridade] = useState("");
+  const [descricao, setDescricao] = useState("");
+  
   const { toast } = useToast();
+  const agenciaId = useAgenciaId();
+  const queryClient = useQueryClient();
+
+  const { data: tickets = [], isLoading } = useQuery({
+    queryKey: ["tickets", agenciaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tickets")
+        .select("*")
+        .eq("agencia_id", agenciaId)
+        .order("criado_em", { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!agenciaId,
+  });
+
+  const createTicket = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("tickets")
+        .insert({
+          agencia_id: agenciaId,
+          assunto,
+          categoria,
+          prioridade,
+          descricao,
+          status: "Aberto"
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      setIsModalOpen(false);
+      setAssunto("");
+      setCategoria("");
+      setPrioridade("");
+      setDescricao("");
+      toast({
+        title: "Chamado aberto com sucesso!",
+        description: "Nossa equipe analisará sua solicitação em breve.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro ao abrir chamado",
+        description: "Ocorreu um erro ao tentar enviar sua solicitação.",
+        variant: "destructive",
+      });
+      console.error(error);
+    }
+  });
 
   const handleOpenTicket = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsModalOpen(false);
-    toast({
-      title: "Chamado aberto com sucesso!",
-      description: "Nossa equipe analisará sua solicitação em breve.",
-    });
+    createTicket.mutate();
   };
 
   const getStatusBadge = (status: string) => {
@@ -74,34 +127,34 @@ export default function Suporte() {
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <Label htmlFor="assunto">Assunto</Label>
-                  <Input id="assunto" placeholder="Ex: Problema ao enviar orçamento" required />
+                  <Input id="assunto" placeholder="Ex: Problema ao enviar orçamento" required value={assunto} onChange={e => setAssunto(e.target.value)} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="categoria">Categoria</Label>
-                    <Select required>
+                    <Select required value={categoria} onValueChange={setCategoria}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="duvida">Dúvida</SelectItem>
-                        <SelectItem value="bug">Bug / Erro</SelectItem>
-                        <SelectItem value="melhoria">Sugestão de Melhoria</SelectItem>
-                        <SelectItem value="financeiro">Financeiro</SelectItem>
+                        <SelectItem value="Dúvida">Dúvida</SelectItem>
+                        <SelectItem value="Bug / Erro">Bug / Erro</SelectItem>
+                        <SelectItem value="Sugestão de Melhoria">Sugestão de Melhoria</SelectItem>
+                        <SelectItem value="Financeiro">Financeiro</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="prioridade">Prioridade</Label>
-                    <Select required>
+                    <Select required value={prioridade} onValueChange={setPrioridade}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="baixa">Baixa</SelectItem>
-                        <SelectItem value="media">Média</SelectItem>
-                        <SelectItem value="alta">Alta</SelectItem>
-                        <SelectItem value="critica">Crítica</SelectItem>
+                        <SelectItem value="Baixa">Baixa</SelectItem>
+                        <SelectItem value="Média">Média</SelectItem>
+                        <SelectItem value="Alta">Alta</SelectItem>
+                        <SelectItem value="Crítica">Crítica</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -113,6 +166,8 @@ export default function Suporte() {
                     placeholder="Detalhe o que aconteceu, onde e como podemos reproduzir..." 
                     className="min-h-[120px]" 
                     required 
+                    value={descricao}
+                    onChange={e => setDescricao(e.target.value)}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -128,7 +183,10 @@ export default function Suporte() {
               </div>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button type="submit">Enviar Chamado</Button>
+                <Button type="submit" disabled={createTicket.isPending}>
+                  {createTicket.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar Chamado
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -152,13 +210,28 @@ export default function Suporte() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_TICKETS.map((ticket) => (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    Carregando chamados...
+                  </TableCell>
+                </TableRow>
+              ) : tickets.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Nenhum chamado aberto ainda.
+                  </TableCell>
+                </TableRow>
+              ) : tickets.map((ticket) => (
                 <TableRow key={ticket.id} className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4 sm:pl-0">{ticket.id}</TableCell>
+                  <TableCell className="font-medium pl-4 sm:pl-0">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
                   <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell className="text-right text-muted-foreground pr-4 sm:pr-0">{ticket.data}</TableCell>
+                  <TableCell className="text-right text-muted-foreground pr-4 sm:pr-0">
+                    {ticket.criado_em ? format(new Date(ticket.criado_em), "dd/MM/yyyy") : "-"}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
