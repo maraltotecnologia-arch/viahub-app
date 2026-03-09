@@ -103,9 +103,19 @@ export default function Orcamentos() {
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h2 className="text-2xl font-bold">Orçamentos</h2>
-        <Button variant="gradient" asChild>
-          <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setAiModalOpen(true)}
+            className="gap-2 font-semibold text-white border-0 shadow-md hover:shadow-lg transition-all"
+            style={{ background: "var(--accent-gradient)" }}
+          >
+            <Sparkles className="h-4 w-4" />
+            Gerar com IA ✨
+          </Button>
+          <Button variant="gradient" asChild>
+            <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
+          </Button>
+        </div>
       </div>
 
       {filtroAlerta && filtroLabels[filtroAlerta] && (
