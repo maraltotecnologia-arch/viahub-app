@@ -257,8 +257,14 @@ export default function AdminChamados() {
                   </TableCell>
                 </TableRow>
               ) : ticketsFiltrados.map((ticket) => (
-                <TableRow key={ticket.id} className="hover:bg-muted/50 transition-colors">
-                  <TableCell className="font-medium pl-4">{ticket.id.substring(0, 8).toUpperCase()}</TableCell>
+                <TableRow 
+                  key={ticket.id} 
+                  className="hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedTicketId(ticket.id)}
+                >
+                  <TableCell className="font-medium pl-4">
+                    {getTicketVisualId(ticket.prioridade, ticket.ticket_number)}
+                  </TableCell>
                   <TableCell>{(ticket.agencias as any)?.nome_fantasia || "Agência desconhecida"}</TableCell>
                   <TableCell>{ticket.assunto}</TableCell>
                   <TableCell>{getPriorityBadge(ticket.prioridade)}</TableCell>
