@@ -888,12 +888,21 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         {isEdicao ? (
           <>
             <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
-            <Button variant="gradient" onClick={() => handleSave(false)} disabled={loading}><Save className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar Alterações"}</Button>
+            <Button variant="gradient" onClick={() => handleSave(false)} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {loading ? "Salvando..." : "Salvar Alterações"}
+            </Button>
           </>
         ) : (
           <>
-            <Button variant="outline" onClick={() => handleSave(false)} disabled={loading}><Save className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar Rascunho"}</Button>
-            <Button variant="gradient" onClick={() => handleSave(true)} disabled={loading}><Send className="h-4 w-4 mr-2" /> {loading ? "Salvando..." : "Salvar e Enviar"}</Button>
+            <Button variant="outline" onClick={() => handleSave(false)} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              {loading ? "Salvando..." : "Salvar Rascunho"}
+            </Button>
+            <Button variant="gradient" onClick={() => handleSave(true)} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+              {loading ? "Salvando..." : "Salvar e Enviar"}
+            </Button>
           </>
         )}
       </div>
