@@ -676,7 +676,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
                   <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                   <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#F8FAFC', fontSize: '12px' }} labelStyle={{ color: '#F8FAFC', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: '#CBD5E1' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                   <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px' }} labelStyle={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: 'var(--text-secondary)' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
