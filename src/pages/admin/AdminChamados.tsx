@@ -280,8 +280,11 @@ export default function AdminChamados() {
                         <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Aberto" })}>
                           Marcar como Aberto
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Em Análise" })}>
-                          Marcar como Em Análise
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Em Andamento" })}>
+                          Marcar como Em Andamento
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Aguardando Cliente" })}>
+                          Marcar como Aguardando Cliente
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateStatus.mutate({ id: ticket.id, status: "Resolvido" })}>
                           Marcar como Resolvido
