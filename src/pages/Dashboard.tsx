@@ -389,7 +389,7 @@ function SuperadminDashboard() {
       </div>
 
       {/* Linha 1 — Métricas operacionais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} />
         ))}
