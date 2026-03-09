@@ -226,5 +226,7 @@ export function AppSidebar() {
         </SidebarFooter>
       )}
     </Sidebar>
+    <AICopilotModal open={aiModalOpen} onOpenChange={setAiModalOpen} />
+    </>
   );
 }
