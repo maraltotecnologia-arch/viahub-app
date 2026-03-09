@@ -871,6 +871,7 @@ export type Database = {
           id: string
           prioridade: string
           status: string
+          ticket_number: number
         }
         Insert: {
           agencia_id: string
@@ -883,6 +884,7 @@ export type Database = {
           id?: string
           prioridade: string
           status?: string
+          ticket_number?: number
         }
         Update: {
           agencia_id?: string
@@ -895,6 +897,7 @@ export type Database = {
           id?: string
           prioridade?: string
           status?: string
+          ticket_number?: number
         }
         Relationships: [
           {
@@ -996,6 +999,10 @@ export type Database = {
       get_user_agencia_id: { Args: never; Returns: string }
       is_agency_admin: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
+      ticket_visual_id: {
+        Args: { _prioridade: string; _ticket_number: number }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
