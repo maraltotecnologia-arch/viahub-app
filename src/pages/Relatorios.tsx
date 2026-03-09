@@ -449,7 +449,7 @@ export default function Relatorios() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold text-green-600">{fmt(totalRecebido)}</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">{fmt(totalRecebido)}</p>
                 <p className="text-xs text-muted-foreground mt-1">confirmado pelos agentes</p>
               </CardContent>
             </Card>
