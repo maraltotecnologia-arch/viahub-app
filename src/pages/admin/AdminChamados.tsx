@@ -160,7 +160,7 @@ export default function AdminChamados() {
           </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Buscar chamado..." className="pl-8 w-full" />
+            <Input placeholder="Buscar chamado..." className="pl-8 w-full" value={busca} onChange={e => setBusca(e.target.value)} />
           </div>
         </div>
         <CardContent className="p-0">
