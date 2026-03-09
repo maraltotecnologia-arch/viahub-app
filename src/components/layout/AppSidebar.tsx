@@ -1,5 +1,7 @@
 import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Sparkles } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import AICopilotModal from "@/components/ai/AICopilotModal";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -14,6 +16,7 @@ import useAlertas from "@/hooks/useAlertas";
 import { useQuery } from "@tanstack/react-query";
 
 export function AppSidebar() {
+  const [aiModalOpen, setAiModalOpen] = useState(false);
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const { isDark } = useTheme();
@@ -125,6 +128,7 @@ export function AppSidebar() {
     );
 
   return (
+    <>
     <Sidebar
       collapsible="icon"
       className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
@@ -155,6 +159,18 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.filter(i => i.show).map(renderItem)}
+              {/* AI Copilot shortcut */}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip={collapsed ? "Copiloto IA" : undefined}>
+                  <button
+                    onClick={() => setAiModalOpen(true)}
+                    className={`flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-1.5"} rounded-lg text-sm transition-all duration-150 text-amber-300/90 hover:bg-amber-400/15 hover:text-amber-200 font-medium`}
+                  >
+                    <Sparkles className="h-4 w-4 shrink-0" />
+                    {!collapsed && <span className="flex-1">Copiloto IA ✨</span>}
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -211,5 +227,7 @@ export function AppSidebar() {
         </SidebarFooter>
       )}
     </Sidebar>
+    <AICopilotModal open={aiModalOpen} onOpenChange={setAiModalOpen} />
+    </>
   );
 }
