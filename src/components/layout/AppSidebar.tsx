@@ -1,5 +1,7 @@
 import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Sparkles } from "lucide-react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import AICopilotModal from "@/components/ai/AICopilotModal";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
