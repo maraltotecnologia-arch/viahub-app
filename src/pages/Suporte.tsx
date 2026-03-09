@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { LifeBuoy, Plus, Paperclip, Loader2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { LifeBuoy, Plus, Paperclip, Loader2, X, FileIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +21,9 @@ export default function Suporte() {
   const [categoria, setCategoria] = useState("");
   const [prioridade, setPrioridade] = useState("");
   const [descricao, setDescricao] = useState("");
+  const [anexos, setAnexos] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const agenciaId = useAgenciaId();
@@ -43,6 +46,27 @@ export default function Suporte() {
 
   const createTicket = useMutation({
     mutationFn: async () => {
+      setUploading(true);
+      
+      // Upload files first
+      const uploadedUrls: string[] = [];
+      for (const file of anexos) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${agenciaId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('ticket-anexos')
+          .upload(fileName, file);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: urlData } = supabase.storage
+          .from('ticket-anexos')
+          .getPublicUrl(fileName);
+        
+        uploadedUrls.push(urlData.publicUrl);
+      }
+      
       const { error } = await supabase
         .from("tickets")
         .insert({
@@ -51,7 +75,8 @@ export default function Suporte() {
           categoria,
           prioridade,
           descricao,
-          status: "Aberto"
+          status: "Aberto",
+          anexos: uploadedUrls
         });
       
       if (error) throw error;
@@ -63,12 +88,15 @@ export default function Suporte() {
       setCategoria("");
       setPrioridade("");
       setDescricao("");
+      setAnexos([]);
+      setUploading(false);
       toast({
         title: "Chamado aberto com sucesso!",
         description: "Nossa equipe analisará sua solicitação em breve.",
       });
     },
     onError: (error) => {
+      setUploading(false);
       toast({
         title: "Erro ao abrir chamado",
         description: "Ocorreu um erro ao tentar enviar sua solicitação.",
@@ -77,6 +105,43 @@ export default function Suporte() {
       console.error(error);
     }
   });
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      // Check file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: `O arquivo ${file.name} excede o limite de 5MB.`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      // Check file type
+      const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Tipo inválido",
+          description: `O arquivo ${file.name} não é um tipo permitido (PNG, JPG, PDF).`,
+          variant: "destructive",
+        });
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    setAnexos(prev => [...prev, ...validFiles]);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeAnexo = (index: number) => {
+    setAnexos(prev => prev.filter((_, i) => i !== index));
+  };
 
   const handleOpenTicket = (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,20 +237,56 @@ export default function Suporte() {
                 </div>
                 <div className="grid gap-2">
                   <Label>Anexos (Opcional)</Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Button type="button" variant="outline" size="sm" className="gap-2">
-                      <Paperclip className="h-4 w-4" />
-                      Anexar Print/Arquivo
-                    </Button>
-                    <span className="text-xs text-muted-foreground">Máx. 5MB (PNG, JPG, PDF)</span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.pdf"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                        Anexar Print/Arquivo
+                      </Button>
+                      <span className="text-xs text-muted-foreground">Máx. 5MB (PNG, JPG, PDF)</span>
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {anexos.map((file, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-sm"
+                          >
+                            <FileIcon className="h-3 w-3" />
+                            <span className="max-w-[150px] truncate">{file.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeAnexo(index)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
-                <Button type="submit" disabled={createTicket.isPending}>
-                  {createTicket.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Enviar Chamado
+                <Button type="submit" disabled={createTicket.isPending || uploading}>
+                  {(createTicket.isPending || uploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {uploading ? "Enviando arquivos..." : "Enviar Chamado"}
                 </Button>
               </DialogFooter>
             </form>

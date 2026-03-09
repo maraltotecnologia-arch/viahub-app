@@ -862,6 +862,7 @@ export type Database = {
       tickets: {
         Row: {
           agencia_id: string
+          anexos: string[] | null
           assunto: string
           atualizado_em: string
           categoria: string
@@ -873,6 +874,7 @@ export type Database = {
         }
         Insert: {
           agencia_id: string
+          anexos?: string[] | null
           assunto: string
           atualizado_em?: string
           categoria: string
@@ -884,6 +886,7 @@ export type Database = {
         }
         Update: {
           agencia_id?: string
+          anexos?: string[] | null
           assunto?: string
           atualizado_em?: string
           categoria?: string
