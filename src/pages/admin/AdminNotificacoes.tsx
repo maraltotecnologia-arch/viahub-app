@@ -38,6 +38,24 @@ export default function AdminNotificacoes() {
   const [statusAlvo, setStatusAlvo] = useState("todas");
   const [sending, setSending] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showClearAll, setShowClearAll] = useState(false);
+
+  const handleClearAll = async () => {
+    try {
+      const { error } = await supabase
+        .from("notificacoes_sistema")
+        .delete()
+        .not("id", "is", null);
+      if (error) throw error;
+      toast.success("Histórico de notificações limpo.");
+      queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao limpar histórico.");
+    } finally {
+      setShowClearAll(false);
+    }
+  };
 
   const { data: agencias } = useQuery({
     queryKey: ["admin-agencias-list"],
@@ -245,8 +263,19 @@ export default function AdminNotificacoes() {
 
       {/* History */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Histórico de Notificações</CardTitle>
+          {notificacoes && notificacoes.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setShowClearAll(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Limpar histórico
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -294,6 +323,15 @@ export default function AdminNotificacoes() {
         title="Excluir notificação"
         description="Tem certeza que deseja excluir esta notificação? Ela será removida para todos os usuários."
         onConfirm={handleDelete}
+      />
+
+      <ConfirmDialog
+        open={showClearAll}
+        onOpenChange={setShowClearAll}
+        title="Limpar histórico"
+        description="Tem certeza que deseja excluir TODAS as notificações? Esta ação não pode ser desfeita."
+        confirmLabel="Limpar tudo"
+        onConfirm={handleClearAll}
       />
     </div>
   );
