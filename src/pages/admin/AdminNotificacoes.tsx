@@ -245,8 +245,19 @@ export default function AdminNotificacoes() {
 
       {/* History */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-lg">Histórico de Notificações</CardTitle>
+          {notificacoes && notificacoes.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setShowClearAll(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Limpar histórico
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {isLoading ? (
