@@ -132,6 +132,7 @@ export default function AdminNotificacoes() {
       if (error) throw error;
       toast.success("Notificação excluída.");
       queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-count-7d"] });
       queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
     } catch (err: any) {
       toast.error(err.message || "Erro ao excluir.");
