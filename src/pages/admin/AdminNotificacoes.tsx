@@ -324,6 +324,15 @@ export default function AdminNotificacoes() {
         description="Tem certeza que deseja excluir esta notificação? Ela será removida para todos os usuários."
         onConfirm={handleDelete}
       />
+
+      <ConfirmDialog
+        open={showClearAll}
+        onOpenChange={setShowClearAll}
+        title="Limpar histórico"
+        description="Tem certeza que deseja excluir TODAS as notificações? Esta ação não pode ser desfeita."
+        confirmLabel="Limpar tudo"
+        onConfirm={handleClearAll}
+      />
     </div>
   );
 }
