@@ -49,6 +49,7 @@ export default function AdminNotificacoes() {
       if (error) throw error;
       toast.success("Histórico de notificações limpo.");
       queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-count-7d"] });
       queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
     } catch (err: any) {
       toast.error(err.message || "Erro ao limpar histórico.");
