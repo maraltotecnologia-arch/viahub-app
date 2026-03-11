@@ -113,6 +113,7 @@ export default function AdminNotificacoes() {
       setAgenciaId(null);
       setStatusAlvo("todas");
       queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-count-7d"] });
       queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
     } catch (err: any) {
       toast.error(err.message || "Erro ao enviar notificação.");
