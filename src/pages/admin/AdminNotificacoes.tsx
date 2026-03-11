@@ -38,6 +38,24 @@ export default function AdminNotificacoes() {
   const [statusAlvo, setStatusAlvo] = useState("todas");
   const [sending, setSending] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showClearAll, setShowClearAll] = useState(false);
+
+  const handleClearAll = async () => {
+    try {
+      const { error } = await supabase
+        .from("notificacoes_sistema")
+        .delete()
+        .not("id", "is", null);
+      if (error) throw error;
+      toast.success("Histórico de notificações limpo.");
+      queryClient.invalidateQueries({ queryKey: ["admin-notificacoes"] });
+      queryClient.invalidateQueries({ queryKey: ["notificacoes"] });
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao limpar histórico.");
+    } finally {
+      setShowClearAll(false);
+    }
+  };
 
   const { data: agencias } = useQuery({
     queryKey: ["admin-agencias-list"],
