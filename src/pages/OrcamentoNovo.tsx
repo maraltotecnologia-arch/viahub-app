@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -94,13 +94,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [titulo, setTitulo] = useState("");
   const [validade, setValidade] = useState("");
   const [moeda, setMoeda] = useState("BRL");
-  const [observacoes, setObservacoes] = useState((location.state as any)?.observacoesPrefill || "");
+  const copilotData = (location.state as any)?.copilot;
+  const [observacoes, setObservacoes] = useState(copilotData?.observacoes || (location.state as any)?.observacoesPrefill || "");
   const [formaPagamento, setFormaPagamento] = useState("pix");
   const [acrescimoCartao, setAcrescimoCartao] = useState(3);
   const [showZeroConfirm, setShowZeroConfirm] = useState(false);
   const [pendingEnviar, setPendingEnviar] = useState(false);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [copilotBanner, setCopilotBanner] = useState(false);
+  const itensSectionRef = useRef<HTMLDivElement>(null);
   const [itens, setItens] = useState<Item[]>([
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
@@ -236,6 +239,34 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     }
     setInitialized(true);
   }, [markupConfigs, isEdicao, initialized]);
+
+  // Copilot data prefill
+  useEffect(() => {
+    if (!copilotData || isEdicao) return;
+    if (copilotData.titulo) setTitulo(copilotData.titulo);
+    if (copilotData.itens && copilotData.itens.length > 0) {
+      const copilotItens: Item[] = copilotData.itens.map((item: any, idx: number) => ({
+        id: `copilot-${Date.now()}-${idx}`,
+        tipo: item.tipo || "Aéreo",
+        descricao: item.descricao || "",
+        valor_custo: Number(item.custo) || 0,
+        markup_percentual: Number(item.markup) || 0,
+        taxa_fixa: Number(item.taxa_fixa) || 0,
+        quantidade: Number(item.quantidade) || 1,
+        observacao: item.observacao || "",
+        partida_data: item.partida_data || "",
+        partida_hora: item.partida_hora || "",
+        chegada_data: item.chegada_data || "",
+        chegada_hora: item.chegada_hora || "",
+      }));
+      setItens(copilotItens);
+      setCopilotBanner(true);
+      setInitialized(true);
+      setTimeout(() => {
+        itensSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 400);
+    }
+  }, []); // run once on mount
 
   // Search clients
   useEffect(() => {
@@ -742,6 +773,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       </Card>
 
       {/* Itens */}
+      <div ref={itensSectionRef}>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Itens do Orçamento</CardTitle>
@@ -755,6 +787,21 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {copilotBanner && (
+            <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <span>✨</span>
+                <span className="font-medium text-foreground">Preenchido pelo Copilot IA</span>
+                <span className="text-muted-foreground">— Revise os dados antes de salvar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setCopilotBanner(false)}>OK</Button>
+                <button onClick={() => setCopilotBanner(false)} className="p-0.5 rounded hover:bg-muted transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          )}
           {itens.map((item, idx) => (
             <div key={item.id} className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)" }}>
               <div className="flex items-center justify-between">
@@ -832,6 +879,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           ))}
         </CardContent>
       </Card>
+      </div>
 
       {/* Pagamento */}
       <Card>

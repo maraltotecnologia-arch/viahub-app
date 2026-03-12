@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, Loader2, Plane, ArrowLeft, FileText } from "lucide-react";
+import { Wand2, Loader2, Plane, ArrowLeft, FileText, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useAgenciaPlano from "@/hooks/useAgenciaPlano";
 import useAgenciaId from "@/hooks/useAgenciaId";
@@ -14,6 +14,34 @@ import { supabase } from "@/integrations/supabase/client";
 interface AICopilotModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface CopilotItem {
+  tipo: string;
+  descricao: string;
+  custo: number;
+  markup: number;
+  taxa_fixa: number;
+  quantidade: number;
+  valor_final: number;
+  partida_data?: string;
+  partida_hora?: string;
+  chegada_data?: string;
+  chegada_hora?: string;
+  observacao?: string;
+}
+
+interface CopilotResponse {
+  texto_formatado: string;
+  titulo_orcamento: string;
+  markup_aplicado: number;
+  solicitacao_original: string;
+  origem_cidade?: string;
+  destino_cidade?: string;
+  data_ida?: string;
+  data_volta?: string | null;
+  adultos?: number;
+  itens_orcamento: CopilotItem[];
 }
 
 const SUGGESTIONS = [
@@ -31,14 +59,41 @@ const SUGGESTIONS = [
   },
 ];
 
+/**
+ * Parse the response text to detect multiple options (Opção 1, Opção 2, etc.)
+ * and split them into sections.
+ */
+function parseOptions(text: string): { label: string; content: string }[] {
+  // Match patterns like "## Opção 1", "### Opção 2", "**Opção 1**", "Opção 1:"
+  const optionRegex = /(?:^|\n)(?:#{1,4}\s*)?(?:\*{1,2})?(?:Opção|Opcao|Option)\s+(\d+)(?:\*{1,2})?[:\s\-–—]*/gi;
+  const matches = [...text.matchAll(optionRegex)];
+
+  if (matches.length < 2) {
+    return [{ label: "Resultado", content: text }];
+  }
+
+  const options: { label: string; content: string }[] = [];
+  for (let i = 0; i < matches.length; i++) {
+    const start = matches[i].index!;
+    const end = i + 1 < matches.length ? matches[i + 1].index! : text.length;
+    options.push({
+      label: `Opção ${matches[i][1]}`,
+      content: text.substring(start, end).trim(),
+    });
+  }
+  return options;
+}
+
 export default function AICopilotModal({ open, onOpenChange }: AICopilotModalProps) {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [phase, setPhase] = useState<"input" | "loading" | "done">("input");
   const [resposta, setResposta] = useState("");
+  const [structuredData, setStructuredData] = useState<CopilotResponse | null>(null);
   const [erro, setErro] = useState("");
   const [slowWarning, setSlowWarning] = useState(false);
   const [markupUsado, setMarkupUsado] = useState<number>(10);
+  const [selectedOption, setSelectedOption] = useState(0);
   const { hasAIAccess } = useAgenciaPlano();
   const agenciaId = useAgenciaId();
 
@@ -48,8 +103,10 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         setPhase("input");
         setPrompt("");
         setResposta("");
+        setStructuredData(null);
         setErro("");
         setSlowWarning(false);
+        setSelectedOption(0);
       }, 300);
     }
   }, [open]);
@@ -62,12 +119,13 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     setPhase("loading");
     setErro("");
     setResposta("");
+    setStructuredData(null);
     setSlowWarning(false);
+    setSelectedOption(0);
 
     const slowTimer = setTimeout(() => setSlowWarning(true), 15000);
 
     try {
-      // Fetch markup_voos from configuracoes_markup
       let markupVoos = 10;
       if (agenciaId) {
         const { data: markupData } = await supabase
@@ -96,7 +154,14 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         return;
       }
 
-      setResposta(data?.resposta || "Sem resposta do servidor.");
+      // Check if structured data is available
+      if (data?.structured) {
+        setStructuredData(data.structured);
+        setResposta(data.structured.texto_formatado || "");
+        setMarkupUsado(data.structured.markup_aplicado || markupVoos);
+      } else {
+        setResposta(data?.resposta || "Sem resposta do servidor.");
+      }
       setPhase("done");
     } catch (err: any) {
       console.error("Copilot error:", err);
@@ -107,9 +172,38 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     }
   };
 
+  const options = resposta ? parseOptions(resposta) : [];
+  const hasMultipleOptions = options.length > 1;
+
   const handleCriarOrcamento = () => {
     onOpenChange(false);
-    navigate("/orcamentos/novo", { state: { observacoesPrefill: prompt } });
+
+    if (structuredData && structuredData.itens_orcamento?.length > 0) {
+      // If multiple options exist and items correspond to options, pick selected
+      let itensToUse = structuredData.itens_orcamento;
+
+      // If there are multiple options and items match option count, use selected
+      if (hasMultipleOptions && itensToUse.length >= options.length) {
+        // Assume items are grouped per option (1 item per option for flights)
+        // Use selectedOption index
+        itensToUse = [itensToUse[selectedOption]];
+      }
+
+      navigate("/orcamentos/novo", {
+        state: {
+          copilot: {
+            titulo: structuredData.titulo_orcamento,
+            observacoes: structuredData.solicitacao_original,
+            itens: itensToUse,
+            markup_aplicado: structuredData.markup_aplicado,
+          },
+        },
+      });
+    } else {
+      navigate("/orcamentos/novo", {
+        state: { observacoesPrefill: prompt },
+      });
+    }
   };
 
   return (
@@ -209,16 +303,61 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   onClick={() => {
                     setPhase("input");
                     setResposta("");
+                    setStructuredData(null);
                     setPrompt("");
+                    setSelectedOption(0);
                   }}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Nova consulta
                 </Button>
 
-                <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-y-auto max-h-[50vh]">
-                  <ReactMarkdown>{resposta}</ReactMarkdown>
-                </div>
+                {hasMultipleOptions ? (
+                  <div className="space-y-3">
+                    {options.map((opt, idx) => (
+                      <div
+                        key={idx}
+                        className={cn(
+                          "rounded-lg border p-4 cursor-pointer transition-all duration-150",
+                          selectedOption === idx
+                            ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                            : "border-border bg-muted/30 hover:border-foreground/20"
+                        )}
+                        onClick={() => setSelectedOption(idx)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-muted-foreground">{opt.label}</span>
+                          {selectedOption === idx && (
+                            <span className="flex items-center gap-1 text-xs font-medium text-primary">
+                              <Check className="h-3.5 w-3.5" />
+                              Selecionada
+                            </span>
+                          )}
+                        </div>
+                        <div className="prose prose-sm dark:prose-invert max-w-none overflow-y-auto max-h-[30vh]">
+                          <ReactMarkdown>{opt.content}</ReactMarkdown>
+                        </div>
+                        {selectedOption !== idx && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-3 gap-1.5"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedOption(idx);
+                            }}
+                          >
+                            Usar esta opção
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-y-auto max-h-[50vh]">
+                    <ReactMarkdown>{resposta}</ReactMarkdown>
+                  </div>
+                )}
 
                 <p className="text-xs text-muted-foreground">
                   Markup aplicado: <span className="font-semibold text-foreground">{markupUsado}%</span>
