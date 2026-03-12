@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, Check, Loader2, Brain, Plane, Hotel, Percent, FileCheck, PartyPopper } from "lucide-react";
+import { Wand2, Loader2, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useAgenciaPlano from "@/hooks/useAgenciaPlano";
+import useAgenciaId from "@/hooks/useAgenciaId";
 import AIPaywall from "@/components/ai/AIPaywall";
+import ReactMarkdown from "react-markdown";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AICopilotModalProps {
   open: boolean;
@@ -18,44 +21,51 @@ const SUGGESTIONS = [
   "Resort no Nordeste",
 ];
 
-const STEPS = [
-  { label: "Interpretando pedido...", icon: Brain },
-  { label: "Buscando voos em tempo real...", icon: Plane },
-  { label: "Selecionando os melhores hotéis...", icon: Hotel },
-  { label: "Aplicando markup da agência...", icon: Percent },
-  { label: "Finalizando PDF...", icon: FileCheck },
-];
-
 export default function AICopilotModal({ open, onOpenChange }: AICopilotModalProps) {
   const [prompt, setPrompt] = useState("");
   const [phase, setPhase] = useState<"input" | "loading" | "done">("input");
-  const [currentStep, setCurrentStep] = useState(0);
+  const [resposta, setResposta] = useState("");
+  const [erro, setErro] = useState("");
   const { hasAIAccess } = useAgenciaPlano();
+  const agenciaId = useAgenciaId();
 
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
         setPhase("input");
         setPrompt("");
-        setCurrentStep(0);
+        setResposta("");
+        setErro("");
       }, 300);
     }
   }, [open]);
 
-  useEffect(() => {
-    if (phase !== "loading") return;
-    if (currentStep >= STEPS.length) {
-      const t = setTimeout(() => setPhase("done"), 600);
-      return () => clearTimeout(t);
-    }
-    const t = setTimeout(() => setCurrentStep((s) => s + 1), 900);
-    return () => clearTimeout(t);
-  }, [phase, currentStep]);
-
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setPhase("loading");
-    setCurrentStep(0);
+    setErro("");
+    setResposta("");
+
+    try {
+      const { data, error } = await supabase.functions.invoke("copilot-webhook", {
+        body: { mensagem: prompt, agencia_id: agenciaId },
+      });
+
+      if (error) throw error;
+
+      if (data?.error) {
+        setErro(data.error);
+        setPhase("input");
+        return;
+      }
+
+      setResposta(data?.resposta || "Sem resposta do servidor.");
+      setPhase("done");
+    } catch (err: any) {
+      console.error("Copilot error:", err);
+      setErro(err?.message || "Erro ao conectar com o assistente.");
+      setPhase("input");
+    }
   };
 
   const handleSuggestion = (s: string) => {
@@ -64,7 +74,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
             <Wand2 className="h-4 w-4 text-muted-foreground" />
@@ -105,84 +115,63 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   </div>
                 </div>
 
+                {erro && (
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                    {erro}
+                  </div>
+                )}
+
                 <Button
                   onClick={handleGenerate}
                   disabled={!prompt.trim()}
                   className="w-full gap-2"
                 >
                   <Wand2 className="h-4 w-4" />
-                  Gerar Orçamento
+                  Gerar com IA
                 </Button>
               </div>
             )}
 
             {phase === "loading" && (
-              <div className="space-y-2.5 mt-3 py-1">
-                {STEPS.map((step, i) => {
-                  const done = i < currentStep;
-                  const active = i === currentStep;
-                  const StepIcon = step.icon;
-
-                  return (
-                    <div
-                      key={i}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300",
-                        done && "bg-emerald-500/10",
-                        active && "bg-muted",
-                        !done && !active && "opacity-40"
-                      )}
-                    >
-                      <div className={cn(
-                        "flex items-center justify-center h-7 w-7 rounded-full shrink-0 transition-all duration-300",
-                        done && "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
-                        active && "bg-muted-foreground/10 text-foreground",
-                        !done && !active && "bg-muted text-muted-foreground"
-                      )}>
-                        {done ? (
-                          <Check className="h-4 w-4" />
-                        ) : active ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <StepIcon className="h-3.5 w-3.5" />
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          "text-sm font-medium transition-colors",
-                          done && "text-emerald-600 dark:text-emerald-400",
-                          active && "text-foreground",
-                          !done && !active && "text-muted-foreground"
-                        )}
-                      >
-                        {step.label}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
+                <div className="h-14 w-14 rounded-full bg-muted border border-border flex items-center justify-center animate-pulse">
+                  <Plane className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground flex items-center gap-2 justify-center">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    IA pesquisando voos e calculando taxas...
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Isso pode levar de 5 a 10 segundos.
+                  </p>
+                </div>
               </div>
             )}
 
             {phase === "done" && (
-              <div className="flex flex-col items-center justify-center py-8 gap-4 text-center animate-fade-in">
-                <div className="h-16 w-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                  <PartyPopper className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+              <div className="space-y-4 mt-1">
+                <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-x-auto">
+                  <ReactMarkdown>{resposta}</ReactMarkdown>
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    Orçamento Gerado com Sucesso!
-                  </h3>
-                  <p className="text-sm mt-1 text-muted-foreground">
-                    Seu orçamento está pronto para revisão e envio ao cliente.
-                  </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setPhase("input");
+                      setResposta("");
+                    }}
+                  >
+                    Nova consulta
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => onOpenChange(false)}
+                  >
+                    Fechar
+                  </Button>
                 </div>
-                <Button
-                  className="gap-2 mt-2"
-                  onClick={() => onOpenChange(false)}
-                >
-                  <FileCheck className="h-4 w-4" />
-                  Ver Orçamento
-                </Button>
               </div>
             )}
           </>
