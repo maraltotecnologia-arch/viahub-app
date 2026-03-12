@@ -773,7 +773,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       </Card>
 
       {/* Itens */}
-      <Card ref={itensSectionRef}>
+      <div ref={itensSectionRef}>
+      <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Itens do Orçamento</CardTitle>
           <div className="flex gap-2">
