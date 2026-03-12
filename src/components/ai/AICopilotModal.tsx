@@ -26,6 +26,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
   const [phase, setPhase] = useState<"input" | "loading" | "done">("input");
   const [resposta, setResposta] = useState("");
   const [erro, setErro] = useState("");
+  const [slowWarning, setSlowWarning] = useState(false);
   const { hasAIAccess } = useAgenciaPlano();
   const agenciaId = useAgenciaId();
 
@@ -36,6 +37,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         setPrompt("");
         setResposta("");
         setErro("");
+        setSlowWarning(false);
       }, 300);
     }
   }, [open]);
@@ -45,6 +47,9 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     setPhase("loading");
     setErro("");
     setResposta("");
+    setSlowWarning(false);
+
+    const slowTimer = setTimeout(() => setSlowWarning(true), 15000);
 
     try {
       const { data, error } = await supabase.functions.invoke("copilot-webhook", {
@@ -65,6 +70,8 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
       console.error("Copilot error:", err);
       setErro(err?.message || "Erro ao conectar com o assistente.");
       setPhase("input");
+    } finally {
+      clearTimeout(slowTimer);
     }
   };
 
@@ -145,6 +152,11 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   <p className="text-xs text-muted-foreground">
                     Isso pode levar de 5 a 10 segundos.
                   </p>
+                  {slowWarning && (
+                    <p className="text-xs text-amber-500 mt-1">
+                      A resposta está demorando mais que o esperado. Verifique a conexão com o servidor de voos.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
