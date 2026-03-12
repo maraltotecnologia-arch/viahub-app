@@ -41,6 +41,8 @@ interface CopilotResponse {
   data_ida?: string;
   data_volta?: string | null;
   adultos?: number;
+  is_round_trip?: boolean;
+  total_com_markup?: number;
   itens_orcamento: CopilotItem[];
 }
 
@@ -179,13 +181,11 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     onOpenChange(false);
 
     if (structuredData && structuredData.itens_orcamento?.length > 0) {
-      // If multiple options exist and items correspond to options, pick selected
       let itensToUse = structuredData.itens_orcamento;
 
-      // If there are multiple options and items match option count, use selected
-      if (hasMultipleOptions && itensToUse.length >= options.length) {
-        // Assume items are grouped per option (1 item per option for flights)
-        // Use selectedOption index
+      // For round trips, pass all items (ida + volta)
+      // For multiple options (non-round-trip), pick the selected option
+      if (!structuredData.is_round_trip && hasMultipleOptions && itensToUse.length >= options.length) {
         itensToUse = [itensToUse[selectedOption]];
       }
 
@@ -356,6 +356,15 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                 ) : (
                   <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-y-auto max-h-[50vh]">
                     <ReactMarkdown>{resposta}</ReactMarkdown>
+                  </div>
+                )}
+
+                {structuredData?.is_round_trip && structuredData?.total_com_markup != null && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
+                    <p className="text-sm text-muted-foreground">Total ida + volta</p>
+                    <p className="text-lg font-bold text-foreground">
+                      R$ {structuredData.total_com_markup.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
                   </div>
                 )}
 
