@@ -773,7 +773,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       </Card>
 
       {/* Itens */}
-      <Card>
+      <Card ref={itensSectionRef}>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Itens do Orçamento</CardTitle>
           <div className="flex gap-2">
@@ -786,6 +786,21 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
+          {copilotBanner && (
+            <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 p-3">
+              <div className="flex items-center gap-2 text-sm">
+                <span>✨</span>
+                <span className="font-medium text-foreground">Preenchido pelo Copilot IA</span>
+                <span className="text-muted-foreground">— Revise os dados antes de salvar</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="h-7 px-2 text-xs" onClick={() => setCopilotBanner(false)}>OK</Button>
+                <button onClick={() => setCopilotBanner(false)} className="p-0.5 rounded hover:bg-muted transition-colors">
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </div>
+            </div>
+          )}
           {itens.map((item, idx) => (
             <div key={item.id} className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)" }}>
               <div className="flex items-center justify-between">
