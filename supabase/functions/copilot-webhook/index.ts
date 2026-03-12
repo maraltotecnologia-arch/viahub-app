@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const N8N_WEBHOOK_URL =
-  "https://primary-production-1ae06.up.railway.app/webhook-test/viahub-copilot";
+  "https://primary-production-1ae06.up.railway.app/webhook/viahub-copilot";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
