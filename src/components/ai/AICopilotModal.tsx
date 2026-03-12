@@ -37,6 +37,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         setPrompt("");
         setResposta("");
         setErro("");
+        setSlowWarning(false);
       }, 300);
     }
   }, [open]);
