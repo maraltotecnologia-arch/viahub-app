@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,7 @@ interface OrcamentoNovoProps {
 
 export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) {
   const { id: orcamentoId } = useParams();
+  const location = useLocation();
   const isEdicao = modo === "edicao" && !!orcamentoId;
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -93,7 +94,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [titulo, setTitulo] = useState("");
   const [validade, setValidade] = useState("");
   const [moeda, setMoeda] = useState("BRL");
-  const [observacoes, setObservacoes] = useState("");
+  const [observacoes, setObservacoes] = useState((location.state as any)?.observacoesPrefill || "");
   const [formaPagamento, setFormaPagamento] = useState("pix");
   const [acrescimoCartao, setAcrescimoCartao] = useState(3);
   const [showZeroConfirm, setShowZeroConfirm] = useState(false);
