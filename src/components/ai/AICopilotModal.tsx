@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Wand2, Loader2, Plane } from "lucide-react";
+import { Wand2, Loader2, Plane, ArrowLeft, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import useAgenciaPlano from "@/hooks/useAgenciaPlano";
 import useAgenciaId from "@/hooks/useAgenciaId";
@@ -16,17 +17,28 @@ interface AICopilotModalProps {
 }
 
 const SUGGESTIONS = [
-  "Pacote Família Disney",
-  "Fim de semana em Buenos Aires",
-  "Resort no Nordeste",
+  {
+    label: "Pacote Família Disney",
+    prompt: "Cotação para família com 2 adultos e 2 crianças. Pacote Disney Orlando saindo de São Paulo em julho, 10 dias.",
+  },
+  {
+    label: "Fim de semana em Buenos Aires",
+    prompt: "Cotação para casal, fim de semana em Buenos Aires saindo de São Paulo em maio. Voo + hotel 3 estrelas.",
+  },
+  {
+    label: "Resort no Nordeste",
+    prompt: "Cotação para casal, 5 dias em resort no Nordeste saindo de São Paulo em junho. Voo + all inclusive.",
+  },
 ];
 
 export default function AICopilotModal({ open, onOpenChange }: AICopilotModalProps) {
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [phase, setPhase] = useState<"input" | "loading" | "done">("input");
   const [resposta, setResposta] = useState("");
   const [erro, setErro] = useState("");
   const [slowWarning, setSlowWarning] = useState(false);
+  const [markupUsado, setMarkupUsado] = useState<number>(10);
   const { hasAIAccess } = useAgenciaPlano();
   const agenciaId = useAgenciaId();
 
@@ -43,7 +55,10 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
   }, [open]);
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (!prompt.trim()) {
+      setErro("Digite sua solicitação antes de continuar.");
+      return;
+    }
     setPhase("loading");
     setErro("");
     setResposta("");
@@ -52,6 +67,23 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     const slowTimer = setTimeout(() => setSlowWarning(true), 15000);
 
     try {
+      // Fetch markup_voos from configuracoes_markup
+      let markupVoos = 10;
+      if (agenciaId) {
+        const { data: markupData } = await supabase
+          .from("configuracoes_markup")
+          .select("markup_percentual")
+          .eq("agencia_id", agenciaId)
+          .eq("tipo_servico", "voo")
+          .eq("ativo", true)
+          .maybeSingle();
+
+        if (markupData?.markup_percentual) {
+          markupVoos = Number(markupData.markup_percentual);
+        }
+      }
+      setMarkupUsado(markupVoos);
+
       const { data, error } = await supabase.functions.invoke("copilot-webhook", {
         body: { mensagem: prompt, agencia_id: agenciaId },
       });
@@ -68,15 +100,16 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
       setPhase("done");
     } catch (err: any) {
       console.error("Copilot error:", err);
-      setErro(err?.message || "Erro ao conectar com o assistente.");
+      setErro("Não foi possível conectar ao assistente. Tente novamente em alguns instantes.");
       setPhase("input");
     } finally {
       clearTimeout(slowTimer);
     }
   };
 
-  const handleSuggestion = (s: string) => {
-    setPrompt(s);
+  const handleCriarOrcamento = () => {
+    onOpenChange(false);
+    navigate("/orcamentos/novo", { state: { observacoesPrefill: prompt } });
   };
 
   return (
@@ -84,7 +117,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-            <Wand2 className="h-4 w-4 text-muted-foreground" />
+            <span>✈️</span>
             Assistente de Cotação
             <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1">Beta</span>
           </DialogTitle>
@@ -98,7 +131,10 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
               <div className="space-y-4 mt-1">
                 <Textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+                    if (erro) setErro("");
+                  }}
                   placeholder="Ex: Cotação para casal, 7 dias em Paris saindo de SP em outubro. Hotel 4 estrelas e voo direto..."
                   className="min-h-[120px] resize-none text-sm"
                 />
@@ -108,15 +144,18 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   <div className="flex flex-wrap gap-2">
                     {SUGGESTIONS.map((s) => (
                       <button
-                        key={s}
-                        onClick={() => handleSuggestion(s)}
+                        key={s.label}
+                        onClick={() => {
+                          setPrompt(s.prompt);
+                          if (erro) setErro("");
+                        }}
                         className={cn(
                           "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
                           "border-border hover:border-foreground/30 hover:bg-muted/50 text-muted-foreground",
-                          prompt === s && "border-primary bg-primary/5 text-primary"
+                          prompt === s.prompt && "border-primary bg-primary/5 text-primary"
                         )}
                       >
-                        {s}
+                        {s.label}
                       </button>
                     ))}
                   </div>
@@ -147,7 +186,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-foreground flex items-center gap-2 justify-center">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    IA pesquisando voos e calculando taxas...
+                    Buscando voos...
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Isso pode levar de 5 a 10 segundos.
@@ -163,27 +202,35 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
 
             {phase === "done" && (
               <div className="space-y-4 mt-1">
-                <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-x-auto">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1.5 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setPhase("input");
+                    setResposta("");
+                    setPrompt("");
+                  }}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Nova consulta
+                </Button>
+
+                <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-y-auto max-h-[50vh]">
                   <ReactMarkdown>{resposta}</ReactMarkdown>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      setPhase("input");
-                      setResposta("");
-                    }}
-                  >
-                    Nova consulta
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => onOpenChange(false)}
-                  >
-                    Fechar
-                  </Button>
-                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Markup aplicado: <span className="font-semibold text-foreground">{markupUsado}%</span>
+                </p>
+
+                <Button
+                  className="w-full gap-2"
+                  onClick={handleCriarOrcamento}
+                >
+                  <FileText className="h-4 w-4" />
+                  Criar orçamento com estes dados
+                </Button>
               </div>
             )}
           </>
