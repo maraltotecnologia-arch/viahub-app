@@ -181,13 +181,11 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     onOpenChange(false);
 
     if (structuredData && structuredData.itens_orcamento?.length > 0) {
-      // If multiple options exist and items correspond to options, pick selected
       let itensToUse = structuredData.itens_orcamento;
 
-      // If there are multiple options and items match option count, use selected
-      if (hasMultipleOptions && itensToUse.length >= options.length) {
-        // Assume items are grouped per option (1 item per option for flights)
-        // Use selectedOption index
+      // For round trips, pass all items (ida + volta)
+      // For multiple options (non-round-trip), pick the selected option
+      if (!structuredData.is_round_trip && hasMultipleOptions && itensToUse.length >= options.length) {
         itensToUse = [itensToUse[selectedOption]];
       }
 
