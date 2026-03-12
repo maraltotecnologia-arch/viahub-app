@@ -101,6 +101,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [pendingEnviar, setPendingEnviar] = useState(false);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [copilotBanner, setCopilotBanner] = useState(false);
+  const itensSectionRef = useRef<HTMLDivElement>(null);
   const [itens, setItens] = useState<Item[]>([
     { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
   ]);
