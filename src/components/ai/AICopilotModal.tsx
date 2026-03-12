@@ -70,6 +70,8 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
       console.error("Copilot error:", err);
       setErro(err?.message || "Erro ao conectar com o assistente.");
       setPhase("input");
+    } finally {
+      clearTimeout(slowTimer);
     }
   };
 
