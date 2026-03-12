@@ -26,6 +26,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
   const [phase, setPhase] = useState<"input" | "loading" | "done">("input");
   const [resposta, setResposta] = useState("");
   const [erro, setErro] = useState("");
+  const [slowWarning, setSlowWarning] = useState(false);
   const { hasAIAccess } = useAgenciaPlano();
   const agenciaId = useAgenciaId();
 

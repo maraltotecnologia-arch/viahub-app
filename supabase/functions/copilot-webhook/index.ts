@@ -63,15 +63,20 @@ Deno.serve(async (req) => {
 
     const n8nData = await n8nResponse.json();
 
-    // Extract content from n8n response: content[0].text
+    // Extract content from Gemini response: candidates[0].content.parts[0].text
     let resposta = "";
-    if (n8nData?.content?.[0]?.text) {
+    if (n8nData?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      resposta = n8nData.candidates[0].content.parts[0].text;
+    } else if (n8nData?.content?.[0]?.text) {
       resposta = n8nData.content[0].text;
     } else if (typeof n8nData === "string") {
       resposta = n8nData;
     } else {
       resposta = JSON.stringify(n8nData);
     }
+
+    // Strip wrapping ```markdown ... ``` delimiters
+    resposta = resposta.replace(/^```(?:markdown)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
 
     return new Response(
       JSON.stringify({ resposta }),
