@@ -68,6 +68,7 @@ interface OrcamentoNovoProps {
 
 export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) {
   const { id: orcamentoId } = useParams();
+  const location = useLocation();
   const isEdicao = modo === "edicao" && !!orcamentoId;
   const navigate = useNavigate();
   const { toast } = useToast();
