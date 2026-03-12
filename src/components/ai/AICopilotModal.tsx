@@ -152,6 +152,11 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   <p className="text-xs text-muted-foreground">
                     Isso pode levar de 5 a 10 segundos.
                   </p>
+                  {slowWarning && (
+                    <p className="text-xs text-amber-500 mt-1">
+                      A resposta está demorando mais que o esperado. Verifique a conexão com o servidor de voos.
+                    </p>
+                  )}
                 </div>
               </div>
             )}
