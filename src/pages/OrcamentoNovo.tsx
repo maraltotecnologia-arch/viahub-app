@@ -240,6 +240,34 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     setInitialized(true);
   }, [markupConfigs, isEdicao, initialized]);
 
+  // Copilot data prefill
+  useEffect(() => {
+    if (!copilotData || isEdicao) return;
+    if (copilotData.titulo) setTitulo(copilotData.titulo);
+    if (copilotData.itens && copilotData.itens.length > 0) {
+      const copilotItens: Item[] = copilotData.itens.map((item: any, idx: number) => ({
+        id: `copilot-${Date.now()}-${idx}`,
+        tipo: item.tipo || "Aéreo",
+        descricao: item.descricao || "",
+        valor_custo: Number(item.custo) || 0,
+        markup_percentual: Number(item.markup) || 0,
+        taxa_fixa: Number(item.taxa_fixa) || 0,
+        quantidade: Number(item.quantidade) || 1,
+        observacao: item.observacao || "",
+        partida_data: item.partida_data || "",
+        partida_hora: item.partida_hora || "",
+        chegada_data: item.chegada_data || "",
+        chegada_hora: item.chegada_hora || "",
+      }));
+      setItens(copilotItens);
+      setCopilotBanner(true);
+      setInitialized(true);
+      setTimeout(() => {
+        itensSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 400);
+    }
+  }, []); // run once on mount
+
   // Search clients
   useEffect(() => {
     const needsSearch = clienteSearch.length >= 2 || clienteTagFilter;
