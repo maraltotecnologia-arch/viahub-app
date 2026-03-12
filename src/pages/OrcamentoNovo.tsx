@@ -879,6 +879,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           ))}
         </CardContent>
       </Card>
+      </div>
 
       {/* Pagamento */}
       <Card>
