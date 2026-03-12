@@ -361,6 +361,15 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                   </div>
                 )}
 
+                {structuredData?.is_round_trip && structuredData?.total_com_markup != null && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
+                    <p className="text-sm text-muted-foreground">Total ida + volta</p>
+                    <p className="text-lg font-bold text-foreground">
+                      R$ {structuredData.total_com_markup.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </p>
+                  </div>
+                )}
+
                 <p className="text-xs text-muted-foreground">
                   Markup aplicado: <span className="font-semibold text-foreground">{markupUsado}%</span>
                 </p>
