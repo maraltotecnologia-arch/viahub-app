@@ -41,6 +41,8 @@ interface CopilotResponse {
   data_ida?: string;
   data_volta?: string | null;
   adultos?: number;
+  is_round_trip?: boolean;
+  total_com_markup?: number;
   itens_orcamento: CopilotItem[];
 }
 
