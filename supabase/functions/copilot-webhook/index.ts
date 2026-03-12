@@ -78,8 +78,40 @@ Deno.serve(async (req) => {
     // Strip wrapping ```markdown ... ``` delimiters
     resposta = resposta.replace(/^```(?:markdown)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
 
+    // Try to parse structured JSON from the response
+    let structured = null;
+    try {
+      // Check if the response itself is JSON
+      const parsed = JSON.parse(resposta);
+      if (parsed && parsed.itens_orcamento) {
+        structured = parsed;
+        // Use texto_formatado if available, otherwise keep resposta
+        if (parsed.texto_formatado) {
+          resposta = parsed.texto_formatado;
+        }
+      }
+    } catch {
+      // Check if there's a JSON block embedded in the text
+      const jsonMatch = resposta.match(/```json\s*\n?([\s\S]*?)\n?```/);
+      if (jsonMatch) {
+        try {
+          const embedded = JSON.parse(jsonMatch[1]);
+          if (embedded && embedded.itens_orcamento) {
+            structured = embedded;
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+
+    const responseBody: Record<string, unknown> = { resposta };
+    if (structured) {
+      responseBody.structured = structured;
+    }
+
     return new Response(
-      JSON.stringify({ resposta }),
+      JSON.stringify(responseBody),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
