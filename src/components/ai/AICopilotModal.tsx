@@ -47,6 +47,9 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     setPhase("loading");
     setErro("");
     setResposta("");
+    setSlowWarning(false);
+
+    const slowTimer = setTimeout(() => setSlowWarning(true), 15000);
 
     try {
       const { data, error } = await supabase.functions.invoke("copilot-webhook", {
