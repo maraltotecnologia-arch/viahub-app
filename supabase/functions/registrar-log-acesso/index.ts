@@ -37,6 +37,15 @@ Deno.serve(async (req) => {
 
     const { agencia_id, usuario_id, usuario_nome, cargo } = await req.json();
 
+    // Validate that the caller matches the usuario_id being logged
+    const callerUserId = claimsData.claims.sub;
+    if (usuario_id !== callerUserId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
@@ -47,6 +56,20 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Validate agencia_id matches the user's actual agency
+    const { data: userProfile } = await adminClient
+      .from("usuarios")
+      .select("agencia_id")
+      .eq("id", callerUserId)
+      .single();
+
+    if (!userProfile || userProfile.agencia_id !== agencia_id) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { error } = await adminClient.from("logs_acesso").insert({
       agencia_id,
