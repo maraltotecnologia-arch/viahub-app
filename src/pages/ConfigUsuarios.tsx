@@ -102,7 +102,7 @@ export default function ConfigUsuarios() {
         return;
       }
 
-      console.log("[create-user] Enviando:", { email: addForm.email, nome: addForm.nome, cargo: addForm.cargo, agencia_id: agenciaId });
+      
 
       // Criar usuário via edge function (email já confirmado)
       const { data: session } = await supabase.auth.getSession();
