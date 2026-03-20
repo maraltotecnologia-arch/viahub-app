@@ -37,6 +37,15 @@ Deno.serve(async (req) => {
 
     const { agencia_id, usuario_id, usuario_nome, cargo } = await req.json();
 
+    // Validate that the caller matches the usuario_id being logged
+    const callerUserId = claimsData.claims.sub;
+    if (usuario_id !== callerUserId) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
       req.headers.get("x-real-ip") ??
@@ -48,6 +57,20 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Validate agencia_id matches the user's actual agency
+    const { data: userProfile } = await adminClient
+      .from("usuarios")
+      .select("agencia_id")
+      .eq("id", callerUserId)
+      .single();
+
+    if (!userProfile || userProfile.agencia_id !== agencia_id) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { error } = await adminClient.from("logs_acesso").insert({
       agencia_id,
       usuario_id,
@@ -57,8 +80,8 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      console.error("Error inserting log:", error.message);
-      return new Response(JSON.stringify({ error: error.message }), {
+      console.error("[registrar-log-acesso] Insert error:", error.code);
+      return new Response(JSON.stringify({ error: "Erro ao registrar log" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -68,7 +91,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("Unexpected error:", e);
+    console.error("[registrar-log-acesso] Unexpected error");
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

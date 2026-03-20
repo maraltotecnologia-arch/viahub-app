@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("[create-user] Erro inesperado:", (err as Error).message);
-    return new Response(JSON.stringify({ error: (err as Error).message, code: "SYS001" }), {
+    return new Response(JSON.stringify({ error: "Erro interno do servidor", code: "SYS001" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

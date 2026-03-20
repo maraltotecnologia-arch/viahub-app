@@ -55,7 +55,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("[whatsapp-criar] agencia_id:", agencia_id);
+    // Validate agencia_id matches the authenticated user's agency
+    const { data: userProfile } = await supabaseAdmin
+      .from("usuarios")
+      .select("agencia_id, cargo")
+      .eq("id", user.id)
+      .single();
+
+    if (!userProfile || (userProfile.cargo !== "superadmin" && userProfile.agencia_id !== agencia_id)) {
+      return new Response(
+        JSON.stringify({ error: "Acesso negado", code: "AUTH010" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Check existing instance
     const { data: existing } = await supabaseAdmin
@@ -164,7 +176,6 @@ Deno.serve(async (req) => {
         JSON.stringify({
           error: "Erro ao criar instância WhatsApp",
           code: "WPP002",
-          details: createData,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -179,7 +190,7 @@ Deno.serve(async (req) => {
     if (insertErr) {
       console.error("[whatsapp-criar] Erro ao salvar no banco:", insertErr.message);
       return new Response(
-        JSON.stringify({ error: "Erro ao salvar instância", code: "WPP002", details: insertErr.message }),
+        JSON.stringify({ error: "Erro ao salvar instância", code: "WPP002" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -191,9 +202,9 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("[whatsapp-criar] Erro fatal:", (err as Error).message, (err as Error).stack);
+    console.error("[whatsapp-criar] Erro fatal:", (err as Error).message);
     return new Response(
-      JSON.stringify({ error: (err as Error).message, code: "WPP002" }),
+      JSON.stringify({ error: "Erro interno do servidor", code: "WPP002" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

@@ -206,8 +206,8 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     const error = err as Error;
-    console.error("[signup-agencia] ERRO:", error.message, error.stack);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error("[signup-agencia] ERRO:", error.message);
+    return new Response(JSON.stringify({ error: "Erro interno do servidor", code: "SYS001" }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

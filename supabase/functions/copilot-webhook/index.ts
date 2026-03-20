@@ -15,6 +15,28 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado", code: "AUTH009" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) {
+      return new Response(
+        JSON.stringify({ error: "Não autorizado", code: "AUTH009" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { mensagem, agencia_id } = await req.json();
 
     if (!mensagem) {
@@ -24,18 +46,24 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Validate agencia_id matches user's agency
+    const { data: userProfile } = await supabase
+      .from("usuarios")
+      .select("agencia_id")
+      .eq("id", user.id)
+      .single();
+
+    const validAgenciaId = userProfile?.agencia_id || agencia_id;
+
     // Fetch markup_voos from configuracoes_markup
     let markup_voos = 10; // default
 
-    if (agencia_id) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    if (validAgenciaId) {
 
       const { data } = await supabase
         .from("configuracoes_markup")
         .select("markup_percentual")
-        .eq("agencia_id", agencia_id)
+        .eq("agencia_id", validAgenciaId)
         .eq("tipo_servico", "voo")
         .eq("ativo", true)
         .maybeSingle();
