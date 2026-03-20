@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
       const { data } = await supabase
         .from("configuracoes_markup")
         .select("markup_percentual")
-        .eq("agencia_id", agencia_id)
+        .eq("agencia_id", validAgenciaId)
         .eq("tipo_servico", "voo")
         .eq("ativo", true)
         .maybeSingle();

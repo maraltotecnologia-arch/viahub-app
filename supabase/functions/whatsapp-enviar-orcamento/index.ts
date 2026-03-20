@@ -67,6 +67,20 @@ Deno.serve(async (req) => {
 
     const { orcamento_id, agencia_id, telefone_destino, pdf_base64, link_orcamento, nome_agente } = await req.json();
 
+    // Validate agencia_id matches the authenticated user's agency
+    const { data: userProfile } = await supabaseAdmin
+      .from("usuarios")
+      .select("agencia_id, cargo")
+      .eq("id", user.id)
+      .single();
+
+    if (!userProfile || (userProfile.cargo !== "superadmin" && userProfile.agencia_id !== agencia_id)) {
+      return new Response(
+        JSON.stringify({ error: "Acesso negado", code: "AUTH010" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Validate phone
     const telFormatado = formatarTelefone(telefone_destino || "");
     if (!telFormatado) {
@@ -75,8 +89,6 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    console.log("[whatsapp-enviar] Telefone formatado:", telFormatado);
 
     // Check instance
     const { data: instancia } = await supabaseAdmin

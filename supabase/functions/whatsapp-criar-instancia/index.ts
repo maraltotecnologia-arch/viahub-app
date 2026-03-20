@@ -55,7 +55,19 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log("[whatsapp-criar] agencia_id:", agencia_id);
+    // Validate agencia_id matches the authenticated user's agency
+    const { data: userProfile } = await supabaseAdmin
+      .from("usuarios")
+      .select("agencia_id, cargo")
+      .eq("id", user.id)
+      .single();
+
+    if (!userProfile || (userProfile.cargo !== "superadmin" && userProfile.agencia_id !== agencia_id)) {
+      return new Response(
+        JSON.stringify({ error: "Acesso negado", code: "AUTH010" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Check existing instance
     const { data: existing } = await supabaseAdmin
