@@ -17,7 +17,7 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { validarTelefone } from "@/lib/validators";
+import { validarTelefone, validarEmail, validarSenha } from "@/lib/validators";
 import { formatError } from "@/lib/errors";
 
 const CARGO_LABELS: Record<string, string> = {
