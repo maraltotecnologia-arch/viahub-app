@@ -1000,6 +1000,7 @@ export type Database = {
     }
     Functions: {
       get_user_agencia_id: { Args: never; Returns: string }
+      get_user_cargo: { Args: never; Returns: string }
       is_agency_admin: { Args: never; Returns: boolean }
       is_superadmin: { Args: never; Returns: boolean }
       ticket_visual_id: {
