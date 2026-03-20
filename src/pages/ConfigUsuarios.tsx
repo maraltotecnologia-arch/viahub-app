@@ -17,7 +17,7 @@ import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { validarTelefone } from "@/lib/validators";
+import { validarTelefone, validarEmail, validarSenha } from "@/lib/validators";
 import { formatError } from "@/lib/errors";
 
 const CARGO_LABELS: Record<string, string> = {
@@ -73,8 +73,17 @@ export default function ConfigUsuarios() {
 
   const handleAdd = async () => {
     if (!agenciaId) return;
-    if (addForm.senha.length < 6) {
-      toast({ title: "A senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+    if (!addForm.nome.trim() || addForm.nome.trim().length < 3) {
+      toast({ title: "Nome deve ter no mínimo 3 caracteres", variant: "destructive" });
+      return;
+    }
+    if (!validarEmail(addForm.email)) {
+      toast({ title: "Email inválido", variant: "destructive" });
+      return;
+    }
+    const senhaResult = validarSenha(addForm.senha);
+    if (!senhaResult.valida) {
+      toast({ title: senhaResult.erros[0], variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -93,7 +102,6 @@ export default function ConfigUsuarios() {
         return;
       }
 
-      console.log("[create-user] Enviando:", { email: addForm.email, nome: addForm.nome, cargo: addForm.cargo, agencia_id: agenciaId });
 
       // Criar usuário via edge function (email já confirmado)
       const { data: session } = await supabase.auth.getSession();
@@ -108,7 +116,7 @@ export default function ConfigUsuarios() {
       });
 
       const result = await res.json();
-      console.log("[create-user] Resposta:", JSON.stringify(result), "status:", res.status);
+      
 
       if (!res.ok) {
         const errorCode = result.code || "USR001";
@@ -153,6 +161,23 @@ export default function ConfigUsuarios() {
 
   const handleEdit = async () => {
     if (!editUser) return;
+    // Prevent self cargo change
+    if (editUser.id === user?.id && editForm.cargo !== editUser.cargo) {
+      toast({ title: "Você não pode alterar seu próprio cargo.", variant: "destructive" });
+      return;
+    }
+    if (!editForm.nome.trim() || editForm.nome.trim().length < 3) {
+      toast({ title: "Nome deve ter no mínimo 3 caracteres", variant: "destructive" });
+      return;
+    }
+    // Prevent demoting the only admin
+    if (editUser.cargo === "admin" && editForm.cargo !== "admin") {
+      const adminCount = usuarios?.filter((u) => u.cargo === "admin" && u.ativo).length || 0;
+      if (adminCount <= 1) {
+        toast({ title: "A agência precisa de pelo menos 1 administrador ativo.", variant: "destructive" });
+        return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase.from("usuarios").update({ nome: editForm.nome, cargo: editForm.cargo }).eq("id", editUser.id);
     if (error) {
@@ -181,6 +206,14 @@ export default function ConfigUsuarios() {
     if (u.id === user?.id) {
       toast({ title: "Você não pode desativar sua própria conta.", variant: "destructive" });
       return;
+    }
+    // Prevent deactivating the only admin
+    if (u.cargo === "admin" && u.ativo) {
+      const adminCount = usuarios?.filter((usr) => usr.cargo === "admin" && usr.ativo).length || 0;
+      if (adminCount <= 1) {
+        toast({ title: "A agência precisa de pelo menos 1 administrador ativo.", variant: "destructive" });
+        return;
+      }
     }
     setConfirmUser(u);
   };

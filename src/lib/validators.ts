@@ -1,5 +1,27 @@
 import { z } from "zod";
 
+// ─── CPF Validator (real algorithm) ───
+
+export const validarCPF = (cpf: string): boolean => {
+  const c = cpf.replace(/\D/g, "");
+  if (c.length !== 11) return false;
+  if (/^(\d)\1+$/.test(c)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += parseInt(c[i]) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== parseInt(c[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += parseInt(c[i]) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  return rest === parseInt(c[10]);
+};
+
+// ─── CNPJ Validator (real algorithm) ───
+
 export const validarCNPJ = (cnpj: string): boolean => {
   const c = cnpj.replace(/\D/g, "");
   if (c.length !== 14) return false;
@@ -24,12 +46,67 @@ export const validarCNPJ = (cnpj: string): boolean => {
   return result === parseInt(c[13]);
 };
 
-export const validarTelefone = (tel: string): boolean => {
-  const numeros = tel.replace(/\D/g, "");
-  return numeros.length >= 10 && numeros.length <= 13;
+// ─── Email Validator ───
+
+export const validarEmail = (email: string): boolean => {
+  if (!email || email.length > 255) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
 };
 
-// Status transition rules
+// ─── Phone Validator ───
+
+export const validarTelefone = (tel: string): boolean => {
+  const numeros = tel.replace(/\D/g, "");
+  if (numeros.length < 10 || numeros.length > 13) return false;
+  if (/^(\d)\1+$/.test(numeros)) return false;
+  return true;
+};
+
+// ─── Password Validator (returns specific errors) ───
+
+export const validarSenha = (senha: string): { valida: boolean; erros: string[] } => {
+  const erros: string[] = [];
+  if (senha.length < 8) erros.push("Mínimo 8 caracteres");
+  if (!/[A-Z]/.test(senha)) erros.push("Pelo menos 1 letra maiúscula");
+  if (!/\d/.test(senha)) erros.push("Pelo menos 1 número");
+  if (!/[^A-Za-z0-9]/.test(senha)) erros.push("Pelo menos 1 caractere especial");
+  return { valida: erros.length === 0, erros };
+};
+
+// ─── Card Expiry Validator ───
+
+export const validarValidadeCartao = (expiry: string): boolean => {
+  const digits = expiry.replace(/\D/g, "");
+  if (digits.length !== 4) return false;
+  const month = parseInt(digits.slice(0, 2));
+  const year = parseInt("20" + digits.slice(2));
+  if (month < 1 || month > 12) return false;
+  const now = new Date();
+  const expiryDate = new Date(year, month); // first day of next month
+  return expiryDate > now;
+};
+
+// ─── Date Validator (not in the future) ───
+
+export const validarDataNascimento = (dateStr: string): boolean => {
+  if (!dateStr) return true; // optional field
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return false;
+  return d <= new Date();
+};
+
+// ─── Date Validator (not in the past) ───
+
+export const validarDataFutura = (dateStr: string): boolean => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr + "T23:59:59");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return d >= today;
+};
+
+// ─── Status Transition Rules ───
+
 const transicoes: Record<string, string[]> = {
   rascunho: ["enviado", "perdido"],
   enviado: ["aprovado", "perdido", "rascunho"],

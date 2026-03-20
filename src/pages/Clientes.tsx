@@ -19,7 +19,7 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
 import { formatError } from "@/lib/errors";
 import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
-import { clienteSchema } from "@/lib/validators";
+import { clienteSchema, validarCPF } from "@/lib/validators";
 
 const PAGE_SIZE = 20;
 
@@ -90,6 +90,12 @@ export default function Clientes() {
     if (!parsed.success) {
       const firstError = parsed.error.errors[0]?.message || "Dados inválidos";
       toast({ title: firstError, variant: "destructive" });
+      return;
+    }
+    // Validate CPF algorithm if provided
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    if (cpfLimpo && !validarCPF(cpfLimpo)) {
+      toast({ title: "CPF inválido — verifique os dígitos", variant: "destructive" });
       return;
     }
     if (!agenciaId) {
