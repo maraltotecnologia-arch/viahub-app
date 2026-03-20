@@ -66,6 +66,7 @@ export default function Orcamentos() {
   const { data, isLoading } = useQuery({
     queryKey: ["orcamentos", agenciaId, statusFilter, search, page, filtroAlerta, ordenacao.campo, ordenacao.direcao],
     enabled: !!agenciaId,
+    staleTime: 30 * 1000,
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")

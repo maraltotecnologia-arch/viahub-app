@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,24 +19,8 @@ import Orcamentos from "./pages/Orcamentos";
 import OrcamentoNovo from "./pages/OrcamentoNovo";
 import OrcamentoDetalhe from "./pages/OrcamentoDetalhe";
 import Pipeline from "./pages/Pipeline";
-import Relatorios from "./pages/Relatorios";
 import Clientes from "./pages/Clientes";
 import ClienteDetalhe from "./pages/ClienteDetalhe";
-import ConfigMarkup from "./pages/ConfigMarkup";
-import ConfigAgencia from "./pages/ConfigAgencia";
-import ConfigAssinatura from "./pages/ConfigAssinatura";
-import ConfigUsuarios from "./pages/ConfigUsuarios";
-import ConfigTemplates from "./pages/ConfigTemplates";
-import ConfigWhatsapp from "./pages/ConfigWhatsapp";
-import ConfigIA from "./pages/ConfigIA";
-import AdminAgencias from "./pages/admin/AdminAgencias";
-import AdminAgenciaNova from "./pages/admin/AdminAgenciaNova";
-import AdminAgenciaDetalhe from "./pages/admin/AdminAgenciaDetalhe";
-import AdminNotificacoes from "./pages/admin/AdminNotificacoes";
-import AdminChamados from "./pages/admin/AdminChamados";
-import Suporte from "./pages/Suporte";
-import Metas from "./pages/Metas";
-import ComissoesFinanceiro from "./pages/ComissoesFinanceiro";
 import PagamentoPendente from "./pages/PagamentoPendente";
 import NotFound from "./pages/NotFound";
 import OrcamentoPublico from "./pages/OrcamentoPublico";
@@ -45,7 +30,38 @@ import ReativarPlano from "./pages/ReativarPlano";
 import TermosDeUso from "./pages/TermosDeUso";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 
-const queryClient = new QueryClient();
+// Lazy-loaded pages (less frequently accessed / heavy)
+const Relatorios = lazy(() => import("./pages/Relatorios"));
+const Metas = lazy(() => import("./pages/Metas"));
+const ComissoesFinanceiro = lazy(() => import("./pages/ComissoesFinanceiro"));
+const Suporte = lazy(() => import("./pages/Suporte"));
+const ConfigMarkup = lazy(() => import("./pages/ConfigMarkup"));
+const ConfigAgencia = lazy(() => import("./pages/ConfigAgencia"));
+const ConfigAssinatura = lazy(() => import("./pages/ConfigAssinatura"));
+const ConfigUsuarios = lazy(() => import("./pages/ConfigUsuarios"));
+const ConfigTemplates = lazy(() => import("./pages/ConfigTemplates"));
+const ConfigWhatsapp = lazy(() => import("./pages/ConfigWhatsapp"));
+const ConfigIA = lazy(() => import("./pages/ConfigIA"));
+const AdminAgencias = lazy(() => import("./pages/admin/AdminAgencias"));
+const AdminAgenciaNova = lazy(() => import("./pages/admin/AdminAgenciaNova"));
+const AdminAgenciaDetalhe = lazy(() => import("./pages/admin/AdminAgenciaDetalhe"));
+const AdminNotificacoes = lazy(() => import("./pages/admin/AdminNotificacoes"));
+const AdminChamados = lazy(() => import("./pages/admin/AdminChamados"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 1000, // 1 minute default
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
+const LazyFallback = () => (
+  <div className="flex items-center justify-center py-20">
+    <div className="h-8 w-8 rounded-full border-[3px] border-muted border-t-primary animate-spin" />
+  </div>
+);
 
 const LoadingScreen = () => (
   <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
@@ -86,6 +102,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
   }
 
   return (
+    <Suspense fallback={<LazyFallback />}>
     <Routes>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
@@ -122,6 +139,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 
