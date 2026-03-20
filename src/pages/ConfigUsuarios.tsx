@@ -208,6 +208,14 @@ export default function ConfigUsuarios() {
       toast({ title: "Você não pode desativar sua própria conta.", variant: "destructive" });
       return;
     }
+    // Prevent deactivating the only admin
+    if (u.cargo === "admin" && u.ativo) {
+      const adminCount = usuarios?.filter((usr) => usr.cargo === "admin" && usr.ativo).length || 0;
+      if (adminCount <= 1) {
+        toast({ title: "A agência precisa de pelo menos 1 administrador ativo.", variant: "destructive" });
+        return;
+      }
+    }
     setConfirmUser(u);
   };
 
