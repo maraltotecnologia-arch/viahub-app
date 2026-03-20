@@ -18,6 +18,7 @@ import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
 import ContatosCliente from "@/components/clientes/ContatosCliente";
 import { formatError } from "@/lib/errors";
 import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
+import { validarCPF, validarEmail, validarDataNascimento } from "@/lib/validators";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
