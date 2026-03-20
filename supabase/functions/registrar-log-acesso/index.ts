@@ -80,8 +80,8 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      console.error("Error inserting log:", error.message);
-      return new Response(JSON.stringify({ error: error.message }), {
+      console.error("[registrar-log-acesso] Insert error:", error.code);
+      return new Response(JSON.stringify({ error: "Erro ao registrar log" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
-    console.error("Unexpected error:", e);
+    console.error("[registrar-log-acesso] Unexpected error");
     return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
