@@ -153,6 +153,7 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
   const { data: meta } = useQuery({
     queryKey: ["minha-meta", agenciaId, user?.id, mes, ano],
     enabled: !!user && isAgente,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("metas_agentes")
