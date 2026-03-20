@@ -116,7 +116,7 @@ export default function ConfigUsuarios() {
       });
 
       const result = await res.json();
-      console.log("[create-user] Resposta:", JSON.stringify(result), "status:", res.status);
+      
 
       if (!res.ok) {
         const errorCode = result.code || "USR001";
