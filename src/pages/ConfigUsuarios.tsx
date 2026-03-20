@@ -162,6 +162,23 @@ export default function ConfigUsuarios() {
 
   const handleEdit = async () => {
     if (!editUser) return;
+    // Prevent self cargo change
+    if (editUser.id === user?.id && editForm.cargo !== editUser.cargo) {
+      toast({ title: "Você não pode alterar seu próprio cargo.", variant: "destructive" });
+      return;
+    }
+    if (!editForm.nome.trim() || editForm.nome.trim().length < 3) {
+      toast({ title: "Nome deve ter no mínimo 3 caracteres", variant: "destructive" });
+      return;
+    }
+    // Prevent demoting the only admin
+    if (editUser.cargo === "admin" && editForm.cargo !== "admin") {
+      const adminCount = usuarios?.filter((u) => u.cargo === "admin" && u.ativo).length || 0;
+      if (adminCount <= 1) {
+        toast({ title: "A agência precisa de pelo menos 1 administrador ativo.", variant: "destructive" });
+        return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase.from("usuarios").update({ nome: editForm.nome, cargo: editForm.cargo }).eq("id", editUser.id);
     if (error) {
