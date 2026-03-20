@@ -90,6 +90,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
       <Route element={<AppLayout />}>
+        {/* Authenticated routes (any role) */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orcamentos" element={<Orcamentos />} />
         <Route path="/orcamentos/novo" element={<OrcamentoNovo />} />
@@ -101,19 +102,23 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
         <Route path="/financeiro/comissoes" element={<ComissoesFinanceiro />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/clientes/:id" element={<ClienteDetalhe />} />
-        <Route path="/configuracoes/markup" element={<ConfigMarkup />} />
-        <Route path="/configuracoes/agencia" element={<ConfigAgencia />} />
-        <Route path="/configuracoes/assinatura" element={<ConfigAssinatura />} />
-        <Route path="/configuracoes/usuarios" element={<ConfigUsuarios />} />
-        <Route path="/configuracoes/templates" element={<ConfigTemplates />} />
-        <Route path="/configuracoes/whatsapp" element={<ConfigWhatsapp />} />
-        <Route path="/configuracoes/ia" element={<ConfigIA />} />
-        <Route path="/admin/agencias" element={<AdminAgencias />} />
-        <Route path="/admin/agencias/nova" element={<AdminAgenciaNova />} />
-        <Route path="/admin/agencias/:id" element={<AdminAgenciaDetalhe />} />
-        <Route path="/admin/notificacoes" element={<AdminNotificacoes />} />
-        <Route path="/admin/chamados" element={<AdminChamados />} />
         <Route path="/suporte" element={<Suporte />} />
+
+        {/* Admin routes (admin + superadmin) */}
+        <Route path="/configuracoes/markup" element={<AdminRoute><ConfigMarkup /></AdminRoute>} />
+        <Route path="/configuracoes/agencia" element={<AdminRoute><ConfigAgencia /></AdminRoute>} />
+        <Route path="/configuracoes/assinatura" element={<AdminRoute><ConfigAssinatura /></AdminRoute>} />
+        <Route path="/configuracoes/usuarios" element={<AdminRoute><ConfigUsuarios /></AdminRoute>} />
+        <Route path="/configuracoes/templates" element={<AdminRoute><ConfigTemplates /></AdminRoute>} />
+        <Route path="/configuracoes/whatsapp" element={<AdminRoute><ConfigWhatsapp /></AdminRoute>} />
+        <Route path="/configuracoes/ia" element={<AdminRoute><ConfigIA /></AdminRoute>} />
+
+        {/* Superadmin routes */}
+        <Route path="/admin/agencias" element={<SuperadminRoute><AdminAgencias /></SuperadminRoute>} />
+        <Route path="/admin/agencias/nova" element={<SuperadminRoute><AdminAgenciaNova /></SuperadminRoute>} />
+        <Route path="/admin/agencias/:id" element={<SuperadminRoute><AdminAgenciaDetalhe /></SuperadminRoute>} />
+        <Route path="/admin/notificacoes" element={<SuperadminRoute><AdminNotificacoes /></SuperadminRoute>} />
+        <Route path="/admin/chamados" element={<SuperadminRoute><AdminChamados /></SuperadminRoute>} />
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
