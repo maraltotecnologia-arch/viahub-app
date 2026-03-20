@@ -176,7 +176,6 @@ Deno.serve(async (req) => {
         JSON.stringify({
           error: "Erro ao criar instância WhatsApp",
           code: "WPP002",
-          details: createData,
         }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
