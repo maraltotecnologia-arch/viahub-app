@@ -102,7 +102,6 @@ export default function ConfigUsuarios() {
         return;
       }
 
-      
 
       // Criar usuário via edge function (email já confirmado)
       const { data: session } = await supabase.auth.getSession();
