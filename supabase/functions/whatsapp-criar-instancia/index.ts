@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
     if (insertErr) {
       console.error("[whatsapp-criar] Erro ao salvar no banco:", insertErr.message);
       return new Response(
-        JSON.stringify({ error: "Erro ao salvar instância", code: "WPP002", details: insertErr.message }),
+        JSON.stringify({ error: "Erro ao salvar instância", code: "WPP002" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
