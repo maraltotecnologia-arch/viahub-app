@@ -76,12 +76,25 @@ export default function ClienteDetalhe() {
 
   const handleSave = async () => {
     if (!id) return;
+    if (!form.nome.trim() || form.nome.trim().length < 2) {
+      toast({ title: "Nome deve ter no mínimo 2 caracteres", variant: "destructive" }); return;
+    }
+    if (form.email && !validarEmail(form.email)) {
+      toast({ title: "Email inválido", variant: "destructive" }); return;
+    }
+    const cpfLimpo = form.cpf.replace(/\D/g, "");
+    if (cpfLimpo && !validarCPF(cpfLimpo)) {
+      toast({ title: "CPF inválido — verifique os dígitos", variant: "destructive" }); return;
+    }
+    if (form.data_nascimento && !validarDataNascimento(form.data_nascimento)) {
+      toast({ title: "Data de nascimento não pode ser futura", variant: "destructive" }); return;
+    }
     setSaving(true);
     const { error } = await supabase.from("clientes").update({
       nome: form.nome,
       email: form.email || null,
       telefone: form.telefone.replace(/\D/g, "") || null,
-      cpf: form.cpf.replace(/\D/g, "") || null,
+      cpf: cpfLimpo || null,
       passaporte: form.passaporte || null,
       data_nascimento: form.data_nascimento || null,
       observacoes: form.observacoes || null,
