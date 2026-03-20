@@ -29,22 +29,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let isMounted = true;
 
     const checkSession = async () => {
-      console.log("[Auth] Iniciando checagem de sessão...");
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
         if (!isMounted) return;
         setUser(session?.user ?? null);
-        console.log("[Auth] Sessão resolvida. User:", session?.user?.id ?? "nenhum");
-      } catch (error) {
+      } catch {
         if (!isMounted) return;
-        console.error("[Auth] Erro ao checar sessão:", error);
         setUser(null);
       } finally {
-        if (isMounted) {
-          console.log("[Auth] Desligando tela de carregamento.");
-          setLoading(false);
-        }
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -54,7 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
       const u = session?.user ?? null;
       setUser(u);
-      console.log("[Auth] onAuthStateChange:", _event, "user:", u?.id ?? "nenhum");
+
+      // Handle session expiry / token refresh failure
+      if (_event === "TOKEN_REFRESHED" && !session) {
+        setUser(null);
+      }
+
+      if (_event === "SIGNED_OUT") {
+        setUser(null);
+      }
 
       // Log access on sign in (fire and forget)
       if (_event === "SIGNED_IN" && session?.user) {
@@ -75,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   usuario_nome: usuario.nome || email,
                   cargo: usuario.cargo || "agente",
                 },
-              }).then(() => {}).catch(() => {});
+              }).catch(() => {});
             }
           }).catch(() => {});
       }
