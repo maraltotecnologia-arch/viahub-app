@@ -45,18 +45,23 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
   const validate = (): boolean => {
     const e: FieldErrors = {};
     if (!data.nomeAgencia.trim()) e.nomeAgencia = "Nome da agência é obrigatório";
+    else if (data.nomeAgencia.trim().length < 3) e.nomeAgencia = "Nome deve ter no mínimo 3 caracteres";
     if (!data.cnpj.trim()) e.cnpj = "CNPJ é obrigatório";
     else if (!validarCNPJ(data.cnpj)) e.cnpj = "CNPJ inválido";
     if (!data.cep.trim()) e.cep = "CEP é obrigatório";
     else if (data.cep.replace(/\D/g, "").length !== 8) e.cep = "CEP inválido";
+    if (cepError) e.cep = cepError;
     if (!data.nomeAdmin.trim()) e.nomeAdmin = "Seu nome é obrigatório";
+    else if (data.nomeAdmin.trim().length < 3) e.nomeAdmin = "Nome deve ter no mínimo 3 caracteres";
     if (!data.email.trim()) e.email = "Email é obrigatório";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) e.email = "Email inválido";
+    else if (!validarEmail(data.email)) e.email = "Email inválido";
     if (!data.telefone.trim()) e.telefone = "Telefone é obrigatório";
-    else if (!validarTelefone(data.telefone)) e.telefone = "Telefone inválido";
+    else if (!validarTelefone(data.telefone)) e.telefone = "Telefone inválido (DDD + número)";
     if (!data.senha) e.senha = "Senha é obrigatória";
-    else if (data.senha.length < 8) e.senha = "Mínimo 8 caracteres";
-    else if (!/\d/.test(data.senha)) e.senha = "Deve conter ao menos 1 número";
+    else {
+      const senhaResult = validarSenha(data.senha);
+      if (!senhaResult.valida) e.senha = senhaResult.erros[0];
+    }
     if (!data.confirmarSenha) e.confirmarSenha = "Confirme a senha";
     else if (data.senha !== data.confirmarSenha) e.confirmarSenha = "Senhas não conferem";
     setErrors(e);
