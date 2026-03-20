@@ -2,267 +2,142 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TEMA DARK (padrão) */
+/* ═══════════════════════════════════════════
+   DIGITAL CONCIERGE — DESIGN SYSTEM TOKENS
+   ═══════════════════════════════════════════ */
+
+/* TEMA LIGHT (padrão) */
 :root,
-[data-theme="dark"] {
-  --bg-primary: #0F172A;
-  --bg-secondary: #1E293B;
-  --bg-card: #1E293B;
-  --bg-sidebar: #0B1120;
-  --bg-header: rgba(15,23,42,0.95);
-  --bg-input: #1E293B;
-  --bg-hover: #1a2540;
+[data-theme="light"] {
+  --bg-primary: #f7f9fb;
+  --bg-secondary: #eceef0;
+  --bg-card: #ffffff;
+  --bg-sidebar: #001a42;
+  --bg-header: rgba(255,255,255,0.80);
+  --bg-input: #f2f4f6;
+  --bg-hover: #e6e8ea;
 
-  --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
+  --text-primary: #191c1e;
+  --text-secondary: #424754;
+  --text-muted: #727785;
 
-  --border-color: rgba(255,255,255,0.08);
-  --border-input: #334155;
+  --border-color: rgba(194,198,214,0.15);
+  --border-input: transparent;
 
-  --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-card: 0 20px 50px -12px rgba(0,88,190,0.08);
 
-  --accent-primary: #2563EB;
-  --accent-secondary: #06B6D4;
-  --accent-gradient: linear-gradient(135deg, #2563EB, #06B6D4);
+  --accent-primary: #0058be;
+  --accent-secondary: #00628d;
+  --accent-gradient: linear-gradient(135deg, #0058be, #2170e4);
 }
 
-/* TEMA LIGHT */
-[data-theme="light"] {
-  --bg-primary: #EFF6FF;
-  --bg-secondary: #DBEAFE;
-  --bg-card: #FFFFFF;
-  --bg-sidebar: #1E3A8A;
-  --bg-header: rgba(255,255,255,0.95);
-  --bg-input: #FFFFFF;
-  --bg-hover: #EFF6FF;
+/* TEMA DARK */
+[data-theme="dark"] {
+  --bg-primary: #111416;
+  --bg-secondary: #222527;
+  --bg-card: #191c1e;
+  --bg-sidebar: #001a42;
+  --bg-header: rgba(17,20,22,0.80);
+  --bg-input: #222527;
+  --bg-hover: #2c2f31;
 
-  --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --text-muted: #94A3B8;
+  --text-primary: #e1e3e5;
+  --text-secondary: #c2c6d0;
+  --text-muted: #8c9099;
 
-  --border-color: #E2E8F0;
-  --border-input: #CBD5E1;
+  --border-color: rgba(66,71,84,0.30);
+  --border-input: transparent;
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.04),
-                 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-card: 0 20px 50px -12px rgba(0,0,0,0.3);
 
-  --accent-primary: #2563EB;
-  --accent-secondary: #06B6D4;
-  --accent-gradient: linear-gradient(135deg, #2563EB, #06B6D4);
+  --accent-primary: #adc6ff;
+  --accent-secondary: #89ceff;
+  --accent-gradient: linear-gradient(135deg, #adc6ff, #89ceff);
 }
 
 /* APLICAR VARIÁVEIS GLOBALMENTE */
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 300ms ease,
-              color 300ms ease;
-}
-
-/* Forçar contraste de tipografia no dark mode — escopo app */
-[data-theme="dark"] body[data-viahub-scope="app"] h1,
-[data-theme="dark"] body[data-viahub-scope="app"] h2,
-[data-theme="dark"] body[data-viahub-scope="app"] h3 {
-  color: var(--text-primary);
-}
-
-/* Muted text in dark mode — only override non-semantic classes */
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-4"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-5"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-4"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-5"] {
-  color: var(--text-secondary) !important;
-}
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-8"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-gray-9"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-8"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="text-slate-9"] {
-  color: var(--text-primary) !important;
-}
-
-/* CONTRASTE (dark) — escopado para páginas autenticadas */
-[data-theme="dark"] body[data-viahub-scope="app"] td,
-[data-theme="dark"] body[data-viahub-scope="app"] td * {
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] td span,
-[data-theme="dark"] body[data-viahub-scope="app"] td p,
-[data-theme="dark"] body[data-viahub-scope="app"] td a {
-  color: var(--text-secondary);
-}
-
-/* Inputs / Selects / Textareas (dark) — escopado para páginas autenticadas */
-[data-theme="dark"] body[data-viahub-scope="app"] input,
-[data-theme="dark"] body[data-viahub-scope="app"] select,
-[data-theme="dark"] body[data-viahub-scope="app"] textarea {
-  background-color: var(--bg-input) !important;
-  border-color: var(--border-input) !important;
-  color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] input::placeholder,
-[data-theme="dark"] body[data-viahub-scope="app"] textarea::placeholder {
-  color: var(--text-muted) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] input:focus,
-[data-theme="dark"] body[data-viahub-scope="app"] select:focus,
-[data-theme="dark"] body[data-viahub-scope="app"] textarea:focus {
-  border-color: var(--accent-primary) !important;
-  outline: none !important;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.3) !important;
-}
-
-/* Dropdowns / Popovers (dark) — escopado para páginas autenticadas */
-[data-theme="dark"] body[data-viahub-scope="app"] [role="listbox"],
-[data-theme="dark"] body[data-viahub-scope="app"] [data-radix-popper-content-wrapper],
-[data-theme="dark"] body[data-viahub-scope="app"] [cmdk-list] {
-  background-color: var(--bg-card) !important;
-  border-color: var(--border-color) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] [role="option"],
-[data-theme="dark"] body[data-viahub-scope="app"] [role="menuitem"] {
-  color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] [role="option"]:hover,
-[data-theme="dark"] body[data-viahub-scope="app"] [role="menuitem"]:hover {
-  background-color: var(--bg-hover) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] .select-content,
-[data-theme="dark"] body[data-viahub-scope="app"] [data-radix-select-content],
-[data-theme="dark"] body[data-viahub-scope="app"] [cmdk-root][data-state="open"] {
-  background-color: var(--bg-card);
-  border-color: var(--border-color);
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] .viahub-dropdown-content,
-[data-theme="dark"] body[data-viahub-scope="app"] .viahub-popover-content {
-  background-color: var(--bg-card) !important;
-  border-color: var(--border-color) !important;
-  color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] .viahub-dropdown-item:hover {
-  background-color: var(--bg-hover) !important;
-}
-
-/* Botões no dark mode — escopo app */
-[data-theme="dark"] body[data-viahub-scope="app"] button {
-  color: var(--text-primary);
-}
-
-[data-theme="dark"] button[class*="outline"] {
-  background: transparent !important;
-  border-color: var(--border-input) !important;
-  color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] button[class*="ghost"] {
-  background: transparent !important;
-  color: var(--text-secondary) !important;
-}
-
-[data-theme="dark"] button[class*="ghost"]:hover,
-[data-theme="dark"] button[class*="outline"]:hover {
-  background: var(--bg-hover) !important;
-}
-
-/* Dropdowns/selects globais no dark mode */
-[data-theme="dark"] [role="option"],
-[data-theme="dark"] [cmdk-item],
-[data-theme="dark"] .select-item {
-  color: var(--text-primary) !important;
-  background: var(--bg-card) !important;
-}
-
-[data-theme="dark"] [role="option"]:hover,
-[data-theme="dark"] [cmdk-item][data-selected] {
-  background: var(--bg-hover) !important;
-  color: var(--text-primary) !important;
+  transition: background-color 300ms ease, color 300ms ease;
 }
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 228 24% 7%;
+    --background: 210 20% 97%;
+    --foreground: 210 10% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 228 24% 7%;
+    --card-foreground: 210 10% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 228 24% 7%;
-    --primary: 217 91% 60%;
+    --popover-foreground: 210 10% 10%;
+    --primary: 212 100% 37%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 189 95% 43%;
+    --secondary: 228 14% 39%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 214 32% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 18 100% 60%;
+    --muted: 210 10% 93%;
+    --muted-foreground: 227 11% 48%;
+    --accent: 200 100% 28%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
+    --destructive: 0 74% 42%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-    --radius: 0.625rem;
+    --border: 227 18% 84%;
+    --input: 210 10% 93%;
+    --ring: 212 100% 37%;
+    --radius: 0.5rem;
 
-    --success: 142 71% 45%;
+    --success: 152 69% 31%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 25 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --info: 263 70% 50%;
+    --info: 200 100% 28%;
     --info-foreground: 0 0% 100%;
 
-    --sidebar-background: 228 24% 7%;
-    --sidebar-foreground: 220 13% 69%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 215 100% 13%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 212 100% 37%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 15% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 225 12% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 215 100% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 100% 20%;
+    --sidebar-ring: 212 100% 37%;
   }
 
   [data-theme="dark"] {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 189 95% 43%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 18 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 63% 31%;
+    --background: 200 8% 8%;
+    --foreground: 210 10% 89%;
+    --card: 200 6% 11%;
+    --card-foreground: 210 10% 89%;
+    --popover: 200 6% 11%;
+    --popover-foreground: 210 10% 89%;
+    --primary: 220 100% 84%;
+    --primary-foreground: 215 100% 21%;
+    --secondary: 228 14% 39%;
+    --secondary-foreground: 227 29% 93%;
+    --muted: 200 4% 15%;
+    --muted-foreground: 220 10% 64%;
+    --accent: 200 100% 76%;
+    --accent-foreground: 200 100% 9%;
+    --destructive: 0 74% 42%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 20% 24%;
-    --input: 217 20% 24%;
-    --ring: 217 91% 60%;
+    --border: 220 8% 22%;
+    --input: 200 4% 15%;
+    --ring: 220 100% 84%;
 
-    --success: 142 71% 45%;
+    --success: 152 69% 31%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 25 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --info: 263 70% 50%;
-    --info-foreground: 0 0% 100%;
+    --info: 200 100% 76%;
+    --info-foreground: 200 100% 9%;
 
-    --sidebar-background: 228 33% 7%;
-    --sidebar-foreground: 220 13% 69%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 225 15% 15%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 225 12% 18%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-background: 215 100% 13%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 220 100% 84%;
+    --sidebar-primary-foreground: 215 100% 21%;
+    --sidebar-accent: 215 100% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 215 100% 20%;
+    --sidebar-ring: 220 100% 84%;
   }
 }
 
@@ -275,19 +150,19 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(215 16% 75%);
+  background-color: hsl(227 11% 75%);
   border-radius: 9999px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(215 16% 60%);
+  background-color: hsl(227 11% 60%);
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background-color: hsl(217 20% 35%);
+  background-color: hsl(220 8% 30%);
 }
 [data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(217 20% 45%);
+  background-color: hsl(220 8% 40%);
 }
 
 @layer base {
@@ -301,21 +176,21 @@ body {
     font-family: 'Plus Jakarta Sans', sans-serif;
   }
 
-  /* Refined table styles */
+  /* Refined table styles — Digital Concierge */
   thead th {
     background: var(--bg-secondary);
-    color: var(--text-secondary);
-    @apply uppercase text-[11px] tracking-wider font-semibold;
-    border-bottom: 2px solid var(--border-color);
+    color: var(--text-muted);
+    @apply uppercase text-[11px] tracking-wider font-bold;
+    border-bottom: none;
   }
 
   tbody td {
-    @apply py-3.5;
-    border-bottom: 1px solid var(--border-color);
+    @apply py-4;
+    border-bottom: none;
   }
 
   tbody tr {
-    @apply transition-colors duration-150;
+    @apply transition-colors duration-200;
   }
 
   tbody tr:hover {
@@ -323,17 +198,18 @@ body {
   }
 
   tbody td:first-child {
-    @apply font-medium text-foreground;
+    @apply font-semibold;
+    color: var(--text-primary);
   }
 }
 
 /* Toggle switch verde/vermelho */
 [role="switch"][data-state="checked"] {
-  background-color: #22C55E !important;
+  background-color: hsl(var(--success)) !important;
 }
 
 [role="switch"][data-state="unchecked"] {
-  background-color: #EF4444 !important;
+  background-color: hsl(var(--destructive)) !important;
 }
 
 /* Fade-in-up animation */
@@ -367,16 +243,7 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-}
-
-/* Table hover per theme */
-[data-theme="dark"] tbody tr:hover {
-  background-color: #1a2540 !important;
-}
-
-[data-theme="light"] tbody tr:hover {
-  background-color: #F1F5F9 !important;
+  border-radius: 12px;
 }
 
 /* Smooth theme transitions */
@@ -390,66 +257,16 @@ body {
 
 @layer utilities {
   .gradient-text {
-    @apply bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
 }
 
-/* Global dark mode fixes — inputs, cards, labels */
-[data-theme="dark"] input,
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
-  background-color: var(--bg-input) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-input) !important;
-}
-
-[data-theme="dark"] input::placeholder,
-[data-theme="dark"] textarea::placeholder {
-  color: var(--text-muted) !important;
-}
-
-/* Scope card dark overrides to authenticated app only */
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="card"],
-[data-theme="dark"] body[data-viahub-scope="app"] [class*="Card"] {
-  background-color: var(--bg-card) !important;
-  border-color: var(--border-color) !important;
-}
-
-[data-theme="dark"] body[data-viahub-scope="app"] label {
-  color: var(--text-secondary) !important;
-}
-
-/* Cliente selecionado badge no dark mode */
-[data-theme="dark"] .viahub-cliente-selecionado {
-  background: rgba(37,99,235,0.2) !important;
-  border: 1px solid rgba(37,99,235,0.4) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Force login page to remain unaffected */
+/* Force login page to remain unaffected by dark overrides */
 body[data-viahub-scope="auth"] input,
 body[data-viahub-scope="auth"] label {
   background-color: revert !important;
   color: revert !important;
   border-color: revert !important;
-}
-
-/* Tabs dark mode */
-[data-theme="dark"] [role="tablist"] {
-  background-color: var(--bg-secondary) !important;
-}
-
-[data-theme="dark"] [role="tab"] {
-  color: var(--text-secondary) !important;
-}
-
-[data-theme="dark"] [role="tab"]:hover {
-  color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] [role="tab"][data-state="active"] {
-  color: var(--text-primary) !important;
-  background-color: var(--bg-card) !important;
 }
 
 /* ═══════════════════════════════════════════
@@ -461,12 +278,12 @@ body[data-viahub-scope="auth"] label {
   --lp-surface: #0D1321;
   --lp-card: #111827;
   --lp-border: rgba(255,255,255,0.06);
-  --lp-glow: rgba(37,99,235,0.4);
+  --lp-glow: rgba(0,88,190,0.4);
   --lp-text: #F1F5F9;
   --lp-text2: #64748B;
   --lp-text3: #334155;
-  --lp-blue: #2563EB;
-  --lp-cyan: #06B6D4;
+  --lp-blue: #0058be;
+  --lp-cyan: #00628d;
   background: var(--lp-deep);
   color: var(--lp-text);
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -526,13 +343,13 @@ body[data-viahub-scope="auth"] label {
 .lp-orb--blue {
   width: 600px; height: 600px;
   top: -200px; left: -200px;
-  background: #2563EB;
+  background: #0058be;
   opacity: 0.08;
 }
 .lp-orb--cyan {
   width: 500px; height: 500px;
   bottom: -150px; right: -150px;
-  background: #06B6D4;
+  background: #00628d;
   opacity: 0.06;
 }
 
@@ -565,7 +382,7 @@ body[data-viahub-scope="auth"] label {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 22px;
-  background: linear-gradient(135deg, #2563EB, #06B6D4);
+  background: linear-gradient(135deg, #0058be, #2170e4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -642,9 +459,9 @@ body[data-viahub-scope="auth"] label {
   gap: 8px;
   padding: 0 20px;
   height: 40px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 14px;
   text-decoration: none;
   cursor: pointer;
@@ -653,13 +470,15 @@ body[data-viahub-scope="auth"] label {
   white-space: nowrap;
 }
 .lp-btn--primary {
-  background: linear-gradient(135deg, #2563EB, #06B6D4) !important;
+  background: linear-gradient(135deg, #0058be, #2170e4) !important;
   color: #fff !important;
   border: none !important;
+  box-shadow: 0 4px 16px rgba(0,88,190,0.3);
 }
 .lp-btn--primary:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0,88,190,0.4);
 }
 .lp-btn--ghost {
   background: transparent !important;
@@ -674,7 +493,7 @@ body[data-viahub-scope="auth"] label {
   height: 48px;
   padding: 0 28px;
   font-size: 15px;
-  border-radius: 10px;
+  border-radius: 14px;
 }
 
 /* ── Hero ── */
@@ -693,19 +512,19 @@ body[data-viahub-scope="auth"] label {
   align-items: center;
   padding: 6px 16px;
   border-radius: 999px;
-  background: rgba(37,99,235,0.08) !important;
-  border: 1px solid rgba(37,99,235,0.25) !important;
+  background: rgba(0,88,190,0.08) !important;
+  border: 1px solid rgba(0,88,190,0.25) !important;
   margin-bottom: 32px;
   animation: lp-pulse-border 2s ease-in-out infinite;
 }
 @keyframes lp-pulse-border {
-  0%, 100% { border-color: rgba(37,99,235,0.4); }
-  50% { border-color: rgba(6,182,212,0.8); }
+  0%, 100% { border-color: rgba(0,88,190,0.4); }
+  50% { border-color: rgba(0,98,141,0.8); }
 }
 .lp-hero__badge span {
   font-size: 12px;
   letter-spacing: 0.05em;
-  color: var(--lp-cyan) !important;
+  color: #89ceff !important;
 }
 .lp-hero__title {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -714,7 +533,7 @@ body[data-viahub-scope="auth"] label {
   line-height: 1.08;
   color: var(--lp-text) !important;
   margin-bottom: 24px;
-  text-shadow: 0 0 80px rgba(37,99,235,0.3);
+  text-shadow: 0 0 80px rgba(0,88,190,0.3);
 }
 @media (min-width: 768px) {
   .lp-hero__title { font-size: 64px; }
@@ -723,7 +542,7 @@ body[data-viahub-scope="auth"] label {
   .lp-hero__title { font-size: 76px; }
 }
 .lp-gradient-text {
-  background: linear-gradient(135deg, #2563EB, #06B6D4);
+  background: linear-gradient(135deg, #0058be, #2170e4);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -761,11 +580,11 @@ body[data-viahub-scope="auth"] label {
   50% { transform: translateY(-8px); }
 }
 
-/* ── Mockup Frame (MacBook style) ── */
+/* ── Mockup Frame ── */
 .lp-mockup-frame {
   max-width: 800px;
   margin: 0 auto;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
@@ -778,7 +597,7 @@ body[data-viahub-scope="auth"] label {
   transform: translateX(-50%);
   width: 60%;
   height: 60px;
-  background: radial-gradient(ellipse, rgba(37,99,235,0.12), transparent 70%);
+  background: radial-gradient(ellipse, rgba(0,88,190,0.12), transparent 70%);
   pointer-events: none;
 }
 .lp-mockup-toolbar {
@@ -804,7 +623,7 @@ body[data-viahub-scope="auth"] label {
   color: rgba(255,255,255,0.4) !important;
   font-size: 11px;
   padding: 2px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
@@ -848,7 +667,7 @@ body[data-viahub-scope="auth"] label {
 .lp-mockup__metric {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid var(--lp-border) !important;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -889,7 +708,7 @@ body[data-viahub-scope="auth"] label {
   font-size: 11px;
   font-weight: 600;
   padding: 3px 8px;
-  border-radius: 6px;
+  border-radius: 8px;
   white-space: nowrap;
 }
 @media (max-width: 560px) {
@@ -938,7 +757,7 @@ body[data-viahub-scope="auth"] label {
 .lp-section-divider {
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(37,99,235,0.2), rgba(6,182,212,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,88,190,0.2), rgba(0,98,141,0.2), transparent);
   border: none;
   margin: 0;
 }
@@ -949,7 +768,7 @@ body[data-viahub-scope="auth"] label {
   grid-template-columns: 1fr;
   gap: 1px;
   background: rgba(255,255,255,0.04);
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
 }
 @media (min-width: 768px) {
@@ -980,17 +799,17 @@ body[data-viahub-scope="auth"] label {
   background: rgba(255,255,255,0.02) !important;
 }
 .lp-feature-card:hover .lp-feature-card__icon {
-  box-shadow: 0 0 20px rgba(37,99,235,0.3);
+  box-shadow: 0 0 20px rgba(0,88,190,0.3);
 }
 .lp-feature-card__icon {
   width: 40px; height: 40px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(6,182,212,0.1)) !important;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(0,88,190,0.15), rgba(0,98,141,0.1)) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
-  color: var(--lp-blue) !important;
+  color: #adc6ff !important;
   transition: box-shadow 0.3s;
 }
 .lp-feature-card__title {
@@ -1007,9 +826,9 @@ body[data-viahub-scope="auth"] label {
   font-size: 10px;
   font-weight: 600;
   padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(6,182,212,0.12) !important;
-  color: var(--lp-cyan) !important;
+  border-radius: 6px;
+  background: rgba(0,98,141,0.12) !important;
+  color: #89ceff !important;
   letter-spacing: 0.03em;
 }
 .lp-feature-card__desc {
@@ -1051,7 +870,7 @@ body[data-viahub-scope="auth"] label {
     bottom: auto;
     width: auto;
     height: 1px;
-    background: linear-gradient(90deg, rgba(37,99,235,0.8), rgba(6,182,212,0.8), rgba(37,99,235,0.8));
+    background: linear-gradient(90deg, rgba(0,88,190,0.8), rgba(0,98,141,0.8), rgba(0,88,190,0.8));
   }
 }
 .lp-step { text-align: center; position: relative; }
@@ -1061,9 +880,9 @@ body[data-viahub-scope="auth"] label {
 .lp-step__dot {
   width: 12px; height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB, #06B6D4) !important;
+  background: linear-gradient(135deg, #0058be, #2170e4) !important;
   border: 2px solid #080C14;
-  box-shadow: 0 0 12px rgba(37,99,235,0.6);
+  box-shadow: 0 0 12px rgba(0,88,190,0.6);
   position: relative;
   z-index: 1;
   margin: 0 auto 16px;
@@ -1080,7 +899,7 @@ body[data-viahub-scope="auth"] label {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 800;
   font-size: 64px;
-  color: rgba(37,99,235,0.2) !important;
+  color: rgba(0,88,190,0.2) !important;
   line-height: 1;
   display: block;
   margin-bottom: 12px;
@@ -1126,7 +945,7 @@ body[data-viahub-scope="auth"] label {
 .lp-plan-card {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid var(--lp-border) !important;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 28px 24px;
   display: flex;
   flex-direction: column;
@@ -1136,14 +955,14 @@ body[data-viahub-scope="auth"] label {
   backdrop-filter: blur(12px);
 }
 .lp-plan-card:hover {
-  border-color: rgba(37,99,235,0.3) !important;
-  box-shadow: 0 0 24px rgba(37,99,235,0.08);
+  border-color: rgba(0,88,190,0.3) !important;
+  box-shadow: 0 0 24px rgba(0,88,190,0.08);
 }
 .lp-plan-card--popular {
   background: #111827 !important;
-  border: 2px solid #2563EB !important;
-  border-radius: 12px;
-  box-shadow: 0 0 32px rgba(37,99,235,0.2);
+  border: 2px solid #0058be !important;
+  border-radius: 16px;
+  box-shadow: 0 0 32px rgba(0,88,190,0.2);
   position: relative;
 }
 .lp-plan-card--popular .lp-plan-card__name {
@@ -1165,7 +984,7 @@ body[data-viahub-scope="auth"] label {
   color: #CBD5E1 !important;
 }
 .lp-plan-card--popular .lp-plan-card__check {
-  color: #06B6D4 !important;
+  color: #89ceff !important;
 }
 .lp-plan-card__desc {
   font-size: 12px;
@@ -1181,7 +1000,7 @@ body[data-viahub-scope="auth"] label {
   position: absolute;
   top: -10px; left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #2563EB, #06B6D4) !important;
+  background: linear-gradient(135deg, #0058be, #2170e4) !important;
   color: #fff !important;
   font-size: 11px;
   font-weight: 600;
@@ -1222,7 +1041,7 @@ body[data-viahub-scope="auth"] label {
   gap: 8px;
   color: var(--lp-text2) !important;
 }
-.lp-plan-card__check { color: var(--lp-blue) !important; flex-shrink: 0; }
+.lp-plan-card__check { color: #0058be !important; flex-shrink: 0; }
 
 /* ── Testimonials ── */
 .lp-testimonials-grid {
@@ -1236,17 +1055,17 @@ body[data-viahub-scope="auth"] label {
 .lp-testimonial-card {
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid var(--lp-border) !important;
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 32px;
   position: relative;
   backdrop-filter: blur(12px);
   transition: all 0.3s;
 }
 .lp-testimonial-card:hover {
-  border-color: rgba(37,99,235,0.2) !important;
+  border-color: rgba(0,88,190,0.2) !important;
 }
 .lp-testimonial-card__quote {
-  color: rgba(37,99,235,0.15) !important;
+  color: rgba(0,88,190,0.15) !important;
   margin-bottom: 16px;
 }
 .lp-testimonial-card__text {
@@ -1264,7 +1083,7 @@ body[data-viahub-scope="auth"] label {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563EB, #06B6D4) !important;
+  background: linear-gradient(135deg, #0058be, #2170e4) !important;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1289,7 +1108,7 @@ body[data-viahub-scope="auth"] label {
   color: var(--lp-text3) !important;
 }
 
-/* ── Final Section (CTA + Form Grid) ── */
+/* ── Final Section ── */
 .lp-final-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1304,13 +1123,13 @@ body[data-viahub-scope="auth"] label {
 }
 .lp-final-cta,
 .lp-final-form {
-  border-radius: 20px;
-  border: 1px solid rgba(37,99,235,0.2) !important;
+  border-radius: 24px;
+  border: 1px solid rgba(0,88,190,0.2) !important;
   padding: 48px;
   min-height: 600px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 60px rgba(37,99,235,0.08);
+  box-shadow: 0 0 60px rgba(0,88,190,0.08);
 }
 @media (max-width: 767px) {
   .lp-final-cta,
@@ -1320,7 +1139,7 @@ body[data-viahub-scope="auth"] label {
   }
 }
 .lp-final-cta {
-  background: linear-gradient(135deg, rgba(37,99,235,0.12), rgba(6,182,212,0.06)) !important;
+  background: linear-gradient(135deg, rgba(0,88,190,0.12), rgba(0,98,141,0.06)) !important;
 }
 .lp-final-form {
   background: rgba(255,255,255,0.03) !important;
@@ -1345,15 +1164,15 @@ body[data-viahub-scope="auth"] label {
   align-items: center;
   padding: 6px 16px;
   border-radius: 999px;
-  background: rgba(37,99,235,0.08) !important;
-  border: 1px solid rgba(37,99,235,0.25) !important;
+  background: rgba(0,88,190,0.08) !important;
+  border: 1px solid rgba(0,88,190,0.25) !important;
   margin-bottom: 28px;
   align-self: flex-start;
 }
 .lp-final-cta .lp-cta-badge span {
   font-size: 12px;
   letter-spacing: 0.05em;
-  color: var(--lp-cyan) !important;
+  color: #89ceff !important;
 }
 .lp-final-cta .lp-cta-card-v2__title {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
@@ -1391,7 +1210,7 @@ body[data-viahub-scope="auth"] label {
   gap: 4px;
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid rgba(255,255,255,0.06) !important;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 14px;
 }
 .lp-cta-proof__head {
@@ -1401,7 +1220,7 @@ body[data-viahub-scope="auth"] label {
   gap: 8px;
 }
 .lp-cta-proof__icon {
-  color: var(--lp-blue) !important;
+  color: #adc6ff !important;
   flex-shrink: 0;
 }
 .lp-cta-proof__value {
@@ -1428,13 +1247,12 @@ body[data-viahub-scope="auth"] label {
 }
 
 /* ── Footer ── */
-/* ── Contact Form ── */
 .lp-contact-form-card {
   max-width: 600px;
   margin: 0 auto;
   background: rgba(255,255,255,0.03) !important;
   border: 1px solid var(--lp-border) !important;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 40px 32px;
   backdrop-filter: blur(12px);
 }
@@ -1457,7 +1275,7 @@ body[data-viahub-scope="auth"] label {
   background: rgba(255,255,255,0.05) !important;
   border: 1px solid rgba(255,255,255,0.1) !important;
   color: #F1F5F9 !important;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px 16px;
   font-size: 14px;
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1467,8 +1285,8 @@ body[data-viahub-scope="auth"] label {
 .lp-contact-form input:focus,
 .lp-contact-form select:focus,
 .lp-contact-form textarea:focus {
-  border-color: rgba(37,99,235,0.6) !important;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
+  border-color: rgba(0,88,190,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(0,88,190,0.1) !important;
 }
 .lp-contact-form input::placeholder,
 .lp-contact-form textarea::placeholder {
