@@ -58,6 +58,7 @@ export default function Clientes() {
   const { data, isLoading } = useQuery({
     queryKey: ["clientes", agenciaId, search, page, ordenacao.campo, ordenacao.direcao, tagFilter],
     enabled: !!agenciaId,
+    staleTime: 60 * 1000,
     queryFn: async () => {
       let query = supabase
         .from("clientes")
