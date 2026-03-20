@@ -295,9 +295,9 @@ Deno.serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("[whatsapp-enviar] Erro fatal:", (err as Error).message, (err as Error).stack);
+    console.error("[whatsapp-enviar] Erro fatal:", (err as Error).message);
     return new Response(
-      JSON.stringify({ error: (err as Error).message, code: "WPP003" }),
+      JSON.stringify({ error: "Erro interno do servidor", code: "WPP003" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
