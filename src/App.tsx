@@ -102,6 +102,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
   }
 
   return (
+    <Suspense fallback={<LazyFallback />}>
     <Routes>
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/pagamento-pendente" element={<PagamentoPendente />} />
@@ -138,6 +139,7 @@ function ProtectedRoutes({ loading, user }: { loading: boolean; user: any }) {
       </Route>
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 
