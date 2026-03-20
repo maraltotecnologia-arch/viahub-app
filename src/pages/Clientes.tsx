@@ -92,6 +92,12 @@ export default function Clientes() {
       toast({ title: firstError, variant: "destructive" });
       return;
     }
+    // Validate CPF algorithm if provided
+    const cpfLimpo = cpf.replace(/\D/g, "");
+    if (cpfLimpo && !validarCPF(cpfLimpo)) {
+      toast({ title: "CPF inválido — verifique os dígitos", variant: "destructive" });
+      return;
+    }
     if (!agenciaId) {
       toast({ title: "Erro ao identificar agência", variant: "destructive" });
       return;
