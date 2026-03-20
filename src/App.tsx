@@ -57,6 +57,12 @@ const queryClient = new QueryClient({
   },
 });
 
+const LazyFallback = () => (
+  <div className="flex items-center justify-center py-20">
+    <div className="h-8 w-8 rounded-full border-[3px] border-muted border-t-primary animate-spin" />
+  </div>
+);
+
 const LoadingScreen = () => (
   <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }}>
     <h1 className="text-[32px] font-bold text-white tracking-tight mb-6">Via<span className="font-extrabold">Hub</span></h1>
