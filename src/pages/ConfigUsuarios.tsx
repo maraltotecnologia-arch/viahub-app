@@ -73,8 +73,17 @@ export default function ConfigUsuarios() {
 
   const handleAdd = async () => {
     if (!agenciaId) return;
-    if (addForm.senha.length < 6) {
-      toast({ title: "A senha deve ter no mínimo 6 caracteres", variant: "destructive" });
+    if (!addForm.nome.trim() || addForm.nome.trim().length < 3) {
+      toast({ title: "Nome deve ter no mínimo 3 caracteres", variant: "destructive" });
+      return;
+    }
+    if (!validarEmail(addForm.email)) {
+      toast({ title: "Email inválido", variant: "destructive" });
+      return;
+    }
+    const senhaResult = validarSenha(addForm.senha);
+    if (!senhaResult.valida) {
+      toast({ title: senhaResult.erros[0], variant: "destructive" });
       return;
     }
     setSaving(true);
