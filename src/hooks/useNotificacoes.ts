@@ -18,6 +18,7 @@ export default function useNotificacoes() {
   const { data: notificacoes } = useQuery({
     queryKey: ["notificacoes", user?.id],
     enabled: !!user,
+    staleTime: 2 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
     queryFn: async () => {
       const { data: perfil } = await supabase

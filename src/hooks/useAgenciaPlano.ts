@@ -10,6 +10,7 @@ export default function useAgenciaPlano() {
   const { data: plano, isLoading } = useQuery({
     queryKey: ["agencia-plano", agenciaId],
     enabled: !!agenciaId,
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase
         .from("agencias")

@@ -14,6 +14,7 @@ export default function useAlertas(agenciaId: string | null) {
   return useQuery<AlertasData>({
     queryKey: ["alertas", agenciaId],
     enabled: !!agenciaId,
+    staleTime: 2 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
     queryFn: async () => {
       const today = new Date().toISOString().slice(0, 10);

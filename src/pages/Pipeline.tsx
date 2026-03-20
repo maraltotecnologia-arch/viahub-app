@@ -38,6 +38,7 @@ export default function Pipeline() {
   const { data: orcamentos, isLoading } = useQuery({
     queryKey: ["pipeline", agenciaId],
     enabled: !!agenciaId,
+    staleTime: 30 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("orcamentos")
