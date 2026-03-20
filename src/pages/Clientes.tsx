@@ -19,7 +19,7 @@ import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import ClienteTagBadges from "@/components/clientes/ClienteTagBadges";
 import { formatError } from "@/lib/errors";
 import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
-import { clienteSchema } from "@/lib/validators";
+import { clienteSchema, validarCPF } from "@/lib/validators";
 
 const PAGE_SIZE = 20;
 
