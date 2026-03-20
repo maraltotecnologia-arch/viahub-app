@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
-import { validarTelefone, validarCNPJ } from "@/lib/validators";
+import { validarTelefone, validarCNPJ, validarEmail, validarSenha } from "@/lib/validators";
 import { maskTelefone, maskCNPJ, maskCEP } from "@/lib/masks";
 import type { CadastroData } from "@/pages/Cadastro";
 import AuthLayout from "@/components/AuthLayout";
