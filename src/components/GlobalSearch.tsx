@@ -135,8 +135,7 @@ export default function GlobalSearch() {
     return (
       <button
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        className="p-2 rounded-lg transition-all duration-200"
-        style={{ background: "var(--bg-hover)", color: "var(--text-secondary)", border: "1px solid var(--border-color)" }}
+        className="p-2 rounded-xl bg-muted text-muted-foreground hover:text-foreground transition-colors"
       >
         <Search className="w-4 h-4" />
       </button>
@@ -145,34 +144,24 @@ export default function GlobalSearch() {
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div
-        className="flex items-center gap-2 h-9 px-3 rounded-[10px] transition-all duration-150"
-        style={{
-          background: "var(--bg-input)",
-          border: "1px solid var(--border-input)",
-        }}
-      >
-        <Search className="w-4 h-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+      <div className="flex items-center gap-2 h-9 px-3 rounded-xl bg-muted transition-all duration-200">
+        <Search className="w-4 h-4 shrink-0 text-muted-foreground" />
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
           onFocus={() => setOpen(true)}
-          placeholder="Buscar orçamentos, clientes..."
-          className="flex-1 bg-transparent border-none outline-none text-sm"
-          style={{ color: "var(--text-primary)" }}
+          placeholder={`Buscar orçamentos, clientes... ${shortcutLabel}`}
+          className="flex-1 bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
         />
-        {loading && <Loader2 className="w-4 h-4 animate-spin" style={{ color: "var(--text-muted)" }} />}
+        {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
         {query && !loading && (
           <button onClick={() => setQuery("")} className="p-0.5">
-            <X className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+            <X className="w-3.5 h-3.5 text-muted-foreground" />
           </button>
         )}
         {!isMobile && !query && (
-          <kbd
-            className="hidden md:inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-[10px] font-medium"
-            style={{ background: "var(--bg-hover)", color: "var(--text-muted)", border: "1px solid var(--border-color)" }}
-          >
+          <kbd className="hidden md:inline-flex items-center gap-0.5 rounded-lg px-1.5 py-0.5 text-[10px] font-medium bg-background text-muted-foreground border border-border/20">
             {shortcutLabel}
           </kbd>
         )}
@@ -180,62 +169,47 @@ export default function GlobalSearch() {
 
       {showDropdown && (
         <div
-          className="absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50"
-          style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-color)",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
-            maxHeight: 420,
-            overflowY: "auto",
-          }}
+          className="absolute top-full left-0 right-0 mt-2 rounded-xl overflow-hidden z-50 bg-card/80 backdrop-blur-xl border border-border/15 shadow-[0_20px_50px_-12px_rgba(0,88,190,0.15)]"
+          style={{ maxHeight: 420, overflowY: "auto" }}
         >
           {!hasResults && !loading && (
-            <div className="px-4 py-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
               Nenhum resultado encontrado
             </div>
           )}
 
           {orcamentos.length > 0 && (
             <div>
-              <div
-                className="flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider"
-                style={{ color: "var(--text-muted)", background: "var(--bg-secondary)" }}
-              >
+              <div className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground bg-muted/50">
                 <FileText className="w-3.5 h-3.5" /> Orçamentos
               </div>
               {orcamentos.map((o) => (
                 <button
                   key={o.id}
                   onClick={() => goTo(`/orcamentos/${o.id}`)}
-                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors duration-100"
-                  style={{ color: "var(--text-primary)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors duration-150 hover:bg-muted/50 text-foreground"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium truncate">
+                      <span className="text-sm font-semibold truncate">
                         {o.numero_orcamento || "Sem número"}
                       </span>
                       {o.status && <StatusBadge status={o.status} />}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+                      <span className="text-xs truncate text-muted-foreground">
                         {o.cliente_nome || o.titulo || "—"}
                       </span>
                     </div>
                   </div>
-                  <span className="text-sm font-medium shrink-0" style={{ color: "var(--text-secondary)" }}>
+                  <span className="text-sm font-medium shrink-0 text-muted-foreground">
                     {formatCurrency(o.valor_final)}
                   </span>
                 </button>
               ))}
               <button
                 onClick={() => goTo("/orcamentos")}
-                className="w-full text-left px-4 py-2 text-xs font-medium"
-                style={{ color: "var(--accent-primary)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                className="w-full text-left px-4 py-2 text-xs font-bold text-primary hover:bg-primary/[0.08] transition-colors"
               >
                 Ver todos em Orçamentos →
               </button>
@@ -244,38 +218,29 @@ export default function GlobalSearch() {
 
           {clientes.length > 0 && (
             <div>
-              <div
-                className="flex items-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wider"
-                style={{ color: "var(--text-muted)", background: "var(--bg-secondary)" }}
-              >
+              <div className="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider text-muted-foreground bg-muted/50">
                 <Users className="w-3.5 h-3.5" /> Clientes
               </div>
               {clientes.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => goTo(`/clientes/${c.id}`)}
-                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors duration-100"
-                  style={{ color: "var(--text-primary)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                  className="w-full text-left px-4 py-2.5 flex items-center gap-3 transition-colors duration-150 hover:bg-muted/50 text-foreground"
                 >
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium truncate block">{c.nome}</span>
-                    <span className="text-xs truncate block" style={{ color: "var(--text-secondary)" }}>
+                    <span className="text-sm font-semibold truncate block">{c.nome}</span>
+                    <span className="text-xs truncate block text-muted-foreground">
                       {c.email || "Sem email"}
                     </span>
                   </div>
-                  <span className="text-xs shrink-0" style={{ color: "var(--text-muted)" }}>
+                  <span className="text-xs shrink-0 text-muted-foreground">
                     {c.orcamentos_count} orç.
                   </span>
                 </button>
               ))}
               <button
                 onClick={() => goTo("/clientes")}
-                className="w-full text-left px-4 py-2 text-xs font-medium"
-                style={{ color: "var(--accent-primary)" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-hover)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                className="w-full text-left px-4 py-2 text-xs font-bold text-primary hover:bg-primary/[0.08] transition-colors"
               >
                 Ver todos em Clientes →
               </button>

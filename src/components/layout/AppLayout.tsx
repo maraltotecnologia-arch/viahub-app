@@ -12,16 +12,16 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
-  Superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/30 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30",
-  Administrador: "bg-blue-500/15 text-blue-600 border border-blue-500/30 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30",
-  Agente: "bg-green-500/15 text-green-600 border border-green-500/30 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
-  Financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
+  Superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/20 dark:text-purple-400",
+  Administrador: "bg-primary/15 text-primary border border-primary/20",
+  Agente: "bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400",
+  Financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/20 dark:text-amber-400",
 };
 
 function CargoBadge({ cargo }: { cargo: string }) {
   const cls = CARGO_BADGE_CLASSES[cargo] || "bg-muted text-muted-foreground border border-border";
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${cls}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${cls}`}>
       {cargo}
     </span>
   );
@@ -52,11 +52,11 @@ export default function AppLayout() {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header
-            className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+            className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 shadow-sm"
             style={{
               background: "var(--bg-header)",
-              borderBottom: "1px solid var(--border-color)",
-              backdropFilter: "blur(12px)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
             }}
           >
             <Tooltip>
@@ -85,12 +85,7 @@ export default function AppLayout() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg transition-all duration-200"
-                    style={{
-                      background: "var(--bg-hover)",
-                      color: "var(--text-secondary)",
-                      border: "1px solid var(--border-color)",
-                    }}
+                    className="p-2 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   </button>
@@ -106,7 +101,7 @@ export default function AppLayout() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div
-                    className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm cursor-default"
+                    className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--primary)/0.7)] flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm cursor-default"
                   >
                     {initials}
                   </div>

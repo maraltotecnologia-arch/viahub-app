@@ -19,7 +19,6 @@ export function AppSidebar() {
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { isDark } = useTheme();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isSuperadmin, isFinanceiro, canAccessConfig, canAccessRelatorios, cargoLabel, nome } = useUserRole();
@@ -64,10 +63,10 @@ export function AppSidebar() {
   };
 
   const navCls = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-1.5"} rounded-lg text-sm transition-all duration-150 ${
+    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-2"} rounded-xl text-sm transition-all duration-200 ${
       isActive
-        ? "text-white font-semibold bg-[color:var(--accent-primary)]/30"
-        : isDark ? "text-white/70 hover:bg-white/10 hover:text-white" : "text-white/80 hover:bg-white/20 hover:text-white"
+        ? "bg-[rgba(173,198,255,0.15)] border border-[rgba(173,198,255,0.20)] text-white font-semibold"
+        : "text-white/70 hover:bg-white/[0.08] hover:text-white"
     }`;
 
   const mainItems = [
@@ -123,7 +122,7 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-3 text-[10px] font-semibold uppercase tracking-[1.5px] text-white/30 mb-1 mt-1">{label}</p>
+      <p className="px-3 text-[10px] font-bold uppercase tracking-[2px] text-white/40 mb-1 mt-1">{label}</p>
     ) : (
       <Separator className="mx-3 my-1 bg-white/[0.08]" />
     );
@@ -132,26 +131,29 @@ export function AppSidebar() {
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:!bg-[color:var(--bg-sidebar)] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-[color:var(--border-color)]"
+      className="md:flex [&_[data-sidebar=sidebar]]:!bg-gradient-to-b [&_[data-sidebar=sidebar]]:!from-[#002d62] [&_[data-sidebar=sidebar]]:!to-[#001a42] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-white/[0.06]"
     >
       <SidebarContent className="flex flex-col">
         {/* Logo */}
-        <div className={`border-b border-sidebar-border ${collapsed ? "py-3 flex items-center justify-center" : "p-4 pb-4"}`}>
+        <div className={`border-b border-white/[0.08] ${collapsed ? "py-3 flex items-center justify-center" : "p-4 pb-4"}`}>
           {collapsed ? (
-            <span className="text-base font-extrabold tracking-tight">
-              <span className="text-sidebar-primary">V</span>
-              <span className="text-sidebar-accent-foreground">H</span>
-            </span>
+            <div className="rounded-xl bg-gradient-to-br from-primary to-[#2170e4] p-1.5 shadow-lg shadow-primary/20">
+              <span className="text-sm font-extrabold text-white">VH</span>
+            </div>
           ) : (
-            <>
-              <h1 className="text-xl font-extrabold tracking-tight">
-                <span className="text-sidebar-primary">Via</span>
-                <span className="text-sidebar-accent-foreground">Hub</span>
-              </h1>
-              <p className="text-[10px] text-white/[0.35] mt-0.5 tracking-wide uppercase">
-                O ecossistema da sua agência
-              </p>
-            </>
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl bg-gradient-to-br from-primary to-[#2170e4] p-2 shadow-lg shadow-primary/20">
+                <span className="text-sm font-extrabold text-white">VH</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-extrabold text-white tracking-tight">
+                  ViaHub
+                </h1>
+                <p className="text-[10px] text-white/[0.35] tracking-wide uppercase">
+                  O ecossistema da sua agência
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
@@ -171,7 +173,7 @@ export function AppSidebar() {
                     {!collapsed && (
                       <span className="flex-1 flex items-center gap-2">
                         Assistente IA
-                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded bg-white/10 text-white/50">Pro</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded-full bg-white/10 text-white/50">Pro</span>
                       </span>
                     )}
                   </button>
@@ -210,7 +212,7 @@ export function AppSidebar() {
 
         {/* Ajuda e Suporte (Agency only) */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-2 mt-auto border-t border-sidebar-border/50">
+          <SidebarGroup className="py-1 px-2 mt-auto border-t border-white/[0.06]">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -234,8 +236,8 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed && (
         <SidebarFooter>
-          <div className="flex items-center border-t border-white/[0.06] bg-white/[0.04] gap-3 px-4 py-3">
-            <div className="rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-semibold shrink-0 h-8 w-8 text-xs">
+          <div className="flex items-center border-t border-white/[0.08] bg-white/[0.04] gap-3 px-4 py-3">
+            <div className="rounded-full bg-gradient-to-br from-primary to-[#2170e4] flex items-center justify-center text-white font-semibold shrink-0 h-8 w-8 text-xs">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
