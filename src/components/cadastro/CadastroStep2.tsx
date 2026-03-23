@@ -196,7 +196,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
             <p className="text-sm text-on-surface-variant font-body mb-6 lg:mb-4">Selecione o plano ideal para sua agência</p>
 
             {/* Plans */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2 mb-6 lg:mb-4">
               {planos.map((p) => {
                 const selected = data.plano === p.value;
                 return (
