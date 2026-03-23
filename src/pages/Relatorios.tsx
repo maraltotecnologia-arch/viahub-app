@@ -393,17 +393,23 @@ export default function Relatorios() {
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Tipo de Serviço</label>
               <div className="flex flex-wrap gap-1.5">
-                {TIPOS_SERVICO.map((t) => (
-                  <Badge
-                    key={t}
-                    variant={tiposFiltro.includes(t) ? "default" : "outline"}
-                    className="cursor-pointer text-xs"
-                    style={!tiposFiltro.includes(t) ? { background: 'transparent', borderColor: 'var(--border-input)', color: 'var(--text-primary)' } : { background: 'var(--accent-primary)', borderColor: 'var(--accent-primary)', color: '#FFFFFF' }}
-                    onClick={() => toggleTipo(t)}
-                  >
-                    {t}
-                  </Badge>
-                ))}
+                {TIPOS_SERVICO.map((t) => {
+                  const isActive = tiposFiltro.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggleTipo(t)}
+                      className={`rounded-full px-4 py-1.5 text-sm transition-colors border ${
+                        isActive
+                          ? "bg-blue-600 border-blue-600 text-white font-semibold"
+                          : "bg-white border-gray-200 text-gray-600 font-medium hover:border-blue-300 hover:text-blue-600 dark:bg-transparent dark:border-gray-700 dark:text-gray-400 dark:hover:border-blue-500 dark:hover:text-blue-400"
+                      }`}
+                    >
+                      {t}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
