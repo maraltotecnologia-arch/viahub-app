@@ -102,8 +102,8 @@ export default function Orcamentos() {
   return (
     <TooltipProvider>
     <div className="space-y-6 animate-fade-in-up">
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h2 className="text-2xl font-bold">Orçamentos</h2>
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-8">
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Orçamentos</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"

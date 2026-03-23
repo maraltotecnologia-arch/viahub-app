@@ -95,8 +95,10 @@ export default function Pipeline() {
 
   return (
     <TooltipProvider>
-    <div className="space-y-6 animate-fade-in-up flex-1 flex flex-col">
-      <h2 className="text-2xl font-bold">Pipeline</h2>
+    <div className="animate-fade-in-up flex-1 flex flex-col h-[calc(100vh-56px)] overflow-hidden bg-surface">
+      <div className="px-8 py-5 bg-surface-container-lowest/80 backdrop-blur-sm border-b border-outline-variant/10 flex items-center justify-between">
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Pipeline de Vendas</h2>
+      </div>
       {(!orcamentos || orcamentos.length === 0) ? (
         <div className="flex-1 flex items-center justify-center">
           <EmptyState
@@ -106,7 +108,7 @@ export default function Pipeline() {
           />
         </div>
       ) : (
-      <div className="flex flex-col md:flex-row gap-3 pb-4">
+      <div className="flex-1 overflow-x-auto p-6 flex gap-4 items-start">
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
@@ -115,10 +117,10 @@ export default function Pipeline() {
           return (
             <div
               key={col.id}
-              className="min-w-0 flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
+              className="min-w-[288px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200"
               style={{
-                background: isDropActive ? "hsl(var(--primary) / 0.1)" : "transparent",
-                border: isDropActive ? "2px dashed hsl(var(--primary))" : "2px dashed transparent",
+                background: isDropActive ? "rgba(0,55,176,0.06)" : "transparent",
+                border: isDropActive ? "2px dashed #0037b0" : "2px dashed transparent",
               }}
               onDragOver={(e) => { e.preventDefault(); setDropTarget(col.id); }}
               onDragLeave={() => setDropTarget(null)}
@@ -126,13 +128,13 @@ export default function Pipeline() {
             >
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={col.id} />
-                  <span className="text-xs text-muted-foreground">{cards.length}</span>
+                  <span className="text-xs font-bold font-label text-on-surface-variant uppercase tracking-wider">{col.title}</span>
+                  <span className="text-xs bg-surface-container-high text-on-surface-variant rounded-full px-2 py-0.5">{cards.length}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">{fmt(total)}</span>
               </div>
+              <p className="text-xs font-semibold text-on-surface px-1 mb-3">{fmt(total)}</p>
 
-              <div className="space-y-3 flex-1">
+              <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-220px)] pb-2 flex-1">
                 {cards.map((card) => {
                   const validade = card.validade ? new Date(card.validade) : null;
                   const diasParaVencer = validade ? Math.ceil((validade.getTime() - now.getTime()) / 86400000) : 999;
@@ -160,31 +162,32 @@ export default function Pipeline() {
                     >
                       <Link to={`/orcamentos/${card.id}`}>
                         <Card
-                          className={`transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                            isDragging ? "shadow-lg" : ""
-                          } ${diasParaVencer <= 3 && diasParaVencer >= 0 ? "border-accent border-2" : ""
+                          className={`transition-all duration-150 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/20 hover:shadow-[0_4px_12px_rgba(13,28,45,0.08)] ${
+                            isDragging ? "shadow-ambient" : ""
                           } ${diasParaVencer < 0 ? "opacity-60" : ""}`}
-                          style={{
-                            borderLeft: diasParaVencer <= 3 && diasParaVencer >= 0 ? undefined : `3px solid ${col.borderColor}`,
-                          }}
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-center gap-1">
-                              <p className="font-semibold text-sm">{card.titulo || "Sem título"}</p>
+                            <div className="flex justify-between items-start gap-2">
+                              <p className="text-sm font-semibold font-headline text-on-surface leading-snug">{card.titulo || "Sem título"}</p>
                               {isPerdidoPorVencimento && (
                                 <Tooltip>
-                                  <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
+                                  <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-error cursor-help shrink-0" /></TooltipTrigger>
                                   <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
                                 </Tooltip>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">{(card.clientes as any)?.nome || "Sem cliente"}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <span className="font-bold text-sm">{fmt(Number(card.valor_final) || 0)}</span>
-                              <span className={`text-xs ${diasParaVencer <= 3 ? "text-accent font-semibold" : "text-muted-foreground"}`}>
+                            <p className="text-xs text-on-surface-variant mt-1.5">{(card.clientes as any)?.nome || "Sem cliente"}</p>
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/10">
+                              <span className="text-sm font-bold font-display text-on-surface">{fmt(Number(card.valor_final) || 0)}</span>
+                              <span className={`text-xs ${diasParaVencer <= 3 ? "text-[#e65100] font-semibold" : "text-on-surface-variant"}`}>
                                 {diasParaVencer < 0 ? "Vencido" : validade ? `${diasParaVencer}d` : "-"}
                               </span>
                             </div>
+                            {diasParaVencer <= 3 && diasParaVencer >= 0 && (
+                              <p className="text-xs text-error bg-error-container/20 rounded-md px-2 py-1 mt-2 flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> Vence em {diasParaVencer}d
+                              </p>
+                            )}
                           </CardContent>
                         </Card>
                       </Link>

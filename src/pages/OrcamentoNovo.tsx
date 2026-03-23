@@ -622,14 +622,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   return (
-    <div className="space-y-6 w-full animate-fade-in">
-      <div className="flex items-center gap-3">
+    <div className="space-y-6 w-full max-w-4xl mx-auto animate-fade-in">
+      <div className="flex items-center gap-3 mb-8">
         {isEdicao && (
           <Button variant="ghost" size="icon" onClick={() => navigate(`/orcamentos/${orcamentoId}`)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
-        <h2 className="text-2xl font-bold">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
       </div>
 
       {/* Cliente */}
@@ -806,10 +806,10 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             </div>
           )}
           {itens.map((item, idx) => (
-            <div key={item.id} className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)" }}>
+            <div key={item.id} className="rounded-xl p-5 space-y-3 relative bg-surface-container-low border border-outline-variant/10">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-muted-foreground">Item {idx + 1}</span>
-                {itens.length > 1 && <Button variant="ghost" size="icon" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                <span className="text-sm font-semibold font-headline text-on-surface-variant">Item {idx + 1}</span>
+                {itens.length > 1 && <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-error hover:bg-error-container/20" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
@@ -826,7 +826,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <div className="space-y-1"><Label className="text-xs">Markup %</Label><Input type="number" min={0} value={item.markup_percentual || ""} onChange={(e) => updateItem(item.id, "markup_percentual", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
-                <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
+                <div className="space-y-1"><Label className="text-xs font-label">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-xl bg-primary/8 text-sm font-semibold text-primary">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
               </div>
               {/* Conditional date/time fields by service type */}
               {(item.tipo === "Aéreo" || item.tipo === "Transfer") && (

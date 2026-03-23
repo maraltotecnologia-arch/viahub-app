@@ -69,30 +69,26 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
   title: string; value: string; icon: any; iconBg: string; isLoading?: boolean; subtitle?: string;
 }) {
   return (
-    <Card
-      className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200"
-      style={{
-        background: "var(--bg-card)",
-        borderColor: "var(--border-color)",
-      }}
-    >
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
-            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
+    <Card className="rounded-2xl shadow-ambient">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wider mb-2">{title}</p>
+            {isLoading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <>
+                <p className="text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
+                  {value}
+                </p>
+                {subtitle && <p className="text-xs text-on-surface-variant mt-1 truncate">{subtitle}</p>}
+              </>
+            )}
           </div>
-          <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>{title}</span>
+          <div className={`rounded-xl p-3 shrink-0 ${iconBg}`}>
+            <Icon className="h-5 w-5" />
+          </div>
         </div>
-        {isLoading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          <div className="min-w-0">
-            <p className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
-              {value}
-            </p>
-            {subtitle && <p className="text-xs mt-1 truncate" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
@@ -373,20 +369,20 @@ function SuperadminDashboard() {
   const churnDiff = (metrics?.churnAtual ?? 0) - (metrics?.churnAnterior ?? 0);
 
   const metricCards = [
-    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400" },
-    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400" },
-    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400" },
-    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400" },
+    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-primary/8 text-primary" },
+    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-[#7c3aed]/8 text-[#7c3aed]" },
+    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-secondary-container/40 text-secondary" },
+    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-[#ff9800]/10 text-[#e65100]" },
   ];
 
   const medalhas = ["🥇", "🥈", "🥉"];
   const planoLabel: Record<string, string> = { starter: "Starter", pro: "Pro", elite: "Elite" };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
       <div>
-        <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Painel Administrativo</h2>
-        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Painel Administrativo</h2>
+        <p className="text-sm text-on-surface-variant font-body mt-1">Visão consolidada de todas as agências</p>
       </div>
 
       {/* Linha 1 — Métricas operacionais */}
@@ -646,16 +642,19 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   });
 
   const metricCards = [
-    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400", subtitle: "" },
-    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400", subtitle: "" },
-    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-500/15 text-green-500 dark:bg-green-500/20 dark:text-green-400", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
-    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400", subtitle: "" },
-    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400", subtitle: "" },
+    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-primary/8 text-primary", subtitle: "" },
+    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-secondary-container/40 text-secondary", subtitle: "" },
+    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-secondary-container/40 text-secondary", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
+    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-[#7c3aed]/8 text-[#7c3aed]", subtitle: "" },
+    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-[#ff9800]/10 text-[#e65100]", subtitle: "" },
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
+    <div className="space-y-8 animate-fade-in-up">
+      <div>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Dashboard</h2>
+        <p className="text-sm text-on-surface-variant font-body mt-1">Aqui está o resumo da sua agência</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((m) => (

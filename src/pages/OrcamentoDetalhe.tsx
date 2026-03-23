@@ -484,12 +484,12 @@ export default function OrcamentoDetalhe() {
         );
       })()}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 mb-8">
         <Button variant="ghost" size="icon" asChild><Link to="/orcamentos"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div className="flex-1">
-          <h2 className="text-2xl font-bold">{orc.titulo || "Sem título"}</h2>
+          <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">{orc.titulo || "Sem título"}</h2>
           {(orc as any).numero_orcamento && (
-            <p className="text-xs text-muted-foreground">{(orc as any).numero_orcamento}</p>
+            <p className="text-xs text-on-surface-variant font-label mt-0.5">{(orc as any).numero_orcamento}</p>
           )}
         </div>
         <StatusBadge status={orc.status || "rascunho"} />
