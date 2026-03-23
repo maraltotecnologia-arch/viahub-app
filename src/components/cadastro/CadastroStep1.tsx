@@ -145,8 +145,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
                 <FieldError field="nomeAgencia" />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
+                <div className="space-y-1.5 lg:space-y-1">
                   <Label htmlFor="cnpj" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">CNPJ *</Label>
                   <Input id="cnpj" placeholder="00.000.000/0001-00" value={data.cnpj} onChange={(e) => updateData({ cnpj: maskCNPJ(e.target.value) })} />
                   <FieldError field="cnpj" />
