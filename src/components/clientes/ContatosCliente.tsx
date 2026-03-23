@@ -110,7 +110,7 @@ export default function ContatosCliente({ clienteId, agenciaId }: ContatosClient
                   <Label htmlFor="principal" className="text-sm cursor-pointer">Contato principal</Label>
                 </div>
               )}
-              <Button variant="gradient" className="w-full" onClick={handleAdd} disabled={saving || !form.nome.trim()}>
+              <Button variant="default" className="w-full" onClick={handleAdd} disabled={saving || !form.nome.trim()}>
                 {saving ? "Salvando..." : "Salvar Contato"}
               </Button>
             </div>

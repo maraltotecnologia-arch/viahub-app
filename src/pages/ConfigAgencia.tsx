@@ -222,7 +222,7 @@ export default function ConfigAgencia() {
             <div className="space-y-2"><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             <div className="space-y-2"><Label>Telefone</Label><Input value={form.telefone} onChange={(e) => setForm({ ...form, telefone: maskTelefone(e.target.value) })} /></div>
           </div>
-          <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+          <Button variant="default" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
         </CardContent>
       </Card>
 
@@ -318,7 +318,7 @@ function AlterarSenhaSection() {
             <Input type="password" value={confirmar} onChange={(e) => setConfirmar(e.target.value)} required />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button variant="gradient" disabled={loading}>{loading ? "Salvando..." : "Alterar Senha"}</Button>
+          <Button variant="default" disabled={loading}>{loading ? "Salvando..." : "Alterar Senha"}</Button>
         </form>
       </CardContent>
     </Card>
@@ -415,7 +415,7 @@ function HorarioFuncionamentoSection({ agenciaId, horarioInicial }: { agenciaId:
             );
           })}
         </div>
-        <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>
+        <Button variant="default" className="mt-4" onClick={handleSave} disabled={saving}>
           {saving ? "Salvando..." : "Salvar Horário"}
         </Button>
       </CardContent>

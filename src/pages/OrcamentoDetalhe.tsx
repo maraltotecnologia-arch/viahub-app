@@ -979,7 +979,7 @@ export default function OrcamentoDetalhe() {
                 placeholder="Descrição do template..."
               />
             </div>
-            <Button variant="gradient" className="w-full" onClick={handleSaveTemplate} disabled={savingTemplate}>
+            <Button variant="default" className="w-full" onClick={handleSaveTemplate} disabled={savingTemplate}>
               {savingTemplate ? "Salvando..." : "Salvar Template"}
             </Button>
           </div>

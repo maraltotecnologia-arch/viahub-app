@@ -45,13 +45,13 @@ export default function AppLayout() {
   return (
     <TooltipProvider delayDuration={300}>
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background text-foreground">
+      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-950 text-foreground">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 flex items-center px-4 sm:px-6 shrink-0 sticky top-0 z-20 bg-card border-b border-border">
+          <header className="h-14 flex items-center px-4 sm:px-6 shrink-0 sticky top-0 z-20 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarTrigger className="shrink-0 p-2 rounded-lg hover:bg-accent text-muted-foreground">
+                <SidebarTrigger className="shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500">
                   {isMobile && <Menu className="h-5 w-5" />}
                 </SidebarTrigger>
               </TooltipTrigger>
@@ -75,7 +75,7 @@ export default function AppLayout() {
                 <TooltipTrigger asChild>
                   <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors"
+                    className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 transition-colors"
                   >
                     {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   </button>
@@ -92,23 +92,23 @@ export default function AppLayout() {
               </Tooltip>
 
               {/* Divider */}
-              <div className="hidden sm:block w-px h-6 bg-border" />
+              <div className="hidden sm:block w-px h-6 bg-gray-200 dark:bg-gray-700" />
 
               {/* Avatar + name */}
-              <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-accent cursor-default">
+              <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-default">
                 <div className="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
                   {initials}
                 </div>
                 {!isMobile && (
                   <>
-                    <span className="text-sm font-medium text-foreground">{displayName}</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{displayName}</span>
                     {cargoLabel && <CargoBadge cargo={cargoLabel} />}
                   </>
                 )}
               </div>
             </div>
           </header>
-          <main className="flex-1 flex flex-col overflow-auto bg-background" style={{ height: "calc(100vh - 3.5rem)" }}>
+          <main className="flex-1 flex flex-col overflow-auto bg-gray-50 dark:bg-gray-950" style={{ height: "calc(100vh - 3.5rem)" }}>
             <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
               <Outlet />
             </div>

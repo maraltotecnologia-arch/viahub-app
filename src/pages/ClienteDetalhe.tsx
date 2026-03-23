@@ -161,7 +161,7 @@ export default function ClienteDetalhe() {
             <Label>Observações <span className="text-xs text-muted-foreground">(salva automaticamente)</span></Label>
             <Textarea value={form.observacoes} onChange={(e) => handleObsChange(e.target.value)} />
           </div>
-          <Button variant="gradient" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
+          <Button variant="default" className="mt-4" onClick={handleSave} disabled={saving}>{saving ? "Salvando..." : "Salvar Alterações"}</Button>
         </CardContent>
       </Card>
 
