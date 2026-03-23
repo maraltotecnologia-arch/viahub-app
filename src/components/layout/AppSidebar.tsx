@@ -122,9 +122,9 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-4 pt-6 pb-1.5 text-[10px] font-bold font-label text-on-surface-variant/50 uppercase tracking-widest">{label}</p>
+      <p className="px-4 pt-6 pb-1.5 text-[10px] font-bold font-label text-sidebar-foreground/40 uppercase tracking-widest">{label}</p>
     ) : (
-      <Separator className="mx-3 my-1 bg-outline-variant/15" />
+      <Separator className="mx-3 my-1 bg-sidebar-border" />
     );
 
   return (
