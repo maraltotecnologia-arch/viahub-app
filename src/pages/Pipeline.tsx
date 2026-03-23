@@ -109,6 +109,7 @@ export default function Pipeline() {
         </div>
       ) : (
       <div className="flex-1 overflow-x-auto p-6 flex gap-4 items-start">
+        {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
           const isDropActive = dropTarget === col.id;
@@ -116,10 +117,10 @@ export default function Pipeline() {
           return (
             <div
               key={col.id}
-              className="min-w-0 flex-1 flex flex-col rounded-lg p-2 transition-all duration-200"
+              className="min-w-[288px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200"
               style={{
-                background: isDropActive ? "hsl(var(--primary) / 0.1)" : "transparent",
-                border: isDropActive ? "2px dashed hsl(var(--primary))" : "2px dashed transparent",
+                background: isDropActive ? "rgba(0,55,176,0.06)" : "transparent",
+                border: isDropActive ? "2px dashed #0037b0" : "2px dashed transparent",
               }}
               onDragOver={(e) => { e.preventDefault(); setDropTarget(col.id); }}
               onDragLeave={() => setDropTarget(null)}
@@ -127,13 +128,13 @@ export default function Pipeline() {
             >
               <div className="flex items-center justify-between mb-3 px-1">
                 <div className="flex items-center gap-2">
-                  <StatusBadge status={col.id} />
-                  <span className="text-xs text-muted-foreground">{cards.length}</span>
+                  <span className="text-xs font-bold font-label text-on-surface-variant uppercase tracking-wider">{col.title}</span>
+                  <span className="text-xs bg-surface-container-high text-on-surface-variant rounded-full px-2 py-0.5">{cards.length}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">{fmt(total)}</span>
               </div>
+              <p className="text-xs font-semibold text-on-surface px-1 mb-3">{fmt(total)}</p>
 
-              <div className="space-y-3 flex-1">
+              <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-220px)] pb-2 flex-1">
                 {cards.map((card) => {
                   const validade = card.validade ? new Date(card.validade) : null;
                   const diasParaVencer = validade ? Math.ceil((validade.getTime() - now.getTime()) / 86400000) : 999;
