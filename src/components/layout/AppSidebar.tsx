@@ -146,8 +146,8 @@ export function AppSidebar() {
                 <span className="text-sm font-bold text-white">VH</span>
               </div>
               <div>
-                <span className="text-lg font-bold font-display tracking-tight text-on-surface block">ViaHub</span>
-                <span className="text-[10px] font-semibold font-label text-on-surface-variant/60 uppercase tracking-widest block">O ecossistema da sua agência</span>
+                <span className="text-lg font-bold font-display tracking-tight text-sidebar-foreground block">ViaHub</span>
+                <span className="text-[10px] font-semibold font-label text-sidebar-foreground/50 uppercase tracking-widest block">O ecossistema da sua agência</span>
               </div>
             </div>
           )}
