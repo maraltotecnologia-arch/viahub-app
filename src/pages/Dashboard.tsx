@@ -650,8 +650,11 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
-      <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Dashboard</h2>
+    <div className="space-y-8 animate-fade-in-up">
+      <div>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Dashboard</h2>
+        <p className="text-sm text-on-surface-variant font-body mt-1">Aqui está o resumo da sua agência</p>
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((m) => (
