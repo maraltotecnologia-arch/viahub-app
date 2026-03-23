@@ -369,10 +369,10 @@ function SuperadminDashboard() {
   const churnDiff = (metrics?.churnAtual ?? 0) - (metrics?.churnAnterior ?? 0);
 
   const metricCards = [
-    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400" },
-    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400" },
-    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400" },
-    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400" },
+    { title: "Agências ativas", value: metrics ? String(metrics.totalAgencias) : "0", icon: Building2, iconBg: "bg-primary/8 text-primary" },
+    { title: "Orçamentos este mês", value: metrics ? String(metrics.totalOrcamentos) : "0", icon: FileText, iconBg: "bg-[#7c3aed]/8 text-[#7c3aed]" },
+    { title: "Volume total orçado", value: metrics ? fmt(metrics.volumeTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-secondary-container/40 text-secondary" },
+    { title: "MRR estimado", value: metrics ? fmt(metrics.mrr) : "R$ 0", icon: TrendingUp, iconBg: "bg-[#ff9800]/10 text-[#e65100]" },
   ];
 
   const medalhas = ["🥇", "🥈", "🥉"];
