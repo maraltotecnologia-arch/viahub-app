@@ -54,12 +54,20 @@ export default function Cadastro() {
   }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", "light");
-    document.documentElement.style.setProperty("--bg-primary", "#ffffff");
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.remove('dark');
+    html.classList.add('light');
+    html.setAttribute('data-theme', 'light');
+    html.style.setProperty('--bg-primary', '#ffffff');
     return () => {
-      const saved = localStorage.getItem("viahub-theme") || "dark";
-      document.documentElement.setAttribute("data-theme", saved);
-      document.documentElement.style.removeProperty("--bg-primary");
+      html.classList.remove('light');
+      html.style.removeProperty('--bg-primary');
+      const saved = localStorage.getItem('viahub-theme') || 'dark';
+      html.setAttribute('data-theme', saved);
+      if (hadDark || saved === 'dark') {
+        html.classList.add('dark');
+      }
     };
   }, []);
 

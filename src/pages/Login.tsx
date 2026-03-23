@@ -19,10 +19,18 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'light');
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.remove('dark');
+    html.classList.add('light');
+    html.setAttribute('data-theme', 'light');
     return () => {
+      html.classList.remove('light');
       const saved = localStorage.getItem('viahub-theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
+      html.setAttribute('data-theme', saved);
+      if (hadDark || saved === 'dark') {
+        html.classList.add('dark');
+      }
     };
   }, []);
 
