@@ -69,30 +69,26 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
   title: string; value: string; icon: any; iconBg: string; isLoading?: boolean; subtitle?: string;
 }) {
   return (
-    <Card
-      className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200"
-      style={{
-        background: "var(--bg-card)",
-        borderColor: "var(--border-color)",
-      }}
-    >
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-center gap-3 mb-3">
-          <div className={`h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
-            <Icon className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
+    <Card className="rounded-2xl shadow-ambient">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wider mb-2">{title}</p>
+            {isLoading ? (
+              <Skeleton className="h-10 w-24" />
+            ) : (
+              <>
+                <p className="text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
+                  {value}
+                </p>
+                {subtitle && <p className="text-xs text-on-surface-variant mt-1 truncate">{subtitle}</p>}
+              </>
+            )}
           </div>
-          <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>{title}</span>
+          <div className={`rounded-xl p-3 shrink-0 ${iconBg}`}>
+            <Icon className="h-5 w-5" />
+          </div>
         </div>
-        {isLoading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          <div className="min-w-0">
-            <p className="text-xl sm:text-2xl md:text-xl lg:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
-              {value}
-            </p>
-            {subtitle && <p className="text-xs mt-1 truncate" style={{ color: "var(--text-secondary)" }}>{subtitle}</p>}
-          </div>
-        )}
       </CardContent>
     </Card>
   );
