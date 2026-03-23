@@ -109,10 +109,11 @@ export function AppSidebar() {
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild tooltip={collapsed ? item.title : undefined}>
         {item.onClick ? (
-          <button
-            onClick={item.onClick}
+          <NavLink
+            to="#"
+            onClick={(e) => { e.preventDefault(); item.onClick!(); }}
             title={collapsed ? item.title : undefined}
-            className={`${navCls(false)} ${collapsed ? "relative" : ""} w-full text-left`}
+            className={`${navCls(false)} ${collapsed ? "relative" : ""}`}
           >
             <item.icon className={iconCls(false)} strokeWidth={1.5} />
             {!collapsed && (
@@ -123,7 +124,7 @@ export function AppSidebar() {
                 )}
               </span>
             )}
-          </button>
+          </NavLink>
         ) : (
           <NavLink
             to={item.url}
