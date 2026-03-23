@@ -208,7 +208,7 @@ export function AppSidebar() {
 
         {/* Ajuda e Suporte */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-0 mt-auto border-t border-outline-variant/15">
+          <SidebarGroup className="py-1 px-0 mt-auto border-t border-sidebar-border">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
