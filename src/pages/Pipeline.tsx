@@ -88,7 +88,9 @@ export default function Pipeline() {
   };
 
   if (isLoading) return (
-    <div className="space-y-6"><h2 className="text-2xl font-bold">Pipeline</h2><div className="flex gap-4">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-64 flex-1" />)}</div></div>
+    <div className="flex items-center justify-center w-full" style={{ minHeight: "calc(100vh - 3.5rem)" }}>
+      <Skeleton className="h-8 w-8 rounded-full" />
+    </div>
   );
 
   const now = new Date();

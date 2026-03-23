@@ -188,7 +188,7 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
   const progressColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#2563EB" : pct >= 50 ? "#F59E0B" : "#EF4444";
 
   return (
-    <Card className="rounded-2xl" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+    <Card className="rounded-2xl">
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-3">
           <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center">
