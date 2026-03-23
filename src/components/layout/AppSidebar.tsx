@@ -65,8 +65,8 @@ export function AppSidebar() {
   const navCls = (isActive: boolean) =>
     `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 mx-3 px-3 py-2.5"} rounded-xl text-sm transition-all duration-150 ${
       isActive
-        ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-semibold border-l-2 border-primary"
-        : "text-on-surface-variant font-medium hover:bg-surface-container-high hover:text-on-surface"
+        ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+        : "text-sidebar-foreground/70 font-medium hover:bg-sidebar-accent hover:text-sidebar-foreground"
     }`;
 
   const mainItems = [
