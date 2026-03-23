@@ -1,80 +1,61 @@
-import { useEffect, useRef, useState, FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  FileText, LayoutList, Users, BarChart3, Sparkles, Bell,
-  Menu, X, Check, ArrowRight, Quote, Loader2, Clock, TrendingUp
+  FileText, BarChart3, Users, Sparkles, MessageCircle, TrendingUp,
+  Menu, X, Check, ArrowRight, ChevronDown, Play, Shield,
 } from "lucide-react";
 
-/* ─── helpers ─── */
-const useInView = (threshold = 0.15) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-};
-
 /* ─── data ─── */
+const navLinks = [
+  { href: "#funcionalidades", label: "Funcionalidades" },
+  { href: "#precos", label: "Preços" },
+  { href: "#faq", label: "FAQ" },
+];
+
 const features = [
-  { icon: FileText, title: "Orçamentos Profissionais", desc: "Markup automático, PDF em segundos e envio direto pelo WhatsApp." },
-  { icon: LayoutList, title: "Pipeline de Vendas", desc: "Do rascunho ao pagamento, visualize cada etapa da sua venda." },
-  { icon: Users, title: "CRM de Clientes", desc: "Tags, múltiplos contatos e histórico completo de cada cliente." },
-  { icon: BarChart3, title: "Relatórios Financeiros", desc: "Faturamento real, taxa de conversão e performance da equipe." },
-  { icon: Sparkles, title: "IA para Cotações", desc: "Descreva a viagem e receba um orçamento completo com preços reais das consolidadoras em segundos." },
-  { icon: Bell, title: "Alertas e Follow-up", desc: "Nunca perca um prazo. Alertas automáticos no momento certo." },
+  { icon: FileText, title: "Orçamentos profissionais", desc: "Crie PDFs bonitos em minutos com itens, datas e markup automático." },
+  { icon: Sparkles, title: "IA Copilot para cotações", desc: "Busque voos e hotéis com linguagem natural. A IA faz a cotação para você." },
+  { icon: MessageCircle, title: "WhatsApp integrado", desc: "Envie orçamentos diretamente pelo WhatsApp da agência com um clique." },
+  { icon: BarChart3, title: "Pipeline de vendas", desc: "Visualize e gerencie todas as negociações em um Kanban intuitivo." },
+  { icon: Users, title: "Gestão de equipes", desc: "Múltiplos consultores com permissões e relatórios individuais." },
+  { icon: TrendingUp, title: "Relatórios e métricas", desc: "Acompanhe conversão, faturamento e desempenho em tempo real." },
 ];
 
 const steps = [
-  { n: "01", title: "Cadastre", desc: "Crie sua conta e configure markup e perfil da agência." },
-  { n: "02", title: "Importe", desc: "Adicione sua base de clientes existente ou cadastre novos." },
-  { n: "03", title: "Orçamente", desc: "Monte propostas com PDF automático e envie via WhatsApp." },
-  { n: "04", title: "Feche", desc: "Acompanhe pelo pipeline e confirme pagamentos recebidos." },
+  { n: 1, title: "Cadastre sua agência", desc: "Crie sua conta em 2 minutos e configure seu perfil." },
+  { n: 2, title: "Importe seus clientes", desc: "Adicione clientes ou importe uma lista existente facilmente." },
+  { n: 3, title: "Comece a vender", desc: "Crie orçamentos, gerencie pipeline e feche mais vendas." },
 ];
 
 const plans = [
   {
-    name: "Starter", price: "R$397", per: "/mês", popular: false, whitelabel: false,
-    desc: "",
-    altPrice: "",
+    name: "Starter", price: "R$ 397", popular: false,
+    desc: "Ideal para agências iniciantes",
     feats: ["Até 3 usuários", "Orçamentos ilimitados", "PDF + WhatsApp", "CRM de clientes", "Relatórios básicos", "Suporte por email"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
-    name: "Pro", price: "R$697", per: "/mês", popular: true, whitelabel: false,
-    desc: "",
-    altPrice: "",
-    feats: ["Usuários ilimitados", "Tudo do Starter", "Pipeline Kanban avançado", "Relatórios completos", "Templates ilimitados", "IA para cotações", "Suporte prioritário"],
+    name: "Pro", price: "R$ 697", popular: true,
+    desc: "Para agências em crescimento",
+    feats: ["Até 10 usuários", "Tudo do Starter", "IA Copilot", "WhatsApp integrado", "Pipeline Kanban avançado", "Relatórios completos", "Suporte prioritário"],
     cta: "Começar grátis", ctaLink: "/cadastro",
   },
   {
-    name: "Elite", price: "R$1.997", per: "/mês", popular: false, whitelabel: true,
-    desc: "Para agências que querem o sistema com a própria marca",
-    altPrice: "",
-    feats: ["Tudo do Pro", "Usuários ilimitados", "Marca e logo próprias", "Domínio personalizado", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
+    name: "Elite", price: "R$ 1.997", popular: false,
+    desc: "Para agências que querem o máximo",
+    feats: ["Usuários ilimitados", "Tudo do Pro", "Relatórios avançados", "Suporte prioritário", "Gestor de conta dedicado", "SLA garantido", "Onboarding exclusivo"],
     cta: "Falar com consultor", ctaLink: "mailto:suporte@viahub.app",
   },
 ];
 
-const testimonials = [
-  { name: "Ana Costa", agency: "Viagens Costa", text: "O ViaHub transformou a forma como montamos orçamentos. O que levava 40 minutos agora leva 5." },
-  { name: "Ricardo Mendes", agency: "RM Turismo", text: "O pipeline de vendas me deu uma visão clara de cada negociação. Minha taxa de conversão subiu 30%." },
-  { name: "Juliana Ferreira", agency: "JF Travel", text: "Finalmente um sistema feito para agências de verdade. Os relatórios me ajudam a tomar decisões com confiança." },
-];
-
-const navLinks = [
-  { href: "#funcionalidades", label: "Funcionalidades" },
-  { href: "#como-funciona", label: "Como funciona" },
-  { href: "#planos", label: "Planos" },
-  { href: "#contato", label: "Contato" },
+const faqs = [
+  { q: "Preciso instalar algum software?", a: "Não! O ViaHub é 100% online. Basta acessar pelo navegador em qualquer dispositivo — computador, tablet ou celular." },
+  { q: "Posso testar antes de assinar?", a: "Sim! Oferecemos 14 dias grátis em qualquer plano, sem necessidade de cartão de crédito." },
+  { q: "Como funciona o período de teste?", a: "Ao criar sua conta, você tem acesso completo a todas as funcionalidades do plano escolhido por 14 dias. Após esse período, você pode assinar ou sua conta será pausada." },
+  { q: "Meus dados estão seguros?", a: "Absolutamente. Utilizamos criptografia de ponta a ponta, servidores seguros e estamos em conformidade com a LGPD." },
+  { q: "Posso cancelar a qualquer momento?", a: "Sim, sem multas ou taxas. Você pode cancelar sua assinatura a qualquer momento diretamente pelo sistema." },
+  { q: "Vocês oferecem suporte em português?", a: "Sim! Todo o suporte é em português, com atendimento por email e chat. Planos Pro e Elite contam com suporte prioritário." },
 ];
 
 /* ─── component ─── */
@@ -89,62 +70,79 @@ export default function Index() {
 
   useEffect(() => {
     document.title = "ViaHub — O ecossistema da sua agência de viagens";
+    document.documentElement.setAttribute("data-theme", "light");
+    return () => {
+      const saved = localStorage.getItem("viahub-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+    };
   }, []);
 
-  if (loading) return null;
-  if (user) return null;
+  if (loading || user) return null;
 
   return (
-    <div className="viahub-landing">
-      {/* Orbs */}
-      <div className="lp-orb lp-orb--blue" />
-      <div className="lp-orb lp-orb--cyan" />
-
-      <Header menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+    <div className="min-h-screen bg-white text-gray-900 font-sans overflow-x-hidden">
+      <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <Hero />
-      <hr className="lp-section-divider" />
-      <Features />
-      <hr className="lp-section-divider" />
+      <LogosSection />
+      <FeaturesSection />
       <HowItWorks />
-      <hr className="lp-section-divider" />
-      <Plans />
-      <hr className="lp-section-divider" />
-      <Testimonials />
-      <hr className="lp-section-divider" />
-      <FinalSection />
+      <PricingSection />
+      <FAQSection />
+      <CTAFinal />
       <Footer />
     </div>
   );
 }
 
-/* ─── Header ─── */
-function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
+/* ─── Navbar ─── */
+function Navbar({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v: boolean) => void }) {
   return (
-    <header className="lp-header">
-      <div className="lp-container lp-header__inner">
-        <Link to="/" className="lp-logo">ViaHub</Link>
-        <nav className="lp-nav">
-          {navLinks.map(l => (
-            <a key={l.href} href={l.href} className="lp-nav__link">{l.label}</a>
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+      <div className="max-w-7xl mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <span className="text-sm font-bold text-white">VH</span>
+          </div>
+          <span className="text-lg font-bold text-gray-900">ViaHub</span>
+        </Link>
+
+        <nav className="hidden lg:flex items-center gap-8">
+          {navLinks.map((l) => (
+            <a key={l.href} href={l.href} className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              {l.label}
+            </a>
           ))}
         </nav>
-        <div className="lp-header__actions">
-          <Link to="/login" className="lp-btn lp-btn--ghost">Área do Cliente</Link>
-          <Link to="/cadastro" className="lp-btn lp-btn--primary">Começar grátis</Link>
+
+        <div className="hidden lg:flex items-center gap-2">
+          <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg transition-colors">
+            Fazer login
+          </Link>
+          <Link to="/cadastro" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+            Começar grátis
+          </Link>
         </div>
-        <button className="lp-hamburger" onClick={() => setMenuOpen(!menuOpen)} aria-label="Menu">
-          {menuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+
+        <div className="flex lg:hidden items-center gap-2">
+          <Link to="/cadastro" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors">
+            Começar grátis
+          </Link>
+          <button onClick={() => setMenuOpen(!menuOpen)} className="p-2 text-gray-500" aria-label="Menu">
+            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
+
       {menuOpen && (
-        <div className="lp-mobile-menu">
-          {navLinks.map(l => (
-            <a key={l.href} href={l.href} className="lp-mobile-menu__link" onClick={() => setMenuOpen(false)}>{l.label}</a>
+        <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-1">
+          {navLinks.map((l) => (
+            <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} className="block text-base font-medium text-gray-600 py-2.5 border-b border-gray-50">
+              {l.label}
+            </a>
           ))}
-          <div className="lp-mobile-menu__actions">
-            <Link to="/login" className="lp-btn lp-btn--ghost" style={{ width: "100%" }}>Área do Cliente</Link>
-            <Link to="/cadastro" className="lp-btn lp-btn--primary" style={{ width: "100%" }}>Começar grátis</Link>
-          </div>
+          <Link to="/login" onClick={() => setMenuOpen(false)} className="block text-base font-medium text-gray-600 py-2.5">
+            Fazer login
+          </Link>
         </div>
       )}
     </header>
@@ -154,108 +152,147 @@ function Header({ menuOpen, setMenuOpen }: { menuOpen: boolean; setMenuOpen: (v:
 /* ─── Hero ─── */
 function Hero() {
   return (
-    <section className="lp-hero">
-      <div className="lp-container lp-hero__inner">
-        <div className="lp-hero__badge lp-stagger" style={{ animationDelay: "100ms" }}>
-          <span>✦ Orçamento inteligente com IA</span>
+    <section className="pt-16 sm:pt-24 pb-16 sm:pb-20 px-4 sm:px-6 text-center">
+      <div className="max-w-4xl mx-auto">
+        <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-3 py-1 text-xs font-semibold mb-6">
+          ✨ O sistema feito para agências de turismo
         </div>
-        <h1 className="lp-hero__title lp-stagger" style={{ animationDelay: "200ms" }}>
-          Sua agência de viagens<br />no <span className="lp-gradient-text">próximo nível</span>
+
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-[1.1] tracking-tight mb-5">
+          Gerencie sua agência de turismo com inteligência
         </h1>
-        <p className="lp-hero__subtitle lp-stagger" style={{ animationDelay: "300ms" }}>
-          Do orçamento ao fechamento, tudo em um só lugar.<br className="hidden md:inline" />
-          Profissional, rápido e feito para agências de viagem.
+
+        <p className="text-lg sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed">
+          Orçamentos, clientes, pipeline e IA em um único sistema. Do rascunho à venda em minutos.
         </p>
-        <div className="lp-hero__ctas lp-stagger" style={{ animationDelay: "400ms" }}>
-          <Link to="/cadastro" className="lp-btn lp-btn--primary lp-btn--lg">
-            Criar conta grátis <ArrowRight size={16} />
+
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link to="/cadastro" className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl text-base font-semibold shadow-sm transition-colors">
+            Começar 14 dias grátis <ArrowRight className="w-4 h-4" />
           </Link>
-          <a href="#planos" className="lp-btn lp-btn--ghost lp-btn--lg">Ver planos</a>
+          <a href="#funcionalidades" className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl text-base font-medium hover:bg-gray-50 transition-colors">
+            <Play className="w-4 h-4" /> Ver demonstração
+          </a>
         </div>
-        <p className="lp-hero__proof lp-stagger" style={{ animationDelay: "450ms" }}>
-          <span>✓ 14 dias grátis</span> · <span>✓ Sem cartão</span> · <span>✓ Cancele quando quiser</span>
-        </p>
-        <div className="lp-hero__mockup lp-stagger" style={{ animationDelay: "500ms" }}>
-          <DashboardMockup />
+
+        <div className="mt-8 flex items-center justify-center gap-3 text-sm text-gray-400">
+          <div className="flex -space-x-2">
+            {["bg-blue-500", "bg-emerald-500", "bg-amber-500", "bg-purple-500"].map((bg, i) => (
+              <div key={i} className={`w-8 h-8 rounded-full ${bg} border-2 border-white flex items-center justify-center text-white text-[10px] font-bold`}>
+                {["AC", "RM", "JF", "LS"][i]}
+              </div>
+            ))}
+          </div>
+          <span>Mais de 500 agências já usam</span>
+        </div>
+
+        {/* Mockup */}
+        <div className="mt-16 max-w-5xl mx-auto bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
+          <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 border-b border-gray-100">
+            <div className="flex gap-1.5">
+              <span className="w-3 h-3 rounded-full bg-red-400" />
+              <span className="w-3 h-3 rounded-full bg-amber-400" />
+              <span className="w-3 h-3 rounded-full bg-emerald-400" />
+            </div>
+            <span className="text-xs text-gray-400 ml-2">app.viahub.app</span>
+          </div>
+          <div className="p-4 sm:p-6">
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {[
+                { label: "Faturamento", value: "R$ 47.200" },
+                { label: "Orçamentos", value: "23" },
+                { label: "Conversão", value: "89%" },
+              ].map((m) => (
+                <div key={m.label} className="bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-100">
+                  <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide mb-1">{m.label}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-gray-900">{m.value}</p>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-xl border border-gray-100 overflow-hidden">
+              {[
+                { client: "Rafael Andrade", dest: "Cancún", val: "R$ 12.400", status: "Aprovado", cls: "bg-emerald-50 text-emerald-700" },
+                { client: "Maria Silva", dest: "Paris", val: "R$ 18.900", status: "Enviado", cls: "bg-blue-50 text-blue-700" },
+                { client: "Carlos Souza", dest: "Orlando", val: "R$ 8.750", status: "Rascunho", cls: "bg-gray-100 text-gray-600" },
+              ].map((r, i) => (
+                <div key={i} className="grid grid-cols-[1fr_auto_auto] sm:grid-cols-[2fr_1fr_1fr_auto] gap-2 sm:gap-4 px-3 sm:px-4 py-3 border-b border-gray-50 last:border-0 text-sm">
+                  <span className="font-medium text-gray-900 truncate">{r.client}</span>
+                  <span className="hidden sm:block text-gray-500">{r.dest}</span>
+                  <span className="text-gray-700 font-medium">{r.val}</span>
+                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${r.cls}`}>{r.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="h-12 bg-gradient-to-t from-white to-transparent -mt-12 relative z-10" />
         </div>
       </div>
     </section>
   );
 }
 
-/* ─── Dashboard Mockup ─── */
-function DashboardMockup() {
+/* ─── Logos / Social Proof ─── */
+function LogosSection() {
   return (
-    <div className="lp-mockup-frame">
-      <div className="lp-mockup-toolbar">
-        <div className="lp-mockup-toolbar__dots">
-          <span style={{ background: '#FF5F57' }} />
-          <span style={{ background: '#FEBC2E' }} />
-          <span style={{ background: '#28C840' }} />
-        </div>
-        <span className="lp-mockup-toolbar__url">app.viahub.app</span>
+    <section className="py-16 px-4 sm:px-6 bg-gray-50 border-y border-gray-100">
+      <p className="text-sm text-gray-400 text-center mb-8">
+        Integrado com as principais ferramentas do mercado de turismo
+      </p>
+      <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
+        {["Asaas", "WhatsApp Business", "Google", "LATAM", "Azul", "GOL"].map((name) => (
+          <span key={name} className="text-sm font-semibold text-gray-300 hover:text-gray-500 transition-colors cursor-default select-none">
+            {name}
+          </span>
+        ))}
       </div>
-      <div className="lp-mockup">
-        <div className="lp-mockup__header">
-          <span className="lp-mockup__logo">ViaHub</span>
-          <div className="lp-mockup__dots">
-            <span /><span /><span />
-          </div>
-        </div>
-        <div className="lp-mockup__metrics">
-          {[
-            { label: "Faturamento", value: "R$ 47.200" },
-            { label: "Orçamentos", value: "23" },
-            { label: "Conversão", value: "89%" },
-          ].map(m => (
-            <div key={m.label} className="lp-mockup__metric">
-              <span className="lp-mockup__metric-label">{m.label}</span>
-              <span className="lp-mockup__metric-value">{m.value}</span>
-            </div>
-          ))}
-        </div>
-        <div className="lp-mockup__table">
-          {[
-            { client: "Rafael Andrade", dest: "Cancún", val: "R$ 12.400", status: "Aprovado", color: "#22C55E" },
-            { client: "Maria Silva", dest: "Paris", val: "R$ 18.900", status: "Enviado", color: "#2563EB" },
-            { client: "Carlos Souza", dest: "Orlando", val: "R$ 8.750", status: "Rascunho", color: "#64748B" },
-          ].map((r, i) => (
-            <div key={i} className="lp-mockup__row">
-              <span className="lp-mockup__row-client">{r.client}</span>
-              <span className="lp-mockup__row-dest">{r.dest}</span>
-              <span className="lp-mockup__row-val">{r.val}</span>
-              <span className="lp-mockup__row-badge" style={{ background: `${r.color}22`, color: r.color }}>{r.status}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    </section>
   );
 }
 
 /* ─── Features ─── */
-function Features() {
-  const { ref, visible } = useInView();
+function FeaturesSection() {
   return (
-    <section id="funcionalidades" className="lp-section" ref={ref}>
-      <div className="lp-container">
-        <h2 className="lp-section__title">Tudo que sua agência <span className="lp-gradient-text">precisa</span></h2>
-        <p className="lp-section__subtitle">Uma plataforma completa, do orçamento ao pagamento.</p>
-        <div className="lp-features-grid">
-          {features.map((f, i) => (
-            <div
-              key={f.title}
-              className={`lp-feature-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
-              <span className="lp-feature-card__order">{String(i + 1).padStart(2, '0')}</span>
-              <div className="lp-feature-card__icon">
-                <f.icon size={20} />
+    <section id="funcionalidades" className="py-20 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">FUNCIONALIDADES</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Tudo que sua agência precisa</h2>
+          <p className="text-lg text-gray-500 max-w-xl mx-auto">Uma plataforma completa, do orçamento ao pagamento.</p>
+        </div>
+
+        {/* Feature highlight */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20 items-center">
+          <div>
+            <span className="inline-flex items-center bg-blue-50 text-blue-700 rounded-full px-2.5 py-0.5 text-xs font-bold mb-4">NOVO</span>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">IA Copilot para cotações</h3>
+            <p className="text-gray-500 leading-relaxed mb-6">
+              Descreva a viagem em linguagem natural e receba um orçamento completo com preços reais. A inteligência artificial faz o trabalho pesado por você.
+            </p>
+            <ul className="space-y-2">
+              {["Busca automática de voos e hotéis", "Markup inteligente aplicado", "PDF profissional gerado em segundos"].map((item) => (
+                <li key={item} className="flex gap-2 text-sm text-gray-600">
+                  <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" /> {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="bg-gray-100 rounded-2xl h-64 sm:h-80 flex items-center justify-center">
+            <div className="text-center">
+              <Sparkles className="w-12 h-12 text-blue-600 mx-auto mb-3" />
+              <p className="text-sm text-gray-500 font-medium">IA Copilot Preview</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f) => (
+            <div key={f.title} className="bg-white rounded-xl border border-gray-100 p-6 hover:border-blue-200 hover:shadow-sm transition-all cursor-default">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
+                <f.icon className="w-5 h-5" />
               </div>
-              <h3 className="lp-feature-card__title">
-                {f.title}
-              </h3>
-              <p className="lp-feature-card__desc">{f.desc}</p>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{f.title}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{f.desc}</p>
             </div>
           ))}
         </div>
@@ -266,23 +303,21 @@ function Features() {
 
 /* ─── How It Works ─── */
 function HowItWorks() {
-  const { ref, visible } = useInView();
   return (
-    <section id="como-funciona" className="lp-section lp-section--alt" ref={ref}>
-      <div className="lp-container">
-        <h2 className="lp-section__title">Do cadastro ao <span className="lp-gradient-text">fechamento</span></h2>
-         <div className="lp-steps">
-          <div className="lp-steps__line" />
-          {steps.map((s, i) => (
-            <div
-              key={s.n}
-              className={`lp-step ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <div className="lp-step__dot" />
-              <span className="lp-step__number">{s.n}</span>
-              <h3 className="lp-step__title">{s.title}</h3>
-              <p className="lp-step__desc">{s.desc}</p>
+    <section className="py-20 px-4 sm:px-6 bg-gray-50">
+      <div className="max-w-4xl mx-auto text-center">
+        <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">COMO FUNCIONA</p>
+        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Simples de começar</h2>
+        <p className="text-lg text-gray-500 max-w-xl mx-auto mb-12">Em 3 passos você já está vendendo mais.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          {steps.map((s) => (
+            <div key={s.n} className="text-center">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-bold text-lg mx-auto mb-4 flex items-center justify-center">
+                {s.n}
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">{s.title}</h3>
+              <p className="text-sm text-gray-500">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -291,96 +326,100 @@ function HowItWorks() {
   );
 }
 
-/* ─── Plans ─── */
-function Plans() {
-  const { ref, visible } = useInView();
+/* ─── Pricing ─── */
+function PricingSection() {
   return (
-    <section id="planos" className="lp-section" ref={ref}>
-      <div className="lp-container">
-        <h2 className="lp-section__title">Planos para cada <span className="lp-gradient-text">momento</span></h2>
-        <p className="lp-section__subtitle">14 dias grátis em qualquer plano. Sem cartão de crédito.</p>
-        <div className="lp-plans-grid">
-          {plans.map((p, i) => (
-            <PlanCard key={p.name} p={p} i={i} visible={visible} />
-          ))}
+    <section id="precos" className="py-20 px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">PREÇOS</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Planos para cada momento</h2>
+          <p className="text-lg text-gray-500">14 dias grátis em qualquer plano. Sem cartão de crédito.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {plans.map((p) => {
+            const isExternal = p.ctaLink.startsWith("mailto:");
+            return (
+              <div
+                key={p.name}
+                className={`bg-white rounded-2xl p-6 relative ${
+                  p.popular
+                    ? "border-2 border-blue-500 shadow-lg"
+                    : "border border-gray-100"
+                }`}
+              >
+                {p.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white rounded-full px-3 py-0.5 text-xs font-bold whitespace-nowrap">
+                    Mais popular
+                  </span>
+                )}
+                <h3 className="text-lg font-bold text-gray-900 mb-1">{p.name}</h3>
+                <div className="mb-1">
+                  <span className="text-4xl font-bold text-gray-900">{p.price}</span>
+                  <span className="text-base text-gray-500">/mês</span>
+                </div>
+                <p className="text-sm text-gray-500 mb-6">{p.desc}</p>
+                <ul className="space-y-2.5 mb-6">
+                  {p.feats.map((f) => (
+                    <li key={f} className="flex gap-2 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                {isExternal ? (
+                  <a
+                    href={p.ctaLink}
+                    className="block w-full text-center bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
+                  >
+                    {p.cta}
+                  </a>
+                ) : (
+                  <Link
+                    to={p.ctaLink}
+                    className={`block w-full text-center text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors ${
+                      p.popular
+                        ? "bg-blue-600 hover:bg-blue-700 text-white"
+                        : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {p.cta}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function PlanCard({ p, i, visible }: { p: typeof plans[number]; i: number; visible: boolean }) {
-  const isExternal = p.ctaLink.startsWith("mailto:");
-  return (
-    <div
-      className={`lp-plan-card ${p.popular ? "lp-plan-card--popular" : ""} ${p.whitelabel ? "lp-plan-card--whitelabel" : ""} ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
-      style={{ animationDelay: `${i * 80}ms` }}
-    >
-      {p.popular && <span className="lp-plan-card__badge">Mais popular</span>}
-      <h3 className="lp-plan-card__name">{p.name}</h3>
-      <div className="lp-plan-card__price">
-        <span className="lp-plan-card__amount">{p.price}</span>
-        <span className="lp-plan-card__per">{p.per}</span>
-      </div>
-      <p className="lp-plan-card__desc">{p.desc}</p>
-      {p.altPrice && <p className="lp-plan-card__alt-price">{p.altPrice}</p>}
-      <ul className="lp-plan-card__feats">
-        {p.feats.map(f => (
-          <li key={f}><Check size={14} className="lp-plan-card__check" /> {f}</li>
-        ))}
-      </ul>
-      {isExternal ? (
-        <a
-          href={p.ctaLink}
-          className="lp-btn lp-btn--ghost"
-          style={{ width: "100%", justifyContent: "center" }}
-        >
-          {p.cta}
-        </a>
-      ) : (
-        <Link
-          to={p.ctaLink}
-          className={`lp-btn ${p.popular ? "lp-btn--primary" : "lp-btn--ghost"}`}
-          style={{ width: "100%", justifyContent: "center" }}
-        >
-          {p.cta}
-        </Link>
-      )}
-      {p.whitelabel && (
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", textAlign: "center", marginTop: 8 }}>
-          *Plano indisponível para teste grátis.
-        </p>
-      )}
-    </div>
-  );
-}
+/* ─── FAQ ─── */
+function FAQSection() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
 
-/* ─── Testimonials ─── */
-function Testimonials() {
-  const { ref, visible } = useInView();
   return (
-    <section className="lp-section lp-section--alt" ref={ref}>
-      <div className="lp-container">
-        <h2 className="lp-section__title">O que dizem nossas <span className="lp-gradient-text">agências</span></h2>
-        <p className="lp-section__subtitle">Resultados reais de quem já transformou sua gestão com o ViaHub.</p>
-        <div className="lp-testimonials-grid">
-          {testimonials.map((t, i) => (
-            <div
-              key={t.name}
-              className={`lp-testimonial-card ${visible ? "lp-animate-in" : "lp-pre-animate"}`}
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <Quote size={32} className="lp-testimonial-card__quote" />
-              <p className="lp-testimonial-card__text">"{t.text}"</p>
-              <div className="lp-testimonial-card__author">
-                <div className="lp-testimonial-card__avatar">
-                  <span>{t.name.split(' ').map(w => w[0]).join('')}</span>
-                </div>
-                <div className="lp-testimonial-card__author-info">
-                  <span className="lp-testimonial-card__name">{t.name}</span>
-                  <span className="lp-testimonial-card__agency">{t.agency}</span>
-                </div>
-              </div>
+    <section id="faq" className="py-20 px-4 sm:px-6 bg-gray-50">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-12">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-3">FAQ</p>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Perguntas frequentes</h2>
+        </div>
+
+        <div className="space-y-0">
+          {faqs.map((faq, i) => (
+            <div key={i} className="border-b border-gray-100 py-5">
+              <button
+                onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                className="w-full flex items-center justify-between text-left"
+              >
+                <span className="text-base font-semibold text-gray-900 pr-4">{faq.q}</span>
+                <ChevronDown className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${openIdx === i ? "rotate-180" : ""}`} />
+              </button>
+              {openIdx === i && (
+                <p className="text-sm text-gray-500 leading-relaxed pt-3 pb-1">{faq.a}</p>
+              )}
             </div>
           ))}
         </div>
@@ -390,154 +429,73 @@ function Testimonials() {
 }
 
 /* ─── CTA Final ─── */
-const assuntoOptions = [
-  "Quero conhecer o sistema",
-  "Dúvidas sobre planos",
-  "Quero falar com um consultor",
-  "Suporte técnico",
-  "Outro",
-];
-
-/* ─── Final Section (CTA + Form side by side) ─── */
-function FinalSection() {
-  const { ref, visible } = useInView();
-  const [sent, setSent] = useState(false);
-  const [formLoading, setFormLoading] = useState(false);
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setFormLoading(true);
-    const fd = new FormData(e.currentTarget);
-    const nome = String(fd.get("nome") || "").trim();
-    const email = String(fd.get("email") || "").trim();
-    const telefone = String(fd.get("telefone") || "").trim();
-    const assunto = String(fd.get("assunto") || "").trim();
-    const mensagem = String(fd.get("mensagem") || "").trim();
-
-    const subject = encodeURIComponent(assunto);
-    const body = encodeURIComponent(
-      `Nome: ${nome}\nEmail: ${email}\nTelefone: ${telefone}\n\nMensagem:\n${mensagem}`
-    );
-    window.location.href = `mailto:suporte@viahub.app?subject=${subject}&body=${body}`;
-
-    setTimeout(() => {
-      setFormLoading(false);
-      setSent(true);
-    }, 600);
-  };
-
+function CTAFinal() {
   return (
-    <section id="contato" className="lp-section" ref={ref}>
-      <div className="lp-container">
-        <div className={`lp-final-grid ${visible ? "lp-animate-in" : "lp-pre-animate"}`}>
-          {/* Left: CTA */}
-          <div className="lp-final-cta">
-            <div className="lp-cta-badge">
-              <span>✦ 14 dias grátis · Sem cartão de crédito</span>
-            </div>
-            <h2 className="lp-cta-card-v2__title">
-              Comece hoje.<br /><span className="lp-gradient-text">Revolucione</span> sua agência.
-            </h2>
-            <p className="lp-cta-card-v2__desc">
-              Mais de 100 agências já usam o ViaHub para fechar mais vendas, perder menos tempo e ter o controle total do negócio. Junte-se a elas.
-            </p>
-            <div className="lp-cta-proofs">
-              {[
-                { icon: Clock, value: "15 min", label: "Tempo médio para criar um orçamento completo" },
-                { icon: TrendingUp, value: "+30%", label: "Aumento na taxa de conversão de vendas" },
-                { icon: Users, value: "100+", label: "Agências ativas na plataforma" },
-              ].map((p) => (
-              <div key={p.value} className="lp-cta-proof">
-                  <div className="lp-cta-proof__head">
-                    <p.icon size={20} className="lp-cta-proof__icon" />
-                    <span className="lp-cta-proof__value">{p.value}</span>
-                  </div>
-                  <span className="lp-cta-proof__label">{p.label}</span>
-                </div>
-              ))}
-            </div>
-            <div className="lp-cta-card-v2__actions">
-              <Link to="/cadastro" className="lp-btn lp-btn--primary lp-cta-btn-main">
-                Criar minha conta grátis <ArrowRight size={16} />
-              </Link>
-            </div>
-            <p className="lp-cta-card-v2__guarantee">
-              🔒 Sem compromisso · Cancele quando quiser · Dados protegidos pela LGPD
-            </p>
-          </div>
-
-          {/* Right: Form */}
-          <div className="lp-final-form">
-            <h3 className="lp-final-form__title">Fale com um consultor</h3>
-            <p className="lp-final-form__subtitle">Tire suas dúvidas antes de decidir. Respondemos em até 2h.</p>
-            {sent ? (
-              <div className="lp-contact-success">
-                <div className="lp-contact-success__icon"><Check size={24} /></div>
-                <p>Mensagem enviada! Em breve nossa<br />equipe entrará em contato.</p>
-              </div>
-            ) : (
-              <form className="lp-contact-form" onSubmit={handleSubmit}>
-                <div>
-                  <label>Nome completo *</label>
-                  <input name="nome" required placeholder="Seu nome" />
-                </div>
-                <div>
-                  <label>Email *</label>
-                  <input name="email" type="email" required placeholder="seu@email.com" />
-                </div>
-                <div>
-                  <label>Telefone / WhatsApp *</label>
-                  <input name="telefone" required placeholder="(00) 00000-0000" />
-                </div>
-                <div>
-                  <label>Assunto *</label>
-                  <select name="assunto" required defaultValue="">
-                    <option value="" disabled>Selecione um assunto</option>
-                    {assuntoOptions.map(a => <option key={a} value={a}>{a}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label>Mensagem *</label>
-                  <textarea name="mensagem" required rows={4} placeholder="Sua mensagem..." />
-                </div>
-                <button type="submit" className="lp-btn lp-btn--primary lp-btn--lg" style={{ width: "100%", justifyContent: "center" }} disabled={formLoading}>
-                  {formLoading ? <><Loader2 size={16} className="animate-spin" /> Enviando...</> : "Enviar mensagem"}
-                </button>
-              </form>
-            )}
-          </div>
+    <section className="py-20 px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto text-center bg-blue-600 rounded-3xl p-12 sm:p-16">
+        <h2 className="text-3xl font-bold text-white mb-4">Pronto para transformar sua agência?</h2>
+        <p className="text-blue-100 mb-8">
+          14 dias grátis, sem cartão de crédito. Configure em menos de 5 minutos.
+        </p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link to="/cadastro" className="inline-flex items-center gap-2 bg-white text-blue-600 font-semibold px-8 py-3 rounded-xl hover:bg-blue-50 transition-colors">
+            Começar agora <ArrowRight className="w-4 h-4" />
+          </Link>
+          <a href="mailto:suporte@viahub.app" className="text-white/80 hover:text-white text-sm underline-offset-2 hover:underline transition-colors">
+            Falar com vendas
+          </a>
         </div>
+        <p className="text-blue-200 text-xs mt-6 flex items-center justify-center gap-1">
+          <Shield className="w-3.5 h-3.5" /> Dados protegidos pela LGPD
+        </p>
       </div>
     </section>
   );
 }
 
-
+/* ─── Footer ─── */
 function Footer() {
   return (
-    <footer className="lp-footer">
-      <div className="lp-container lp-footer__inner">
-        <div className="lp-footer__brand">
-          <span className="lp-logo" style={{ fontSize: 20 }}>ViaHub</span>
-          <p className="lp-footer__tagline">O ecossistema da sua agência de viagens</p>
-          <p className="lp-footer__powered">powered by Maralto</p>
+    <footer className="bg-gray-900 text-gray-400">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+          {/* Brand */}
+          <div className="col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                <span className="text-xs font-bold text-white">VH</span>
+              </div>
+              <span className="text-base font-bold text-white">ViaHub</span>
+            </div>
+            <p className="text-sm leading-relaxed">O ecossistema completo para agências de turismo brasileiras.</p>
+          </div>
+
+          {/* Produto */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-200 mb-3">Produto</h4>
+            <div className="space-y-2">
+              <a href="#funcionalidades" className="block text-sm hover:text-gray-200 transition-colors">Funcionalidades</a>
+              <a href="#precos" className="block text-sm hover:text-gray-200 transition-colors">Preços</a>
+              <Link to="/cadastro" className="block text-sm hover:text-gray-200 transition-colors">Cadastro</Link>
+              <Link to="/login" className="block text-sm hover:text-gray-200 transition-colors">Área do Cliente</Link>
+            </div>
+          </div>
+
+          {/* Suporte */}
+          <div>
+            <h4 className="text-sm font-semibold text-gray-200 mb-3">Suporte</h4>
+            <div className="space-y-2">
+              <a href="mailto:suporte@viahub.app" className="block text-sm hover:text-gray-200 transition-colors">Contato</a>
+              <Link to="/termos" className="block text-sm hover:text-gray-200 transition-colors">Termos de uso</Link>
+              <Link to="/privacidade" className="block text-sm hover:text-gray-200 transition-colors">Privacidade</Link>
+            </div>
+          </div>
         </div>
-        <div className="lp-footer__col">
-          <h4 className="lp-footer__heading">Produto</h4>
-          <a href="#funcionalidades" className="lp-footer__link">Funcionalidades</a>
-          <a href="#planos" className="lp-footer__link">Planos</a>
-          <Link to="/cadastro" className="lp-footer__link">Cadastro</Link>
-          <Link to="/login" className="lp-footer__link">Área do Cliente</Link>
+
+        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-600">
+          <p>© 2025 ViaHub. Todos os direitos reservados.</p>
+          <p>CNPJ: 48.586.964/0001-90 — Maralto Tecnologia</p>
         </div>
-        <div className="lp-footer__col">
-          <h4 className="lp-footer__heading">Legal</h4>
-          <Link to="/termos" className="lp-footer__link">Termos de Uso</Link>
-          <Link to="/privacidade" className="lp-footer__link">Privacidade</Link>
-          <a href="mailto:suporte@viahub.app" className="lp-footer__link">suporte@viahub.app</a>
-        </div>
-      </div>
-      <div className="lp-footer__bottom">
-        <p>© 2026 ViaHub · Maralto Tecnologia da Informação e Serviços Digitais LTDA · CNPJ 48.586.964/0001-90</p>
       </div>
     </footer>
   );
