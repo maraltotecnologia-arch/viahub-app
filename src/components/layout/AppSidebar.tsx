@@ -63,11 +63,21 @@ export function AppSidebar() {
   };
 
   const navCls = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-2 py-2 mx-2" : "gap-3 mx-4 px-3 py-2.5"} rounded-xl text-sm transition-all duration-150 ${
+    [
+      "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors duration-150",
+      collapsed ? "justify-center mx-2 px-2" : "mx-3",
       isActive
-        ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
-        : "text-sidebar-foreground/70 font-medium hover:bg-sidebar-accent hover:text-sidebar-foreground"
-    }`;
+        ? "font-semibold text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950/50"
+        : "font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100",
+    ].join(" ");
+
+  const iconCls = (isActive: boolean) =>
+    [
+      "h-4 w-4 shrink-0",
+      isActive
+        ? "text-blue-600 dark:text-blue-400"
+        : "text-gray-400 dark:text-gray-500",
+    ].join(" ");
 
   const mainItems = [
     { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, show: true, badge: alertas?.total || 0 },
@@ -103,17 +113,21 @@ export function AppSidebar() {
           title={collapsed ? item.title : undefined}
           className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
         >
-          <item.icon className={`h-4 w-4 shrink-0`} />
-          {!collapsed && <span className="flex-1">{item.title}</span>}
-          {!collapsed && (item.badge ?? 0) > 0 && (
-            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-gradient-to-br from-error to-error text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
-              {item.badge}
-            </span>
-          )}
-          {collapsed && (item.badge ?? 0) > 0 && (
-            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-gradient-to-br from-error to-error text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
-              {item.badge}
-            </span>
+          {({ isActive }) => (
+            <>
+              <item.icon className={iconCls(isActive)} strokeWidth={isActive ? 2 : 1.5} />
+              {!collapsed && <span className="flex-1">{item.title}</span>}
+              {!collapsed && (item.badge ?? 0) > 0 && (
+                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                  {item.badge}
+                </span>
+              )}
+              {collapsed && (item.badge ?? 0) > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
+                  {item.badge}
+                </span>
+              )}
+            </>
           )}
         </NavLink>
       </SidebarMenuButton>
@@ -122,39 +136,43 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-5 pt-6 pb-1.5 text-[10px] font-bold font-label text-sidebar-foreground/40 uppercase tracking-widest">{label}</p>
+      <p className="px-2 pt-5 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-600 mx-3">
+        {label}
+      </p>
     ) : (
-      <Separator className="mx-3 my-1 bg-sidebar-border" />
+      <Separator className="mx-3 my-2 bg-gray-100 dark:bg-gray-800" />
     );
 
   return (
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-sidebar-border"
+      className="md:flex [&_[data-sidebar=sidebar]]:bg-white [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-gray-100 dark:[&_[data-sidebar=sidebar]]:bg-gray-900 dark:[&_[data-sidebar=sidebar]]:border-gray-800"
     >
-      <SidebarContent className="flex flex-col">
+      <SidebarContent className="flex flex-col overflow-y-auto">
         {/* Logo */}
-        <div className={`${collapsed ? "py-3 flex items-center justify-center" : "px-5 pt-6 pb-5"}`}>
+        <div className={`${collapsed ? "py-3 flex items-center justify-center" : "px-4 pt-5 pb-4"}`}>
           {collapsed ? (
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
               <span className="text-sm font-bold text-white">VH</span>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 px-2 py-2 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shrink-0">
                 <span className="text-sm font-bold text-white">VH</span>
               </div>
               <div>
-                <span className="text-lg font-bold font-display tracking-tight text-sidebar-foreground block">ViaHub</span>
-                <span className="text-[10px] font-semibold font-label text-sidebar-foreground/50 uppercase tracking-widest block">O ecossistema da sua agência</span>
+                <span className="text-base font-bold text-gray-900 leading-tight block dark:text-white">ViaHub</span>
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider leading-tight block dark:text-gray-500">
+                  O ecossistema da sua agência
+                </span>
               </div>
             </div>
           )}
         </div>
 
         {/* Main items */}
-        <SidebarGroup className="py-2 px-0">
+        <SidebarGroup className="py-0 px-0">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
@@ -165,11 +183,11 @@ export function AppSidebar() {
                     onClick={() => setAiModalOpen(true)}
                     className={navCls(false)}
                   >
-                    <Bot className="h-4 w-4 shrink-0" />
+                    <Bot className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
                     {!collapsed && (
                       <span className="flex-1 flex items-center gap-2">
                         Assistente IA
-                        <span className="text-[9px] font-semibold font-label uppercase tracking-wide px-1.5 py-px rounded-full bg-primary/10 text-primary">Pro</span>
+                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 bg-blue-600 text-white rounded-full">PRO</span>
                       </span>
                     )}
                   </button>
@@ -181,7 +199,7 @@ export function AppSidebar() {
 
         {/* Configurações */}
         {canAccessConfig && (
-          <SidebarGroup className="py-1 px-0">
+          <SidebarGroup className="py-0 px-0">
             {sectionLabel("Configurações")}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
@@ -193,7 +211,7 @@ export function AppSidebar() {
 
         {/* Administração */}
         {isSuperadmin && (
-          <SidebarGroup className="py-1 px-0">
+          <SidebarGroup className="py-0 px-0">
             {sectionLabel("Administração")}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
@@ -208,7 +226,7 @@ export function AppSidebar() {
 
         {/* Ajuda e Suporte */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-0 mt-auto border-t border-sidebar-border">
+          <SidebarGroup className="py-1 px-0 mt-auto border-t border-gray-100 dark:border-gray-800">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -218,8 +236,12 @@ export function AppSidebar() {
                       title={collapsed ? "Ajuda & Suporte" : undefined}
                       className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
                     >
-                      <LifeBuoy className="h-4 w-4 shrink-0" />
-                      {!collapsed && <span className="flex-1">Ajuda & Suporte</span>}
+                      {({ isActive }) => (
+                        <>
+                          <LifeBuoy className={iconCls(isActive)} strokeWidth={isActive ? 2 : 1.5} />
+                          {!collapsed && <span className="flex-1">Ajuda & Suporte</span>}
+                        </>
+                      )}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -232,22 +254,30 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed ? (
         <SidebarFooter className="p-0">
-          <div className="border-t border-sidebar-border/60 mx-4 pt-4 pb-4">
-            <div className="flex items-center gap-3 p-3 rounded-2xl bg-sidebar-accent/40 hover:bg-sidebar-accent transition-colors">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary-container text-white text-sm font-bold font-display flex items-center justify-center shrink-0 shadow-sm shadow-primary/20">
+          <div className="mt-auto border-t border-gray-100 dark:border-gray-800 p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-600 text-white text-sm font-bold flex items-center justify-center shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold font-headline text-sidebar-foreground truncate leading-tight">{nome || user?.email || "Usuário"}</p>
-                <p className="text-[11px] text-primary font-semibold font-label mt-0.5">{cargoLabel}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate dark:text-white">
+                  {nome || user?.email || "Usuário"}
+                </p>
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  {cargoLabel}
+                </p>
                 {nomeAgencia && (
-                  <p className="flex items-center gap-1 text-[11px] text-sidebar-foreground/50 font-label truncate mt-0.5" title={nomeAgencia}>
+                  <p className="flex items-center gap-1 text-xs text-gray-400 truncate mt-0.5 dark:text-gray-500" title={nomeAgencia}>
                     <Building2 className="w-3 h-3 shrink-0" />
                     {nomeAgencia}
                   </p>
                 )}
               </div>
-              <button onClick={handleSignOut} className="p-2 rounded-xl text-sidebar-foreground/40 hover:text-error hover:bg-error/10 transition-colors shrink-0" title="Sair">
+              <button
+                onClick={handleSignOut}
+                className="p-1.5 rounded-lg ml-auto text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                title="Sair"
+              >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
@@ -255,8 +285,12 @@ export function AppSidebar() {
         </SidebarFooter>
       ) : (
         <SidebarFooter className="p-0">
-          <div className="flex justify-center py-3 border-t border-sidebar-border/60">
-            <button onClick={handleSignOut} className="p-2 rounded-xl text-sidebar-foreground/40 hover:text-error hover:bg-error/10 transition-colors" title="Sair">
+          <div className="flex justify-center py-3 border-t border-gray-100 dark:border-gray-800">
+            <button
+              onClick={handleSignOut}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors dark:hover:bg-gray-800 dark:hover:text-gray-200"
+              title="Sair"
+            >
               <LogOut className="h-4 w-4" />
             </button>
           </div>
