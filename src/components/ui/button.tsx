@@ -9,17 +9,17 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-primary to-[hsl(var(--primary)/0.85)] text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
-        destructive: "bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground transition-all",
-        outline: "border border-border bg-background hover:bg-muted/50 hover:border-muted-foreground/30",
-        secondary: "bg-muted text-foreground rounded-xl font-semibold hover:bg-muted/80 transition-colors",
+        default: "bg-gradient-to-br from-primary to-primary-container text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
+        destructive: "bg-destructive/[0.08] text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground hover:border-transparent transition-all",
+        outline: "border border-outline-variant/30 bg-background hover:bg-muted/50 hover:border-muted-foreground/30",
+        secondary: "bg-surface-container-high text-on-surface rounded-xl font-semibold hover:bg-surface-container-highest transition-colors",
         ghost: "text-primary font-semibold hover:bg-primary/[0.08] rounded-lg transition-colors",
         link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-br from-primary to-[hsl(var(--primary)/0.85)] text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
+        gradient: "bg-gradient-to-br from-primary to-primary-container text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
         success: "bg-success text-success-foreground hover:bg-success/90",
       },
       size: {
-        default: "h-10 px-5 py-2",
+        default: "h-10 px-5 py-2.5",
         sm: "h-9 rounded-xl px-3",
         lg: "h-12 rounded-xl px-8",
         icon: "h-10 w-10 rounded-xl",
