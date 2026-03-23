@@ -656,7 +656,7 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
         <p className="text-sm text-on-surface-variant font-body mt-1">Aqui está o resumo da sua agência</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} subtitle={m.subtitle} />
         ))}
