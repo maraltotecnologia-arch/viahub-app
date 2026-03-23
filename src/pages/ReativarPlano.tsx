@@ -26,6 +26,22 @@ export default function ReativarPlano() {
   const [activeTab, setActiveTab] = useState<"cartao" | "pix" | "boleto">("cartao");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.remove('dark');
+    html.classList.add('light');
+    html.setAttribute('data-theme', 'light');
+    return () => {
+      html.classList.remove('light');
+      const saved = localStorage.getItem('viahub-theme') || 'dark';
+      html.setAttribute('data-theme', saved);
+      if (hadDark || saved === 'dark') {
+        html.classList.add('dark');
+      }
+    };
+  }, []);
+
   // Card fields
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
