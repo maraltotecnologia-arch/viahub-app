@@ -53,6 +53,13 @@
     --surface-bright: #f8f9ff;
     --on-surface: #0d1c2d;
     --on-surface-variant: #434655;
+
+    /* Compat aliases for legacy inline styles */
+    --text-primary: #0d1c2d;
+    --text-secondary: #434655;
+    --bg-card: #ffffff;
+    --bg-secondary: #eef4ff;
+    --border-color: #dce3f3;
   }
 
   .dark,
