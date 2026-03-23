@@ -523,8 +523,8 @@ function SuperadminDashboard() {
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
-                  <YAxis tick={{ fontSize: 12, fill: "var(--text-secondary)" }} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: "var(--on-surface-variant)" }} />
+                   <YAxis tick={{ fontSize: 12, fill: "var(--on-surface-variant)" }} />
                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)', fontSize: '12px' }} labelStyle={{ color: 'var(--text-primary)', fontWeight: '600', marginBottom: '4px' }} itemStyle={{ color: 'var(--text-secondary)' }} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
                    <Bar dataKey="total" fill="#2563EB" radius={[6, 6, 0, 0]} />
                 </BarChart>
@@ -541,15 +541,15 @@ function SuperadminDashboard() {
             ) : (
               <div className="space-y-3">
                 {recentes?.map((o: any) => (
-                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
+                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-surface-container-low/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
                     <div>
-                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{o.titulo || "Sem título"}</p>
-                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                      <p className="font-medium text-sm text-on-surface">{o.titulo || "Sem título"}</p>
+                      <p className="text-xs text-on-surface-variant">
                         {o.clientes?.nome || "Sem cliente"} • {o.agencias?.nome_fantasia || "—"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{fmt(Number(o.valor_final) || 0)}</span>
+                      <span className="text-sm font-semibold text-on-surface">{fmt(Number(o.valor_final) || 0)}</span>
                       <StatusBadge status={o.status || "rascunho"} />
                     </div>
                   </Link>
