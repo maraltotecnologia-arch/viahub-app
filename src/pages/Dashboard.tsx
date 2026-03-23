@@ -379,10 +379,10 @@ function SuperadminDashboard() {
   const planoLabel: Record<string, string> = { starter: "Starter", pro: "Pro", elite: "Elite" };
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="space-y-8 animate-fade-in-up">
       <div>
-        <h2 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Painel Administrativo</h2>
-        <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Visão consolidada de todas as agências</p>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Painel Administrativo</h2>
+        <p className="text-sm text-on-surface-variant font-body mt-1">Visão consolidada de todas as agências</p>
       </div>
 
       {/* Linha 1 — Métricas operacionais */}
