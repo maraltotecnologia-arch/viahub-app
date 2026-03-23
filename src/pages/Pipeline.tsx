@@ -161,31 +161,32 @@ export default function Pipeline() {
                     >
                       <Link to={`/orcamentos/${card.id}`}>
                         <Card
-                          className={`transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                            isDragging ? "shadow-lg" : ""
-                          } ${diasParaVencer <= 3 && diasParaVencer >= 0 ? "border-accent border-2" : ""
+                          className={`transition-all duration-150 bg-surface-container-lowest rounded-xl border border-outline-variant/10 hover:border-primary/20 hover:shadow-[0_4px_12px_rgba(13,28,45,0.08)] ${
+                            isDragging ? "shadow-ambient" : ""
                           } ${diasParaVencer < 0 ? "opacity-60" : ""}`}
-                          style={{
-                            borderLeft: diasParaVencer <= 3 && diasParaVencer >= 0 ? undefined : `3px solid ${col.borderColor}`,
-                          }}
                         >
                           <CardContent className="p-4">
-                            <div className="flex items-center gap-1">
-                              <p className="font-semibold text-sm">{card.titulo || "Sem título"}</p>
+                            <div className="flex justify-between items-start gap-2">
+                              <p className="text-sm font-semibold font-headline text-on-surface leading-snug">{card.titulo || "Sem título"}</p>
                               {isPerdidoPorVencimento && (
                                 <Tooltip>
-                                  <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
+                                  <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-error cursor-help shrink-0" /></TooltipTrigger>
                                   <TooltipContent>Movido para Perdido por vencimento</TooltipContent>
                                 </Tooltip>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">{(card.clientes as any)?.nome || "Sem cliente"}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <span className="font-bold text-sm">{fmt(Number(card.valor_final) || 0)}</span>
-                              <span className={`text-xs ${diasParaVencer <= 3 ? "text-accent font-semibold" : "text-muted-foreground"}`}>
+                            <p className="text-xs text-on-surface-variant mt-1.5">{(card.clientes as any)?.nome || "Sem cliente"}</p>
+                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-outline-variant/10">
+                              <span className="text-sm font-bold font-display text-on-surface">{fmt(Number(card.valor_final) || 0)}</span>
+                              <span className={`text-xs ${diasParaVencer <= 3 ? "text-[#e65100] font-semibold" : "text-on-surface-variant"}`}>
                                 {diasParaVencer < 0 ? "Vencido" : validade ? `${diasParaVencer}d` : "-"}
                               </span>
                             </div>
+                            {diasParaVencer <= 3 && diasParaVencer >= 0 && (
+                              <p className="text-xs text-error bg-error-container/20 rounded-md px-2 py-1 mt-2 flex items-center gap-1">
+                                <Clock className="h-3 w-3" /> Vence em {diasParaVencer}d
+                              </p>
+                            )}
                           </CardContent>
                         </Card>
                       </Link>
