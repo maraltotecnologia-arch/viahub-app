@@ -105,31 +105,49 @@ export function AppSidebar() {
     { title: "Notificações", url: "/admin/notificacoes", icon: Bell, badge: recentNotifCount ?? 0 },
   ];
 
-  const renderItem = (item: { title: string; url: string; icon: any; badge?: number }) => (
+  const renderItem = (item: { title: string; url: string; icon: any; badge?: number; onClick?: () => void; proBadge?: boolean }) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild tooltip={collapsed ? item.title : undefined}>
-        <NavLink
-          to={item.url}
-          title={collapsed ? item.title : undefined}
-          className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
-        >
-          {({ isActive }) => (
-            <>
-              <item.icon className={iconCls(isActive)} strokeWidth={isActive ? 2 : 1.5} />
-              {!collapsed && <span className="flex-1">{item.title}</span>}
-              {!collapsed && (item.badge ?? 0) > 0 && (
-                <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
-                  {item.badge}
-                </span>
-              )}
-              {collapsed && (item.badge ?? 0) > 0 && (
-                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
-                  {item.badge}
-                </span>
-              )}
-            </>
-          )}
-        </NavLink>
+        {item.onClick ? (
+          <button
+            onClick={item.onClick}
+            title={collapsed ? item.title : undefined}
+            className={`${navCls(false)} ${collapsed ? "relative" : ""}`}
+          >
+            <item.icon className={iconCls(false)} strokeWidth={1.5} />
+            {!collapsed && (
+              <span className="flex-1 flex items-center gap-2">
+                {item.title}
+                {item.proBadge && (
+                  <span className="ml-auto text-[10px] font-bold px-2 py-0.5 bg-blue-600 text-white rounded-full">PRO</span>
+                )}
+              </span>
+            )}
+          </button>
+        ) : (
+          <NavLink
+            to={item.url}
+            title={collapsed ? item.title : undefined}
+            className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
+          >
+            {({ isActive }) => (
+              <>
+                <item.icon className={iconCls(isActive)} strokeWidth={isActive ? 2 : 1.5} />
+                {!collapsed && <span className="flex-1">{item.title}</span>}
+                {!collapsed && (item.badge ?? 0) > 0 && (
+                  <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+                    {item.badge}
+                  </span>
+                )}
+                {collapsed && (item.badge ?? 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
+                    {item.badge}
+                  </span>
+                )}
+              </>
+            )}
+          </NavLink>
+        )}
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
@@ -177,22 +195,7 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
               {/* AI Copilot shortcut */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={collapsed ? "Assistente IA" : undefined}>
-                  <button
-                    onClick={() => setAiModalOpen(true)}
-                    className={navCls(false)}
-                  >
-                    <Bot className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
-                    {!collapsed && (
-                      <span className="flex-1 flex items-center gap-2">
-                        Assistente IA
-                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 bg-blue-600 text-white rounded-full">PRO</span>
-                      </span>
-                    )}
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {renderItem({ title: "Assistente IA", url: "#", icon: Bot, onClick: () => setAiModalOpen(true), proBadge: true })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
