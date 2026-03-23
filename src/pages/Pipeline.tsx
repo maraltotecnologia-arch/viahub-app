@@ -108,7 +108,7 @@ export default function Pipeline() {
           />
         </div>
       ) : (
-      <div className="flex-1 overflow-x-auto p-6 flex gap-4 items-start">
+      <div className="flex-1 overflow-x-auto p-4 sm:p-6 flex gap-4 items-start snap-x snap-mandatory sm:snap-none">
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
