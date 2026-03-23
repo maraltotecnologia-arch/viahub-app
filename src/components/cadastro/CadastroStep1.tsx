@@ -179,8 +179,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
               </div>
 
               {/* Password section */}
-              <div className="bg-surface-container-low rounded-xl p-5 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-surface-container-low rounded-xl p-5 lg:p-4 space-y-4 lg:space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="senha" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Senha *</Label>
                     <div className="relative">

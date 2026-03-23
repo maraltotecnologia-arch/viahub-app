@@ -240,8 +240,8 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
 
             {/* Card */}
             {activeTab === "cartao" && (
-              <div className="space-y-4">
-                <div className="bg-surface-container-low rounded-xl p-4 space-y-3 border border-outline-variant/10">
+              <div className="space-y-4 lg:space-y-3">
+                <div className="bg-surface-container-low rounded-xl p-4 lg:p-3 space-y-3 lg:space-y-2 border border-outline-variant/10">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium font-label text-on-surface-variant">Número do cartão</Label>
                     <div className="relative">

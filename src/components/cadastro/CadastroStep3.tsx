@@ -46,14 +46,14 @@ export default function CadastroStep3({ paymentResult, email }: Props) {
 
   return (
     <AuthLayout>
-      <div className="animate-fade-in text-center py-6">
-        <div className="w-16 h-16 rounded-full bg-secondary-container/50 text-secondary flex items-center justify-center mx-auto mb-5">
-          <CheckCircle className="h-8 w-8" />
+      <div className="animate-fade-in text-center py-6 lg:py-4">
+        <div className="w-16 h-16 lg:w-14 lg:h-14 rounded-full bg-secondary-container/50 text-secondary flex items-center justify-center mx-auto mb-5 lg:mb-4">
+          <CheckCircle className="h-8 w-8 lg:h-7 lg:w-7" />
         </div>
         <h2 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-2">
           Cadastro realizado com sucesso! 🎉
         </h2>
-        <p className="text-sm text-on-surface-variant font-body mb-8">
+        <p className="text-sm text-on-surface-variant font-body mb-8 lg:mb-6">
           Seu acesso está pronto. Clique abaixo para fazer seu primeiro login.
         </p>
         <Button onClick={() => navigate("/login")} className="w-full">
