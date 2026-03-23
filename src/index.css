@@ -4,81 +4,107 @@
 
 @layer base {
   :root {
-    --background: 210 33% 98%;
-    --foreground: 210 11% 15%;
+    --background: 230 100% 98%;
+    --foreground: 213 55% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 210 11% 15%;
+    --card-foreground: 213 55% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 210 11% 15%;
-    --primary: 212 100% 37%;
+    --popover-foreground: 213 55% 11%;
+    --primary: 216 100% 35%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 10% 96%;
-    --secondary-foreground: 215 14% 34%;
-    --muted: 210 20% 96%;
-    --muted-foreground: 215 14% 46%;
-    --accent: 210 20% 96%;
-    --accent-foreground: 215 14% 34%;
-    --destructive: 0 84% 60%;
+    --secondary: 230 20% 95%;
+    --secondary-foreground: 213 55% 11%;
+    --muted: 230 40% 95%;
+    --muted-foreground: 233 11% 30%;
+    --accent: 230 40% 95%;
+    --accent-foreground: 213 55% 11%;
+    --destructive: 0 84% 41%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 212 100% 48%;
-    --radius: 0.5rem;
+    --border: 233 20% 85%;
+    --input: 233 20% 85%;
+    --ring: 216 100% 35%;
+    --radius: 0.75rem;
 
     --success: 152 69% 31%;
     --success-foreground: 0 0% 100%;
     --warning: 25 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --info: 212 100% 48%;
+    --info: 216 100% 35%;
     --info-foreground: 0 0% 100%;
 
     --sidebar-background: 220 14% 10%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 212 100% 48%;
+    --sidebar-primary: 216 100% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 18%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 212 100% 48%;
+    --sidebar-ring: 216 100% 45%;
+
+    /* Digital Architect surface system */
+    --surface: #f8f9ff;
+    --surface-container-low: #eef4ff;
+    --surface-container: #e4edff;
+    --surface-container-high: #dae6ff;
+    --surface-container-highest: #d4e4fa;
+    --surface-container-lowest: #ffffff;
+    --surface-variant: #dce3f3;
+    --surface-dim: #d8daea;
+    --surface-bright: #f8f9ff;
+    --on-surface: #0d1c2d;
+    --on-surface-variant: #434655;
   }
 
   .dark,
   [data-theme="dark"] {
-    --background: 220 20% 4%;
-    --foreground: 210 10% 90%;
-    --card: 220 14% 10%;
-    --card-foreground: 210 10% 90%;
-    --popover: 220 11% 14%;
-    --popover-foreground: 210 10% 90%;
-    --primary: 212 100% 48%;
+    --background: 224 30% 5%;
+    --foreground: 233 40% 92%;
+    --card: 222 20% 10%;
+    --card-foreground: 233 40% 92%;
+    --popover: 222 20% 12%;
+    --popover-foreground: 233 40% 92%;
+    --primary: 216 100% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 11% 14%;
-    --secondary-foreground: 210 10% 80%;
-    --muted: 220 11% 14%;
-    --muted-foreground: 215 10% 54%;
-    --accent: 220 11% 14%;
-    --accent-foreground: 210 10% 80%;
-    --destructive: 0 84% 60%;
+    --secondary: 222 20% 14%;
+    --secondary-foreground: 233 40% 85%;
+    --muted: 222 20% 14%;
+    --muted-foreground: 233 15% 55%;
+    --accent: 222 20% 14%;
+    --accent-foreground: 233 40% 85%;
+    --destructive: 0 84% 50%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 11% 18%;
-    --input: 220 11% 18%;
-    --ring: 212 100% 60%;
+    --border: 222 15% 18%;
+    --input: 222 15% 18%;
+    --ring: 216 100% 55%;
 
     --success: 152 69% 31%;
     --success-foreground: 0 0% 100%;
     --warning: 25 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --info: 212 100% 60%;
+    --info: 216 100% 55%;
     --info-foreground: 0 0% 100%;
 
     --sidebar-background: 220 14% 10%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 212 100% 60%;
+    --sidebar-primary: 216 100% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 14% 18%;
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 220 14% 18%;
-    --sidebar-ring: 212 100% 60%;
+    --sidebar-ring: 216 100% 55%;
+
+    /* Digital Architect dark surface system */
+    --surface: #0d1117;
+    --surface-container-low: #131820;
+    --surface-container: #1a2030;
+    --surface-container-high: #202840;
+    --surface-container-highest: #263050;
+    --surface-container-lowest: #0a0e17;
+    --surface-variant: #263050;
+    --surface-dim: #0d1117;
+    --surface-bright: #1a2030;
+    --on-surface: #e8eaf6;
+    --on-surface-variant: #b0b3cc;
   }
 }
 
@@ -89,7 +115,10 @@
   html,
   body {
     @apply bg-background text-foreground;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Manrope', sans-serif;
   }
 }
 
@@ -102,11 +131,12 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: hsl(var(--muted-foreground) / 0.3);
+  background-color: var(--on-surface-variant);
+  opacity: 0.3;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: hsl(var(--muted-foreground) / 0.5);
+  opacity: 0.5;
 }
 
 /* Toggle switch */
@@ -132,15 +162,14 @@
   100% { background-position: 200% 0; }
 }
 .skeleton-shimmer {
-  background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--accent)) 50%, hsl(var(--muted)) 75%);
+  background: linear-gradient(90deg, var(--surface-container-low) 25%, var(--surface-container-high) 50%, var(--surface-container-low) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 1rem;
 }
-
 
 @layer utilities {
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#0037b0] to-[#1d4ed8] bg-clip-text text-transparent;
   }
 }
