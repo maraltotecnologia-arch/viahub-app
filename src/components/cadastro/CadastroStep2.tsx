@@ -17,6 +17,28 @@ const planos = [
 
 const precoMap: Record<string, string> = { starter: "R$ 397,00", pro: "R$ 697,00", elite: "R$ 1.997,00" };
 
+const STEPS = ["Dados", "Plano", "Confirmação"];
+
+function Stepper({ current }: { current: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-6 max-w-md mx-auto">
+      {STEPS.map((label, i) => (
+        <div key={i} className="flex items-center gap-2 flex-1">
+          <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+              i < current ? "bg-secondary text-white" : i === current ? "bg-primary text-white ring-4 ring-primary/15" : "bg-surface-container-high text-on-surface-variant"
+            }`}>
+              {i < current ? <Check className="h-3.5 w-3.5" /> : i + 1}
+            </div>
+            <span className={`text-xs font-medium font-label ${i <= current ? "text-on-surface" : "text-on-surface-variant"}`}>{label}</span>
+          </div>
+          {i < STEPS.length - 1 && <div className={`flex-1 h-px ${i < current ? "bg-primary" : "bg-outline-variant/20"}`} />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type Props = {
   data: CadastroData;
   updateData: (d: Partial<CadastroData>) => void;
@@ -27,32 +49,22 @@ type Props = {
 export default function CadastroStep2({ data, updateData, onBack, onComplete }: Props) {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"cartao" | "pix" | "boleto">("cartao");
-
   const [cardNumber, setCardNumber] = useState("");
   const [cardName, setCardName] = useState("");
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCvv, setCardCvv] = useState("");
-
   const [pixData, setPixData] = useState<{ qrCode: string; payload: string; paymentId: string } | null>(null);
   const [pixLoading, setPixLoading] = useState(false);
   const [pixCopied, setPixCopied] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartRef = useRef<number>(Date.now());
-  const POLLING_TIMEOUT = 30 * 60 * 1000; // 30 minutes
-
+  const POLLING_TIMEOUT = 30 * 60 * 1000;
   const [boletoData, setBoletoData] = useState<{ url: string; linhaDigitavel: string; paymentId: string } | null>(null);
   const [boletoLoading, setBoletoLoading] = useState(false);
   const [boletoCopied, setBoletoCopied] = useState(false);
 
-  useEffect(() => {
-    updateData({ formaPagamento: activeTab });
-  }, [activeTab]);
-
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
-    };
-  }, []);
+  useEffect(() => { updateData({ formaPagamento: activeTab }); }, [activeTab]);
+  useEffect(() => { return () => { if (pollingRef.current) clearInterval(pollingRef.current); }; }, []);
 
   const detectCardBrand = (num: string) => {
     const d = num.replace(/\D/g, "");
@@ -67,24 +79,10 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
     setLoading(true);
     try {
       const res = await supabase.functions.invoke("signup-agencia", {
-        body: {
-          email: data.email.trim(),
-          password: data.senha,
-          nome_agencia: data.nomeAgencia.trim(),
-          nome_admin: data.nomeAdmin.trim(),
-          telefone: data.telefone.trim(),
-          cnpj: data.cnpj.trim(),
-          cep: data.cep.replace(/\D/g, ""),
-          plano: data.plano,
-          forma_pagamento: activeTab,
-          ...extra,
-        },
+        body: { email: data.email.trim(), password: data.senha, nome_agencia: data.nomeAgencia.trim(), nome_admin: data.nomeAdmin.trim(), telefone: data.telefone.trim(), cnpj: data.cnpj.trim(), cep: data.cep.replace(/\D/g, ""), plano: data.plano, forma_pagamento: activeTab, ...extra },
       });
-
       if (res.error || res.data?.error) {
-        const msg = res.data?.code
-          ? formatError(res.data.code)
-          : res.data?.error || formatError("SYS001");
+        const msg = res.data?.code ? formatError(res.data.code) : res.data?.error || formatError("SYS001");
         toast({ title: "Erro", description: msg, variant: "destructive" });
         setLoading(false);
         return null;
@@ -98,29 +96,11 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
   };
 
   const handleCardPayment = async () => {
-    if (!cardNumber || !cardName || !cardExpiry || !cardCvv) {
-      toast({ title: "Preencha todos os dados do cartão", variant: "destructive" });
-      return;
-    }
+    if (!cardNumber || !cardName || !cardExpiry || !cardCvv) { toast({ title: "Preencha todos os dados do cartão", variant: "destructive" }); return; }
     const [expiryMonth, expiryYear] = cardExpiry.split("/");
-    if (!expiryMonth || !expiryYear || expiryYear.length < 2) {
-      toast({ title: "Validade inválida", variant: "destructive" });
-      return;
-    }
-
-    const result = await handleSignupAndPay("CREDIT_CARD", {
-      creditCard: {
-        holderName: cardName,
-        number: cardNumber.replace(/\s/g, ""),
-        expiryMonth,
-        expiryYear: expiryYear.length === 2 ? "20" + expiryYear : expiryYear,
-        ccv: cardCvv,
-      },
-    });
-
-    if (result) {
-      onComplete({ formaPagamento: "cartao", email: data.email.trim().toLowerCase(), invoiceUrl: result.invoiceUrl });
-    }
+    if (!expiryMonth || !expiryYear || expiryYear.length < 2) { toast({ title: "Validade inválida", variant: "destructive" }); return; }
+    const result = await handleSignupAndPay("CREDIT_CARD", { creditCard: { holderName: cardName, number: cardNumber.replace(/\s/g, ""), expiryMonth, expiryYear: expiryYear.length === 2 ? "20" + expiryYear : expiryYear, ccv: cardCvv } });
+    if (result) onComplete({ formaPagamento: "cartao", email: data.email.trim().toLowerCase(), invoiceUrl: result.invoiceUrl });
     setLoading(false);
   };
 
@@ -128,31 +108,16 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
     setPixLoading(true);
     const result = await handleSignupAndPay("PIX");
     if (result) {
-        if (result.pixQrCode && result.pixPayload) {
+      if (result.pixQrCode && result.pixPayload) {
         setPixData({ qrCode: result.pixQrCode, payload: result.pixPayload, paymentId: result.paymentId });
         if (result.paymentId) {
           pollingStartRef.current = Date.now();
           pollingRef.current = setInterval(async () => {
-            if (Date.now() - pollingStartRef.current > POLLING_TIMEOUT) {
-              if (pollingRef.current) clearInterval(pollingRef.current);
-              toast({ title: "QR Code expirado", description: "Gere um novo QR Code para continuar.", variant: "destructive" });
-              setPixData(null);
-              return;
-            }
-            try {
-              const check = await supabase.functions.invoke("asaas-verificar-pagamento", {
-                body: { payment_id: result.paymentId },
-              });
-              if (check.data?.status === "RECEIVED" || check.data?.status === "CONFIRMED") {
-                if (pollingRef.current) clearInterval(pollingRef.current);
-                onComplete({ formaPagamento: "pix", email: data.email.trim().toLowerCase() });
-              }
-            } catch { /* ignore */ }
+            if (Date.now() - pollingStartRef.current > POLLING_TIMEOUT) { if (pollingRef.current) clearInterval(pollingRef.current); toast({ title: "QR Code expirado", description: "Gere um novo QR Code para continuar.", variant: "destructive" }); setPixData(null); return; }
+            try { const check = await supabase.functions.invoke("asaas-verificar-pagamento", { body: { payment_id: result.paymentId } }); if (check.data?.status === "RECEIVED" || check.data?.status === "CONFIRMED") { if (pollingRef.current) clearInterval(pollingRef.current); onComplete({ formaPagamento: "pix", email: data.email.trim().toLowerCase() }); } } catch {}
           }, 5000);
         }
-      } else {
-        onComplete({ formaPagamento: "pix", email: data.email.trim().toLowerCase(), invoiceUrl: result.invoiceUrl });
-      }
+      } else { onComplete({ formaPagamento: "pix", email: data.email.trim().toLowerCase(), invoiceUrl: result.invoiceUrl }); }
     }
     setPixLoading(false);
     setLoading(false);
@@ -162,170 +127,110 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
     setBoletoLoading(true);
     const result = await handleSignupAndPay("BOLETO");
     if (result) {
-      if (result.boletoUrl) {
-        setBoletoData({ url: result.boletoUrl, linhaDigitavel: result.boletoLinhaDigitavel || "", paymentId: result.paymentId });
-      } else {
-        onComplete({ formaPagamento: "boleto", email: data.email.trim().toLowerCase(), boletoUrl: result.boletoUrl, boletoLinhaDigitavel: result.boletoLinhaDigitavel });
-      }
+      if (result.boletoUrl) { setBoletoData({ url: result.boletoUrl, linhaDigitavel: result.boletoLinhaDigitavel || "", paymentId: result.paymentId }); }
+      else { onComplete({ formaPagamento: "boleto", email: data.email.trim().toLowerCase(), boletoUrl: result.boletoUrl, boletoLinhaDigitavel: result.boletoLinhaDigitavel }); }
     }
     setBoletoLoading(false);
     setLoading(false);
   };
 
-  const handleFinishBoleto = () => {
-    onComplete({ formaPagamento: "boleto", email: data.email.trim().toLowerCase(), boletoUrl: boletoData?.url, boletoLinhaDigitavel: boletoData?.linhaDigitavel });
-  };
+  const handleFinishBoleto = () => { onComplete({ formaPagamento: "boleto", email: data.email.trim().toLowerCase(), boletoUrl: boletoData?.url, boletoLinhaDigitavel: boletoData?.linhaDigitavel }); };
 
-  const copyToClipboard = (text: string, setCopied: (v: boolean) => void) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const copyToClipboard = (text: string, setCopied: (v: boolean) => void) => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   const brand = detectCardBrand(cardNumber);
-
   const tabs = [
     { key: "cartao" as const, label: "Cartão", icon: CreditCard },
     { key: "pix" as const, label: "PIX", icon: Zap },
     { key: "boleto" as const, label: "Boleto", icon: FileText },
   ];
-
   const selectedPlan = planos.find((p) => p.value === data.plano);
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel — summary (desktop only) */}
-      <div
-        className="hidden md:flex md:w-[45%] relative overflow-hidden items-center justify-center"
-        style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 40%, #2563EB 70%, #06B6D4 100%)" }}
-      >
-        <div className="absolute -top-[100px] -right-[100px] w-[400px] h-[400px] rounded-full" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }} />
-        <div className="absolute top-[30%] -left-[80px] w-[250px] h-[250px] rounded-full" style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.15)" }} />
-
-        <div className="relative z-10 max-w-sm px-6 w-full">
-          <h1 className="text-[28px] font-bold text-white tracking-tight">
-            Via<span className="font-extrabold">Hub</span>
-          </h1>
-          <p className="text-white/70 text-sm mt-1">O ecossistema da sua agência</p>
-          <p className="text-white/40 text-[10px] mt-1">powered by <span className="font-semibold">Maralto</span></p>
-
-          {/* Order summary */}
-          <div className="mt-8 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10 p-4">
-            <h3 className="font-bold text-white text-xs mb-3">Resumo do pedido</h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-white/60">Plano</span>
-                <span className="text-white font-medium capitalize">{selectedPlan?.label}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Cobrança</span>
-                <span className="text-white font-medium">Mensal</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/60">Vencimento</span>
-                <span className="text-white font-medium">Hoje</span>
-              </div>
-              <div className="border-t border-white/10 pt-2 flex justify-between">
-                <span className="text-white font-bold text-sm">Total</span>
-                <span className="text-white font-bold text-base">{precoMap[data.plano]}<span className="text-[10px] font-normal text-white/60">/mês</span></span>
-              </div>
+    <div className="min-h-screen bg-surface grid lg:grid-cols-[420px_1fr]">
+      {/* Left branding */}
+      <div className="hidden lg:flex flex-col bg-gradient-to-b from-[#0037b0] to-[#0a0e2e] p-12 text-white sticky top-0 h-screen justify-between">
+        <div>
+          <div className="flex items-center gap-2.5 mb-10">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
+              <span className="text-sm font-bold text-white">VH</span>
             </div>
-            <div className="mt-3 flex items-center gap-1.5 text-white/40 text-[10px]">
-              <Lock className="h-3 w-3" />
-              <span>Ambiente seguro SSL • Visa • Master • PIX • Boleto</span>
+            <span className="text-xl font-bold font-display tracking-tight">ViaHub</span>
+          </div>
+          <p className="text-white/60 text-sm font-body">O ecossistema da sua agência</p>
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10 p-6">
+          <h3 className="font-bold text-white text-sm mb-4">Resumo do pedido</h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex justify-between"><span className="text-white/60">Plano</span><span className="text-white font-medium capitalize">{selectedPlan?.label}</span></div>
+            <div className="flex justify-between"><span className="text-white/60">Cobrança</span><span className="text-white font-medium">Mensal</span></div>
+            <div className="border-t border-white/10 pt-3 flex justify-between">
+              <span className="text-white font-bold">Total</span>
+              <span className="text-white font-bold text-lg">{precoMap[data.plano]}<span className="text-sm font-normal text-white/60">/mês</span></span>
             </div>
           </div>
+          <div className="mt-4 flex items-center gap-2 text-white/40 text-xs">
+            <Lock className="h-3.5 w-3.5" />
+            <span>Ambiente seguro SSL</span>
+          </div>
         </div>
+
+        <p className="text-white/30 text-xs font-label">© {new Date().getFullYear()} ViaHub · powered by Maralto</p>
       </div>
 
-      {/* Right panel — form */}
-      <div
-        className="w-full md:w-[55%] flex items-start md:items-center justify-center p-4 md:p-6 min-h-screen overflow-y-auto md:overflow-hidden"
-        style={{ background: "rgba(255,255,255,0.95)" }}
-      >
-        <div className="md:hidden fixed inset-0 -z-10" style={{ background: "linear-gradient(135deg, #0F172A 0%, #1E3A8A 50%, #2563EB 100%)" }} />
-        <div className="w-full max-w-lg md:bg-transparent md:shadow-none md:rounded-none md:p-0 bg-white/95 rounded-3xl p-5 shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
-          <div className="animate-fade-in">
-            {/* Mobile logo */}
-            <div className="md:hidden text-center mb-3">
-              <h1 className="text-2xl font-bold text-[#0F172A]">Via<span className="font-extrabold">Hub</span></h1>
+      {/* Right form */}
+      <div className="overflow-y-auto flex items-start justify-center px-6 py-12">
+        <div className="max-w-xl w-full mx-auto">
+          <div className="lg:hidden flex items-center gap-2.5 mb-8">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center">
+              <span className="text-sm font-bold text-white">VH</span>
             </div>
+            <span className="text-xl font-bold font-display tracking-tight text-on-surface">ViaHub</span>
+          </div>
 
-            {/* Progress */}
-            <div className="flex items-center gap-2 mb-3">
-              {["Dados", "Plano", "Confirmação"].map((label, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="flex items-center gap-1">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold ${
-                      i <= 1 ? "bg-[#1E3A5F] text-white" : "bg-[#E2E8F0] text-[#94A3B8]"
-                    }`}>
-                      {i < 1 ? <Check className="h-2.5 w-2.5" /> : i + 1}
-                    </div>
-                    <span className={`text-[10px] ${i <= 1 ? "text-[#1E3A5F] font-medium" : "text-[#94A3B8]"}`}>{label}</span>
-                  </div>
-                  {i < 2 && <div className={`w-6 h-px ${i < 1 ? "bg-[#1E3A5F]" : "bg-[#E2E8F0]"}`} />}
-                </div>
-              ))}
-            </div>
+          <Stepper current={1} />
 
-            <div className="mb-3">
-              <h2 className="text-xl font-bold text-[#0F172A]">Escolha seu plano</h2>
-            </div>
+          <div className="bg-surface-container-lowest rounded-2xl p-7 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
+            <h2 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-1">Escolha seu plano</h2>
+            <p className="text-sm text-on-surface-variant font-body mb-6">Selecione o plano ideal para sua agência</p>
 
-            {/* Plans — compact */}
-            <div className="space-y-1.5 mb-3">
+            {/* Plans */}
+            <div className="space-y-2 mb-6">
               {planos.map((p) => {
                 const selected = data.plano === p.value;
                 return (
-                  <button
-                    key={p.value}
-                    onClick={() => updateData({ plano: p.value })}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg border-2 transition-all text-left ${
-                      selected
-                        ? "border-[#2563EB] bg-blue-50/50"
-                        : "border-[#E2E8F0] bg-white hover:border-[#94A3B8]"
-                    }`}
-                  >
-                    <div className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                      selected ? "border-[#2563EB]" : "border-[#CBD5E1]"
-                    }`}>
-                      {selected && <div className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />}
+                  <button key={p.value} onClick={() => updateData({ plano: p.value })} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all text-left ${selected ? "border-primary bg-primary/5" : "border-outline-variant/20 bg-surface-container-lowest hover:border-outline-variant/40"}`}>
+                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-primary" : "border-outline-variant"}`}>
+                      {selected && <div className="w-2 h-2 rounded-full bg-primary" />}
                     </div>
-                    <div className="flex-1 flex items-center gap-1.5 min-w-0">
-                      <span className="font-semibold text-sm text-[#0F172A]">{p.label}</span>
-                      {p.popular && (
-                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Popular</span>
-                      )}
-                      <span className="text-[11px] text-[#94A3B8]">• {p.resumo}</span>
+                    <div className="flex-1 flex items-center gap-2 min-w-0">
+                      <span className="font-semibold text-sm text-on-surface">{p.label}</span>
+                      {p.popular && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-[#ff9800]/10 text-[#e65100]">Popular</span>}
+                      <span className="text-[11px] text-on-surface-variant">• {p.resumo}</span>
                     </div>
-                    <span className="text-sm font-bold text-[#1E3A5F] shrink-0">{p.preco}<span className="text-[9px] font-normal text-[#94A3B8]">/mês</span></span>
+                    <span className="text-sm font-bold text-on-surface shrink-0">{p.preco}<span className="text-[9px] font-normal text-on-surface-variant">/mês</span></span>
                   </button>
                 );
               })}
             </div>
 
-            {/* Mobile order summary */}
-            <div className="md:hidden bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] px-3 py-2 mb-3">
+            {/* Mobile summary */}
+            <div className="lg:hidden bg-surface-container-low rounded-xl px-4 py-3 mb-6 border border-outline-variant/15">
               <div className="flex justify-between text-sm">
-                <span className="text-[#64748B]">Total mensal</span>
-                <span className="font-bold text-[#1E3A5F]">{precoMap[data.plano]}</span>
+                <span className="text-on-surface-variant">Total mensal</span>
+                <span className="font-bold text-on-surface">{precoMap[data.plano]}</span>
               </div>
             </div>
 
             {/* Payment tabs */}
-            <h3 className="text-xs font-semibold text-[#0F172A] mb-2">Forma de pagamento</h3>
-            <div className="flex border-b border-[#E2E8F0] mb-3">
+            <h3 className="text-xs font-semibold font-label text-on-surface uppercase tracking-wide mb-3">Forma de pagamento</h3>
+            <div className="flex bg-surface-container-low rounded-xl p-1 mb-6 gap-1">
               {tabs.map((t) => {
                 const Icon = t.icon;
                 const active = activeTab === t.key;
                 return (
-                  <button
-                    key={t.key}
-                    onClick={() => setActiveTab(t.key)}
-                    className={`flex items-center gap-1 px-3 py-2 text-xs font-medium border-b-2 transition-all ${
-                      active ? "border-[#2563EB] text-[#2563EB]" : "border-transparent text-[#94A3B8] hover:text-[#64748B]"
-                    }`}
-                  >
+                  <button key={t.key} onClick={() => setActiveTab(t.key)} className={`flex items-center justify-center gap-1.5 flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${active ? "bg-surface-container-lowest shadow-sm text-primary font-semibold" : "text-on-surface-variant hover:bg-surface-container-high"}`}>
                     <Icon className="h-3.5 w-3.5" />
                     {t.label}
                   </button>
@@ -333,147 +238,123 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
               })}
             </div>
 
-            {/* Tab content */}
+            {/* Card */}
             {activeTab === "cartao" && (
-              <div className="space-y-2">
-                <div className="bg-[#F8FAFC] rounded-lg p-3 space-y-2 border border-[#E2E8F0]">
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-medium text-[#64748B]">Número do cartão</Label>
+              <div className="space-y-4">
+                <div className="bg-surface-container-low rounded-xl p-4 space-y-3 border border-outline-variant/10">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium font-label text-on-surface-variant">Número do cartão</Label>
                     <div className="relative">
-                      <Input
-                        placeholder="0000 0000 0000 0000"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(maskCardNumber(e.target.value))}
-                        className="h-9 text-sm pr-16 bg-white"
-                        maxLength={19}
-                      />
-                      {brand && (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#2563EB] bg-blue-50 px-1.5 py-0.5 rounded">{brand}</span>
-                      )}
+                      <Input placeholder="0000 0000 0000 0000" value={cardNumber} onChange={(e) => setCardNumber(maskCardNumber(e.target.value))} className="pr-16" maxLength={19} />
+                      {brand && <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-primary bg-primary/8 px-1.5 py-0.5 rounded">{brand}</span>}
                     </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <Label className="text-[10px] font-medium text-[#64748B]">Nome no cartão</Label>
-                    <Input placeholder="NOME COMO NO CARTÃO" value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} className="h-9 text-sm bg-white" />
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-medium font-label text-on-surface-variant">Nome no cartão</Label>
+                    <Input placeholder="NOME COMO NO CARTÃO" value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="space-y-0.5">
-                      <Label className="text-[10px] font-medium text-[#64748B]">Validade</Label>
-                      <Input placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(maskCardExpiry(e.target.value))} className="h-9 text-sm bg-white" maxLength={5} />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium font-label text-on-surface-variant">Validade</Label>
+                      <Input placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(maskCardExpiry(e.target.value))} maxLength={5} />
                     </div>
-                    <div className="space-y-0.5">
-                      <Label className="text-[10px] font-medium text-[#64748B]">CVV</Label>
-                      <Input placeholder="000" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} className="h-9 text-sm bg-white" maxLength={4} />
+                    <div className="space-y-1.5">
+                      <Label className="text-xs font-medium font-label text-on-surface-variant">CVV</Label>
+                      <Input placeholder="000" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))} maxLength={4} />
                     </div>
                   </div>
                 </div>
-                <Button
-                  onClick={handleCardPayment}
-                  disabled={loading || !cardNumber || !cardName || !cardExpiry || !cardCvv}
-                  className="w-full h-10 rounded-xl font-semibold text-sm text-white shadow-md disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
-                >
+                <Button onClick={handleCardPayment} disabled={loading || !cardNumber || !cardName || !cardExpiry || !cardCvv} className="w-full">
                   {loading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Processando...</> : <><Lock className="h-3.5 w-3.5 mr-1.5" />Finalizar cadastro</>}
                 </Button>
               </div>
             )}
 
+            {/* PIX */}
             {activeTab === "pix" && (
               <div>
                 {!pixData ? (
-                  <div className="text-center py-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#F0FDF4] flex items-center justify-center mx-auto mb-2">
-                      <Zap className="h-5 w-5 text-green-600" />
+                  <div className="text-center py-4">
+                    <div className="w-12 h-12 rounded-xl bg-secondary-container/50 flex items-center justify-center mx-auto mb-3">
+                      <Zap className="h-6 w-6 text-secondary" />
                     </div>
-                    <p className="text-xs text-[#64748B] mb-3">Gere o QR Code e pague pelo app do banco.</p>
-                    <Button
-                      onClick={handleGeneratePix}
-                      disabled={pixLoading || loading}
-                      className="w-full h-10 rounded-xl font-semibold text-sm text-white shadow-md"
-                      style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
-                    >
+                    <p className="text-sm text-on-surface-variant font-body mb-4">Gere o QR Code e pague pelo app do banco.</p>
+                    <Button onClick={handleGeneratePix} disabled={pixLoading || loading} className="w-full">
                       {pixLoading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Gerando...</> : "Gerar QR Code PIX"}
                     </Button>
                   </div>
                 ) : (
-                  <div className="text-center space-y-2">
-                    <div className="inline-block p-2 bg-white rounded-xl border border-[#E2E8F0] shadow-sm">
-                      <img src={`data:image/png;base64,${pixData.qrCode}`} alt="QR Code PIX" className="w-[140px] h-[140px]" />
+                  <div className="text-center space-y-4">
+                    <div className="inline-block bg-white p-4 rounded-xl border border-outline-variant/15">
+                      <img src={`data:image/png;base64,${pixData.qrCode}`} alt="QR Code PIX" className="w-[160px] h-[160px]" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium text-[#64748B] mb-1">Copia e cola:</p>
-                      <div className="flex items-center gap-1.5 bg-[#F8FAFC] rounded-lg px-3 py-2 border border-[#E2E8F0]">
-                        <span className="text-[10px] text-[#0F172A] font-mono truncate flex-1">{pixData.payload}</span>
-                        <button onClick={() => copyToClipboard(pixData.payload, setPixCopied)} className="shrink-0 px-2 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-medium hover:bg-[#1D4ED8]">
-                          {pixCopied ? <Check className="h-3 w-3" /> : "Copiar"}
+                      <p className="text-xs font-medium font-label text-on-surface-variant mb-2">Copia e cola:</p>
+                      <div className="flex items-center gap-2 bg-surface-container-low rounded-xl px-4 py-3 border-b-2 border-primary">
+                        <span className="text-xs text-on-surface font-mono truncate flex-1">{pixData.payload}</span>
+                        <button onClick={() => copyToClipboard(pixData.payload, setPixCopied)} className="shrink-0 px-3 py-1 rounded-lg bg-primary text-white text-xs font-medium hover:brightness-110 transition-all">
+                          {pixCopied ? <Check className="h-3.5 w-3.5" /> : "Copiar"}
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 justify-center py-1">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin text-[#2563EB]" />
-                      <span className="text-xs text-[#64748B]">Aguardando pagamento...</span>
+                    <div className="flex items-center gap-2 justify-center py-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <span className="text-sm text-on-surface-variant font-body">Aguardando pagamento...</span>
                     </div>
                   </div>
                 )}
               </div>
             )}
 
+            {/* Boleto */}
             {activeTab === "boleto" && (
               <div>
                 {!boletoData ? (
-                  <div className="text-center py-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-2">
-                      <FileText className="h-5 w-5 text-[#1E3A5F]" />
+                  <div className="text-center py-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center mx-auto mb-3">
+                      <FileText className="h-6 w-6 text-primary" />
                     </div>
-                    <div className="flex items-center gap-1.5 justify-center mb-3 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 mx-auto w-fit">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                      <span className="text-[10px] text-amber-700">Ativação após compensação (1-3 dias úteis)</span>
+                    <div className="flex items-center gap-2 justify-center mb-4 px-3 py-2 rounded-xl bg-[#ff9800]/8 border border-[#ff9800]/20 mx-auto w-fit">
+                      <AlertTriangle className="h-3.5 w-3.5 text-[#e65100] shrink-0" />
+                      <span className="text-xs text-[#e65100]">Ativação após compensação (1-3 dias úteis)</span>
                     </div>
-                    <Button
-                      onClick={handleGenerateBoleto}
-                      disabled={boletoLoading || loading}
-                      className="w-full h-10 rounded-xl font-semibold text-sm text-white shadow-md"
-                      style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}
-                    >
+                    <Button onClick={handleGenerateBoleto} disabled={boletoLoading || loading} className="w-full">
                       {boletoLoading ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Gerando...</> : "Gerar boleto"}
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="text-center">
-                      <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-1">
-                        <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div className="w-10 h-10 rounded-full bg-secondary-container/50 flex items-center justify-center mx-auto mb-2">
+                        <CheckCircle className="h-5 w-5 text-secondary" />
                       </div>
-                      <p className="text-sm font-semibold text-[#0F172A]">Boleto gerado!</p>
+                      <p className="text-sm font-semibold text-on-surface">Boleto gerado!</p>
                     </div>
                     <a href={boletoData.url} target="_blank" rel="noopener noreferrer">
-                      <Button className="w-full h-9 rounded-lg font-semibold text-white text-xs shadow-md" style={{ background: "linear-gradient(135deg, #2563EB, #06B6D4)" }}>
+                      <Button className="w-full">
                         <Download className="h-3.5 w-3.5 mr-1.5" />
                         Baixar boleto PDF
                       </Button>
                     </a>
                     {boletoData.linhaDigitavel && (
-                      <div className="flex items-center gap-1.5 bg-[#F8FAFC] rounded-lg px-3 py-2 border border-[#E2E8F0]">
-                        <span className="text-[10px] text-[#0F172A] font-mono truncate flex-1">{boletoData.linhaDigitavel}</span>
-                        <button onClick={() => copyToClipboard(boletoData.linhaDigitavel, setBoletoCopied)} className="shrink-0 px-2 py-0.5 rounded bg-[#2563EB] text-white text-[10px] font-medium hover:bg-[#1D4ED8]">
-                          {boletoCopied ? <Check className="h-3 w-3" /> : "Copiar"}
+                      <div className="flex items-center gap-2 bg-surface-container-low rounded-xl px-4 py-3 border-b-2 border-primary">
+                        <span className="text-xs text-on-surface font-mono truncate flex-1">{boletoData.linhaDigitavel}</span>
+                        <button onClick={() => copyToClipboard(boletoData.linhaDigitavel, setBoletoCopied)} className="shrink-0 px-3 py-1 rounded-lg bg-primary text-white text-xs font-medium hover:brightness-110 transition-all">
+                          {boletoCopied ? <Check className="h-3.5 w-3.5" /> : "Copiar"}
                         </button>
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200">
-                      <AlertTriangle className="h-3.5 w-3.5 text-amber-600 shrink-0" />
-                      <span className="text-[10px] text-amber-700">Ativação após compensação (1-3 dias úteis)</span>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#ff9800]/8 border border-[#ff9800]/20">
+                      <AlertTriangle className="h-3.5 w-3.5 text-[#e65100] shrink-0" />
+                      <span className="text-xs text-[#e65100]">Ativação após compensação (1-3 dias úteis)</span>
                     </div>
-                    <Button onClick={handleFinishBoleto} variant="outline" className="w-full h-9 rounded-lg text-xs font-medium">
-                      Continuar →
-                    </Button>
+                    <Button onClick={handleFinishBoleto} variant="outline" className="w-full">Continuar →</Button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Back */}
-            <button onClick={onBack} className="flex items-center gap-1 text-xs text-[#64748B] hover:text-[#0F172A] mt-3 transition-colors">
+            <button onClick={onBack} className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-on-surface mt-4 transition-colors font-medium">
               <ArrowLeft className="h-3.5 w-3.5" /> Voltar
             </button>
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -61,27 +61,15 @@ const SUGGESTIONS = [
   },
 ];
 
-/**
- * Parse the response text to detect multiple options (Opção 1, Opção 2, etc.)
- * and split them into sections.
- */
 function parseOptions(text: string): { label: string; content: string }[] {
-  // Match patterns like "## Opção 1", "### Opção 2", "**Opção 1**", "Opção 1:"
   const optionRegex = /(?:^|\n)(?:#{1,4}\s*)?(?:\*{1,2})?(?:Opção|Opcao|Option)\s+(\d+)(?:\*{1,2})?[:\s\-–—]*/gi;
   const matches = [...text.matchAll(optionRegex)];
-
-  if (matches.length < 2) {
-    return [{ label: "Resultado", content: text }];
-  }
-
+  if (matches.length < 2) return [{ label: "Resultado", content: text }];
   const options: { label: string; content: string }[] = [];
   for (let i = 0; i < matches.length; i++) {
     const start = matches[i].index!;
     const end = i + 1 < matches.length ? matches[i + 1].index! : text.length;
-    options.push({
-      label: `Opção ${matches[i][1]}`,
-      content: text.substring(start, end).trim(),
-    });
+    options.push({ label: `Opção ${matches[i][1]}`, content: text.substring(start, end).trim() });
   }
   return options;
 }
@@ -156,7 +144,6 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         return;
       }
 
-      // Check if structured data is available
       if (data?.structured) {
         setStructuredData(data.structured);
         setResposta(data.structured.texto_formatado || "");
@@ -165,9 +152,8 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
         setResposta(data?.resposta || "Sem resposta do servidor.");
       }
       setPhase("done");
-    } catch (err: any) {
-      console.error("Copilot error:", err);
-      setErro("Não foi possível conectar ao assistente. Tente novamente em alguns instantes.");
+    } catch {
+      setErro("Não foi possível conectar ao assistente.");
       setPhase("input");
     } finally {
       clearTimeout(slowTimer);
@@ -183,8 +169,6 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     if (structuredData && structuredData.itens_orcamento?.length > 0) {
       let itensToUse = structuredData.itens_orcamento;
 
-      // For round trips, pass all items (ida + volta)
-      // For multiple options (non-round-trip), pick the selected option
       if (!structuredData.is_round_trip && hasMultipleOptions && itensToUse.length >= options.length) {
         itensToUse = [itensToUse[selectedOption]];
       }
@@ -210,10 +194,10 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+          <DialogTitle className="flex items-center gap-2 text-base font-semibold font-headline text-on-surface">
             <span>✈️</span>
             Assistente de Cotação
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground ml-1">Beta</span>
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-label ml-1">Beta</span>
           </DialogTitle>
         </DialogHeader>
 
@@ -229,12 +213,12 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                     setPrompt(e.target.value);
                     if (erro) setErro("");
                   }}
-                  placeholder="Ex: Cotação para casal, 7 dias em Paris saindo de SP em outubro. Hotel 4 estrelas e voo direto..."
-                  className="min-h-[120px] resize-none text-sm"
+                  placeholder="Ex: Cotação para casal, 7 dias em Paris saindo de SP em outubro..."
+                  className="min-h-[120px] resize-none text-sm bg-surface-container-high rounded-xl p-4 border-none focus:ring-1 focus:ring-primary/30"
                 />
 
                 <div className="space-y-1.5">
-                  <p className="text-xs font-medium text-muted-foreground">Sugestões rápidas:</p>
+                  <p className="text-xs font-medium font-label text-on-surface-variant">Sugestões rápidas:</p>
                   <div className="flex flex-wrap gap-2">
                     {SUGGESTIONS.map((s) => (
                       <button
@@ -244,9 +228,9 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                           if (erro) setErro("");
                         }}
                         className={cn(
-                          "px-3 py-1.5 rounded-full text-xs font-medium border transition-all duration-150",
-                          "border-border hover:border-foreground/30 hover:bg-muted/50 text-muted-foreground",
-                          prompt === s.prompt && "border-primary bg-primary/5 text-primary"
+                          "px-3 py-1.5 rounded-full text-xs font-medium font-label transition-all duration-150",
+                          "bg-surface-container-high text-on-surface-variant hover:bg-primary/10 hover:text-primary cursor-pointer",
+                          prompt === s.prompt && "bg-primary/10 text-primary"
                         )}
                       >
                         {s.label}
@@ -256,7 +240,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                 </div>
 
                 {erro && (
-                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  <div className="rounded-xl border border-error/20 bg-error-container/20 p-3 text-sm text-error">
                     {erro}
                   </div>
                 )}
@@ -274,20 +258,20 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
 
             {phase === "loading" && (
               <div className="flex flex-col items-center justify-center py-12 gap-4 text-center">
-                <div className="h-14 w-14 rounded-full bg-muted border border-border flex items-center justify-center animate-pulse">
-                  <Plane className="h-6 w-6 text-muted-foreground" />
+                <div className="h-14 w-14 rounded-full bg-surface-container-high flex items-center justify-center animate-pulse">
+                  <Plane className="h-6 w-6 text-on-surface-variant" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm font-medium text-foreground flex items-center gap-2 justify-center">
+                  <p className="text-sm font-medium text-on-surface flex items-center gap-2 justify-center font-headline">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Buscando voos...
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-on-surface-variant font-body">
                     Isso pode levar de 5 a 10 segundos.
                   </p>
                   {slowWarning && (
-                    <p className="text-xs text-amber-500 mt-1">
-                      A resposta está demorando mais que o esperado. Verifique a conexão com o servidor de voos.
+                    <p className="text-xs text-[#e65100] mt-1">
+                      A resposta está demorando mais que o esperado.
                     </p>
                   )}
                 </div>
@@ -299,7 +283,7 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="gap-1.5 text-muted-foreground hover:text-foreground"
+                  className="gap-1.5 text-on-surface-variant hover:text-on-surface"
                   onClick={() => {
                     setPhase("input");
                     setResposta("");
@@ -318,15 +302,15 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                       <div
                         key={idx}
                         className={cn(
-                          "rounded-lg border p-4 cursor-pointer transition-all duration-150",
+                          "rounded-xl border p-4 cursor-pointer transition-all duration-150",
                           selectedOption === idx
-                            ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                            : "border-border bg-muted/30 hover:border-foreground/20"
+                            ? "border-primary bg-primary/6"
+                            : "border-outline-variant/20 hover:border-primary/30 hover:bg-primary/4"
                         )}
                         onClick={() => setSelectedOption(idx)}
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-muted-foreground">{opt.label}</span>
+                          <span className="text-xs font-semibold font-label text-on-surface-variant">{opt.label}</span>
                           {selectedOption === idx && (
                             <span className="flex items-center gap-1 text-xs font-medium text-primary">
                               <Check className="h-3.5 w-3.5" />
@@ -354,22 +338,22 @@ export default function AICopilotModal({ open, onOpenChange }: AICopilotModalPro
                     ))}
                   </div>
                 ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none rounded-lg border bg-muted/30 p-4 overflow-y-auto max-h-[50vh]">
+                  <div className="prose prose-sm dark:prose-invert max-w-none rounded-xl bg-surface-container-low p-5 overflow-y-auto max-h-[50vh]">
                     <ReactMarkdown>{resposta}</ReactMarkdown>
                   </div>
                 )}
 
                 {structuredData?.is_round_trip && structuredData?.total_com_markup != null && (
-                  <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
-                    <p className="text-sm text-muted-foreground">Total ida + volta</p>
-                    <p className="text-lg font-bold text-foreground">
+                  <div className="rounded-xl border border-primary/20 bg-primary/6 p-3 text-center">
+                    <p className="text-sm text-on-surface-variant font-body">Total ida + volta</p>
+                    <p className="text-lg font-bold font-display text-on-surface">
                       R$ {structuredData.total_com_markup.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 )}
 
-                <p className="text-xs text-muted-foreground">
-                  Markup aplicado: <span className="font-semibold text-foreground">{markupUsado}%</span>
+                <p className="text-xs text-on-surface-variant font-label">
+                  Markup aplicado: <span className="font-semibold text-on-surface">{markupUsado}%</span>
                 </p>
 
                 <Button
