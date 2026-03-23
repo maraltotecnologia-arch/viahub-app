@@ -177,22 +177,7 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
               {/* AI Copilot shortcut */}
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={collapsed ? "Assistente IA" : undefined}>
-                  <button
-                    onClick={() => setAiModalOpen(true)}
-                    className={navCls(false)}
-                  >
-                    <Bot className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" strokeWidth={1.5} />
-                    {!collapsed && (
-                      <span className="flex-1 flex items-center gap-2">
-                        Assistente IA
-                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 bg-blue-600 text-white rounded-full">PRO</span>
-                      </span>
-                    )}
-                  </button>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {renderItem({ title: "Assistente IA", url: "#ai-copilot", icon: Bot, badge: undefined })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
