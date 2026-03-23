@@ -52,11 +52,8 @@ export default function Dashboard() {
   }, [user, navigate]);
 
   if (checkingAccess) return (
-    <div className="space-y-6 animate-fade-in-up">
-      <Skeleton className="h-8 w-40" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
-      </div>
+    <div className="flex items-center justify-center w-full" style={{ minHeight: "calc(100vh - 3.5rem)" }}>
+      <Skeleton className="h-8 w-8 rounded-full" />
     </div>
   );
 
