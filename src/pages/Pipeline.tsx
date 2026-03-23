@@ -95,9 +95,9 @@ export default function Pipeline() {
 
   return (
     <TooltipProvider>
-    <div className="space-y-6 animate-fade-in-up flex-1 flex flex-col">
-      <h2 className="text-2xl font-bold">Pipeline</h2>
-      {(!orcamentos || orcamentos.length === 0) ? (
+    <div className="animate-fade-in-up flex-1 flex flex-col h-[calc(100vh-56px)] overflow-hidden bg-surface">
+      <div className="px-8 py-5 bg-surface-container-lowest/80 backdrop-blur-sm border-b border-outline-variant/10 flex items-center justify-between">
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Pipeline de Vendas</h2>
         <div className="flex-1 flex items-center justify-center">
           <EmptyState
             icon={<LayoutGrid className="h-9 w-9" />}
