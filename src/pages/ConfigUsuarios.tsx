@@ -230,7 +230,7 @@ export default function ConfigUsuarios() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Usuários da Agência</h2>
-        <Button variant="gradient" onClick={() => setAddOpen(true)}>
+        <Button variant="default" onClick={() => setAddOpen(true)}>
           <UserPlus className="h-4 w-4 mr-1" /> Adicionar Usuário
         </Button>
       </div>
@@ -332,7 +332,7 @@ export default function ConfigUsuarios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>Cancelar</Button>
-            <Button variant="gradient" onClick={handleAdd} disabled={saving || !addForm.nome || !addForm.email || !addForm.senha}>
+            <Button variant="default" onClick={handleAdd} disabled={saving || !addForm.nome || !addForm.email || !addForm.senha}>
               {saving ? "Salvando..." : "Adicionar"}
             </Button>
           </DialogFooter>
@@ -366,7 +366,7 @@ export default function ConfigUsuarios() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
-            <Button variant="gradient" onClick={handleEdit} disabled={saving}>
+            <Button variant="default" onClick={handleEdit} disabled={saving}>
               {saving ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </DialogFooter>

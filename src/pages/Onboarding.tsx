@@ -268,11 +268,11 @@ export default function Onboarding() {
               {step > 0 && <Button variant="outline" onClick={() => setStep(step - 1)}>Voltar</Button>}
               <div className="ml-auto">
                 {step < 2 ? (
-                  <Button variant="gradient" onClick={handleNext} disabled={loading}>
+                  <Button variant="default" onClick={handleNext} disabled={loading}>
                     {loading ? "Salvando..." : "Próximo"}
                   </Button>
                 ) : (
-                  <Button variant="gradient" onClick={handleFinish} disabled={loading}>
+                  <Button variant="default" onClick={handleFinish} disabled={loading}>
                     {loading ? "Finalizando..." : "Acessar Sistema"}
                   </Button>
                 )}

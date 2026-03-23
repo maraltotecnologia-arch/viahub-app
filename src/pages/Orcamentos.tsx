@@ -113,7 +113,7 @@ export default function Orcamentos() {
             <Wand2 className="h-4 w-4" />
             Gerar com IA
           </Button>
-          <Button variant="gradient" asChild>
+          <Button variant="default" asChild>
             <Link to="/orcamentos/novo"><Plus className="h-4 w-4 mr-2" /> Novo Orçamento</Link>
           </Button>
         </div>

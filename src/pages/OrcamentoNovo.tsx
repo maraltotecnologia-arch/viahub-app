@@ -733,7 +733,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             <div className="space-y-2"><Label>Nome</Label><Input value={newNome} onChange={(e) => setNewNome(e.target.value)} placeholder="Nome completo" /></div>
             <div className="space-y-2"><Label>Email</Label><Input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} type="email" placeholder="email@exemplo.com" /></div>
             <div className="space-y-2"><Label>Telefone</Label><Input value={newTelefone} onChange={(e) => setNewTelefone(e.target.value)} placeholder="(00) 00000-0000" /></div>
-            <Button variant="gradient" className="w-full" onClick={handleCreateCliente}>Salvar Cliente</Button>
+            <Button variant="default" className="w-full" onClick={handleCreateCliente}>Salvar Cliente</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -940,7 +940,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         {isEdicao ? (
           <>
             <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
-            <Button variant="gradient" onClick={() => handleSave(false)} disabled={loading}>
+            <Button variant="default" onClick={() => handleSave(false)} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {loading ? "Salvando..." : "Salvar Alterações"}
             </Button>
@@ -951,7 +951,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {loading ? "Salvando..." : "Salvar Rascunho"}
             </Button>
-            <Button variant="gradient" onClick={() => handleSave(true)} disabled={loading}>
+            <Button variant="default" onClick={() => handleSave(true)} disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
               {loading ? "Salvando..." : "Salvar e Enviar"}
             </Button>
