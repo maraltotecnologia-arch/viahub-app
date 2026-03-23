@@ -78,7 +78,7 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
               <Skeleton className="h-10 w-24" />
             ) : (
               <>
-                <p className="text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
+                <p className="text-2xl sm:text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
                   {value}
                 </p>
                 {subtitle && <p className="text-xs text-on-surface-variant mt-1 truncate">{subtitle}</p>}
