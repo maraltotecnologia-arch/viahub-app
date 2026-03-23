@@ -642,11 +642,11 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
   });
 
   const metricCards = [
-    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-blue-500/15 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400", subtitle: "" },
-    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-emerald-500/15 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400", subtitle: "" },
-    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-green-500/15 text-green-500 dark:bg-green-500/20 dark:text-green-400", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
-    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-violet-500/15 text-violet-500 dark:bg-violet-500/20 dark:text-violet-400", subtitle: "" },
-    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-orange-500/15 text-orange-500 dark:bg-orange-500/20 dark:text-orange-400", subtitle: "" },
+    { title: "Orçamentos no mês", value: metrics ? String(metrics.total) : "0", icon: FileText, iconBg: "bg-primary/8 text-primary", subtitle: "" },
+    { title: "Valor total orçado", value: metrics ? fmt(metrics.valorTotal) : "R$ 0", icon: DollarSign, iconBg: "bg-secondary-container/40 text-secondary", subtitle: "" },
+    { title: "Recebido no mês", value: metrics ? fmt(metrics.recebido) : "R$ 0", icon: BadgeCheck, iconBg: "bg-secondary-container/40 text-secondary", subtitle: metrics ? `${metrics.pagosCount} orçamentos pagos este mês` : "" },
+    { title: "Taxa de conversão", value: metrics ? `${metrics.conversao}%` : "0%", icon: Percent, iconBg: "bg-[#7c3aed]/8 text-[#7c3aed]", subtitle: "" },
+    { title: "Lucro estimado", value: metrics ? fmt(metrics.comissao) : "R$ 0", icon: TrendingUp, iconBg: "bg-[#ff9800]/10 text-[#e65100]", subtitle: "" },
   ];
 
   return (
