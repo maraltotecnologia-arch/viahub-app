@@ -159,8 +159,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
+                <div className="space-y-1.5 lg:space-y-1">
                   <Label htmlFor="telefone" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Telefone *</Label>
                   <Input id="telefone" placeholder="(11) 99999-9999" value={data.telefone} onChange={(e) => updateData({ telefone: maskTelefone(e.target.value) })} />
                   <FieldError field="telefone" />
