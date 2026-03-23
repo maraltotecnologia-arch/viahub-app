@@ -131,7 +131,7 @@ export function AppSidebar() {
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:!bg-surface-variant/60 [&_[data-sidebar=sidebar]]:backdrop-blur-[12px] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-outline-variant/15"
+      className="md:flex [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-sidebar-border"
     >
       <SidebarContent className="flex flex-col">
         {/* Logo */}
