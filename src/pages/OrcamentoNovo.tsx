@@ -935,8 +935,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         </Alert>
       )}
 
-      {/* Ações */}
-      <div className="flex gap-3 justify-end pb-6">
+      {/* Ações — mobile: fixed bottom bar */}
+      <div className="hidden sm:flex gap-3 justify-end pb-6">
         {isEdicao ? (
           <>
             <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
@@ -958,6 +958,29 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </>
         )}
       </div>
+      {/* Mobile fixed bottom actions */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/15 flex gap-3 px-4 py-3">
+        {isEdicao ? (
+          <>
+            <Button variant="outline" className="flex-1" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
+            <Button variant="default" className="flex-1" onClick={() => handleSave(false)} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" className="flex-1" onClick={() => handleSave(false)} disabled={loading}>
+              <Save className="h-4 w-4 mr-1" /> Rascunho
+            </Button>
+            <Button variant="default" className="flex-1" onClick={() => handleSave(true)} disabled={loading}>
+              <Send className="h-4 w-4 mr-1" /> Enviar
+            </Button>
+          </>
+        )}
+      </div>
+      {/* Spacer for mobile fixed bottom bar */}
+      <div className="sm:hidden h-16" />
       <ConfirmDialog
         open={showZeroConfirm}
         onOpenChange={setShowZeroConfirm}
