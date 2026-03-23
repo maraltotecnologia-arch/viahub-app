@@ -195,8 +195,8 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
             <Target className="h-5 w-5" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Minha Meta</p>
-            <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+            <p className="text-sm font-medium text-muted-foreground">Minha Meta</p>
+            <p className="text-lg font-bold text-foreground">
               {fmt(valorRealizado)} <span className="text-sm font-normal text-muted-foreground">de {fmt(metaValor)}</span>
             </p>
           </div>
