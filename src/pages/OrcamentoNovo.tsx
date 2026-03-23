@@ -622,14 +622,14 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   return (
-    <div className="space-y-6 w-full animate-fade-in">
-      <div className="flex items-center gap-3">
+    <div className="space-y-6 w-full max-w-4xl mx-auto animate-fade-in">
+      <div className="flex items-center gap-3 mb-8">
         {isEdicao && (
           <Button variant="ghost" size="icon" onClick={() => navigate(`/orcamentos/${orcamentoId}`)}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
-        <h2 className="text-2xl font-bold">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
+        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
       </div>
 
       {/* Cliente */}
