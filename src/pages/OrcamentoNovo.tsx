@@ -811,7 +811,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <span className="text-sm font-semibold font-headline text-on-surface-variant">Item {idx + 1}</span>
                 {itens.length > 1 && <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-error hover:bg-error-container/20" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Tipo</Label>
                   <Select value={item.tipo} onValueChange={(v) => updateItem(item.id, "tipo", v)}>
