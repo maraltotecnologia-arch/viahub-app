@@ -806,10 +806,10 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             </div>
           )}
           {itens.map((item, idx) => (
-            <div key={item.id} className="rounded-lg p-4 space-y-3" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border-color)" }}>
+            <div key={item.id} className="rounded-xl p-5 space-y-3 relative bg-surface-container-low border border-outline-variant/10">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-muted-foreground">Item {idx + 1}</span>
-                {itens.length > 1 && <Button variant="ghost" size="icon" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                <span className="text-sm font-semibold font-headline text-on-surface-variant">Item {idx + 1}</span>
+                {itens.length > 1 && <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-error hover:bg-error-container/20" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div className="space-y-1">
