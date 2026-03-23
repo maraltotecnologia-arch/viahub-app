@@ -63,10 +63,10 @@ export function AppSidebar() {
   };
 
   const navCls = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-2"} rounded-xl text-sm transition-all duration-200 ${
+    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-2"} rounded-lg text-sm transition-colors duration-100 ${
       isActive
-        ? "bg-[rgba(173,198,255,0.15)] border border-[rgba(173,198,255,0.20)] text-white font-semibold"
-        : "text-white/70 hover:bg-white/[0.08] hover:text-white"
+        ? "bg-blue-600 text-white font-semibold"
+        : "text-gray-400 hover:text-white hover:bg-gray-800"
     }`;
 
   const mainItems = [
@@ -103,15 +103,15 @@ export function AppSidebar() {
           title={collapsed ? item.title : undefined}
           className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
         >
-          <item.icon className="h-4 w-4 shrink-0 opacity-80" />
+          <item.icon className="h-4 w-4 shrink-0" />
           {!collapsed && <span className="flex-1">{item.title}</span>}
           {!collapsed && (item.badge ?? 0) > 0 && (
-            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
               {item.badge}
             </span>
           )}
           {collapsed && (item.badge ?? 0) > 0 && (
-            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
+            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
               {item.badge}
             </span>
           )}
@@ -122,45 +122,38 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-3 text-[10px] font-bold uppercase tracking-[2px] text-white/40 mb-1 mt-1">{label}</p>
+      <p className="px-3 pt-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</p>
     ) : (
-      <Separator className="mx-3 my-1 bg-white/[0.08]" />
+      <Separator className="mx-3 my-1 bg-gray-800" />
     );
 
   return (
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:!bg-gradient-to-b [&_[data-sidebar=sidebar]]:!from-[#002d62] [&_[data-sidebar=sidebar]]:!to-[#001a42] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-white/[0.06]"
+      className="md:flex [&_[data-sidebar=sidebar]]:!bg-gray-900 [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-gray-800"
     >
       <SidebarContent className="flex flex-col">
         {/* Logo */}
-        <div className={`border-b border-white/[0.08] ${collapsed ? "py-3 flex items-center justify-center" : "p-4 pb-4"}`}>
+        <div className={`${collapsed ? "py-3 flex items-center justify-center" : "px-4 pt-5 pb-4"}`}>
           {collapsed ? (
-            <div className="rounded-xl bg-gradient-to-br from-primary to-[#2170e4] p-1.5 shadow-lg shadow-primary/20">
-              <span className="text-sm font-extrabold text-white">VH</span>
+            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+              <span className="text-sm font-bold text-white">VH</span>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
-              <div className="rounded-xl bg-gradient-to-br from-primary to-[#2170e4] p-2 shadow-lg shadow-primary/20">
-                <span className="text-sm font-extrabold text-white">VH</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+                <span className="text-sm font-bold text-white">VH</span>
               </div>
-              <div>
-                <h1 className="text-xl font-extrabold text-white tracking-tight">
-                  ViaHub
-                </h1>
-                <p className="text-[10px] text-white/[0.35] tracking-wide uppercase">
-                  O ecossistema da sua agência
-                </p>
-              </div>
+              <span className="text-base font-bold text-white">ViaHub</span>
             </div>
           )}
         </div>
 
         {/* Main items */}
-        <SidebarGroup className="py-2 px-2">
+        <SidebarGroup className="py-2 px-3">
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
               {/* AI Copilot shortcut */}
               <SidebarMenuItem>
@@ -169,11 +162,11 @@ export function AppSidebar() {
                     onClick={() => setAiModalOpen(true)}
                     className={navCls(false)}
                   >
-                    <Bot className="h-4 w-4 shrink-0 opacity-80" />
+                    <Bot className="h-4 w-4 shrink-0" />
                     {!collapsed && (
                       <span className="flex-1 flex items-center gap-2">
                         Assistente IA
-                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded-full bg-white/10 text-white/50">Pro</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded-full bg-white/10 text-gray-500">Pro</span>
                       </span>
                     )}
                   </button>
@@ -185,10 +178,10 @@ export function AppSidebar() {
 
         {/* Configurações */}
         {canAccessConfig && (
-          <SidebarGroup className="py-1 px-2">
+          <SidebarGroup className="py-1 px-3">
             {sectionLabel("Configurações")}
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-0.5">
                 {configItems.map(renderItem)}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -197,22 +190,22 @@ export function AppSidebar() {
 
         {/* Administração */}
         {isSuperadmin && (
-          <SidebarGroup className="py-1 px-2">
+          <SidebarGroup className="py-1 px-3">
             {sectionLabel("Administração")}
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="space-y-0.5">
                 {adminItems.map(renderItem)}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         )}
 
-        {/* Spacer to push footer down */}
+        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Ajuda e Suporte (Agency only) */}
+        {/* Ajuda e Suporte */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-2 mt-auto border-t border-white/[0.06]">
+          <SidebarGroup className="py-1 px-3 mt-auto border-t border-gray-800">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -222,7 +215,7 @@ export function AppSidebar() {
                       title={collapsed ? "Ajuda & Suporte" : undefined}
                       className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
                     >
-                      <LifeBuoy className="h-4 w-4 shrink-0 opacity-80" />
+                      <LifeBuoy className="h-4 w-4 shrink-0" />
                       {!collapsed && <span className="flex-1">Ajuda & Suporte</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -236,21 +229,21 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed && (
         <SidebarFooter>
-          <div className="flex items-center border-t border-white/[0.08] bg-white/[0.04] gap-3 px-4 py-3">
-            <div className="rounded-full bg-gradient-to-br from-primary to-[#2170e4] flex items-center justify-center text-white font-semibold shrink-0 h-8 w-8 text-xs">
+          <div className="flex items-center border-t border-gray-800 gap-3 px-3 pb-4 pt-4">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white/90 truncate">{nome || user?.email || "Usuário"}</p>
-              <p className="text-xs text-white/50">{cargoLabel}</p>
+              <p className="text-sm font-medium text-white truncate">{nome || user?.email || "Usuário"}</p>
+              <p className="text-xs text-gray-500">{cargoLabel}</p>
               {nomeAgencia && (
-                <p className="flex items-center gap-1 text-xs font-medium text-white/60 truncate mt-0.5" title={nomeAgencia}>
+                <p className="flex items-center gap-1 text-xs text-gray-600 truncate mt-0.5" title={nomeAgencia}>
                   <Building2 className="w-3 h-3 shrink-0" />
                   {nomeAgencia}
                 </p>
               )}
             </div>
-            <button onClick={handleSignOut} className="text-white/40 hover:text-white/80 transition-colors shrink-0" title="Sair">
+            <button onClick={handleSignOut} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-gray-800 transition-colors shrink-0" title="Sair">
               <LogOut className="h-4 w-4" />
             </button>
           </div>

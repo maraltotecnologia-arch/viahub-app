@@ -5,24 +5,24 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-all duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-gradient-to-br from-primary to-primary-container text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
-        destructive: "bg-destructive/[0.08] text-destructive border border-destructive/20 hover:bg-destructive hover:text-destructive-foreground hover:border-transparent transition-all",
-        outline: "border border-outline-variant/30 bg-background hover:bg-muted/50 hover:border-muted-foreground/30",
-        secondary: "bg-surface-container-high text-on-surface rounded-xl font-semibold hover:bg-surface-container-highest transition-colors",
-        ghost: "text-primary font-semibold hover:bg-primary/[0.08] rounded-lg transition-colors",
-        link: "text-primary underline-offset-4 hover:underline",
-        gradient: "bg-gradient-to-br from-primary to-primary-container text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]",
-        success: "bg-success text-success-foreground hover:bg-success/90",
+        default: "bg-blue-600 text-white hover:bg-blue-700",
+        destructive: "bg-white dark:bg-gray-800 border border-red-200 dark:border-red-800 text-red-600 hover:bg-red-50 dark:hover:bg-red-950",
+        outline: "border border-border bg-background hover:bg-accent text-foreground",
+        secondary: "bg-white dark:bg-gray-800 border border-border text-foreground hover:bg-accent",
+        ghost: "text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 font-medium",
+        link: "text-blue-600 underline-offset-4 hover:underline",
+        gradient: "bg-blue-600 text-white hover:bg-blue-700",
+        success: "bg-emerald-600 text-white hover:bg-emerald-700",
       },
       size: {
-        default: "h-10 px-5 py-2.5",
-        sm: "h-9 rounded-xl px-3",
-        lg: "h-12 rounded-xl px-8",
-        icon: "h-10 w-10 rounded-xl",
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-lg px-3 text-sm",
+        lg: "h-12 rounded-lg px-8",
+        icon: "h-10 w-10 rounded-lg",
       },
     },
     defaultVariants: {
