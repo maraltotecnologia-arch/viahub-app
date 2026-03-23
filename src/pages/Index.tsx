@@ -99,10 +99,18 @@ export default function Index() {
 
   useEffect(() => {
     document.title = "ViaHub — O ecossistema da sua agência de viagens";
-    document.documentElement.setAttribute("data-theme", "light");
+    const html = document.documentElement;
+    const hadDark = html.classList.contains('dark');
+    html.classList.remove('dark');
+    html.classList.add('light');
+    html.setAttribute('data-theme', 'light');
     return () => {
-      const saved = localStorage.getItem("viahub-theme") || "dark";
-      document.documentElement.setAttribute("data-theme", saved);
+      html.classList.remove('light');
+      const saved = localStorage.getItem('viahub-theme') || 'dark';
+      html.setAttribute('data-theme', saved);
+      if (hadDark || saved === 'dark') {
+        html.classList.add('dark');
+      }
     };
   }, []);
 
