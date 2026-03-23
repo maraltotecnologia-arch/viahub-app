@@ -138,7 +138,7 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
               O ViaHub é exclusivo para pessoas jurídicas (CNPJ ou MEI)
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4 lg:space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="nomeAgencia" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Nome da Agência *</Label>
                 <Input id="nomeAgencia" placeholder="Minha Agência de Viagens" value={data.nomeAgencia} onChange={(e) => updateData({ nomeAgencia: e.target.value })} />
