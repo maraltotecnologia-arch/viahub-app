@@ -67,23 +67,23 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
 }) {
   return (
     <Card className="rounded-2xl shadow-ambient">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wider mb-2">{title}</p>
+            <p className="text-xs font-medium font-label text-muted-foreground uppercase tracking-wider mb-2">{title}</p>
             {isLoading ? (
-              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-8 w-20" />
             ) : (
               <>
-                <p className="text-2xl sm:text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
+                <p className="text-lg sm:text-xl lg:text-2xl font-extrabold font-display text-foreground tracking-tight truncate">
                   {value}
                 </p>
-                {subtitle && <p className="text-xs text-on-surface-variant mt-1 truncate">{subtitle}</p>}
+                {subtitle && <p className="text-xs text-muted-foreground mt-1 truncate">{subtitle}</p>}
               </>
             )}
           </div>
-          <div className={`rounded-xl p-3 shrink-0 ${iconBg}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`rounded-xl p-2.5 shrink-0 ${iconBg}`}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </CardContent>

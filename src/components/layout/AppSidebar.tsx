@@ -232,22 +232,22 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed && (
         <SidebarFooter>
-          <div className="border-t border-outline-variant/15 p-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container-high cursor-pointer transition-colors">
+          <div className="border-t border-sidebar-border p-4">
+            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-sidebar-accent cursor-pointer transition-colors">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container text-white text-sm font-bold font-display flex items-center justify-center shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold font-headline text-on-surface truncate">{nome || user?.email || "Usuário"}</p>
-                <p className="text-xs text-on-surface-variant font-label">{cargoLabel}</p>
+                <p className="text-sm font-semibold font-headline text-sidebar-foreground truncate">{nome || user?.email || "Usuário"}</p>
+                <p className="text-xs text-sidebar-foreground/60 font-label">{cargoLabel}</p>
                 {nomeAgencia && (
-                  <p className="flex items-center gap-1 text-xs text-on-surface-variant/60 font-label truncate mt-0.5" title={nomeAgencia}>
+                  <p className="flex items-center gap-1 text-xs text-sidebar-foreground/40 font-label truncate mt-0.5" title={nomeAgencia}>
                     <Building2 className="w-3 h-3 shrink-0" />
                     {nomeAgencia}
                   </p>
                 )}
               </div>
-              <button onClick={handleSignOut} className="p-1.5 rounded-lg text-on-surface-variant/60 hover:text-error hover:bg-error-container/20 transition-colors shrink-0 ml-auto" title="Sair">
+              <button onClick={handleSignOut} className="p-1.5 rounded-lg text-sidebar-foreground/40 hover:text-error hover:bg-error-container/20 transition-colors shrink-0 ml-auto" title="Sair">
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
