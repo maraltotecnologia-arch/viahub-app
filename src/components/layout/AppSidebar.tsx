@@ -112,7 +112,7 @@ export function AppSidebar() {
           <button
             onClick={item.onClick}
             title={collapsed ? item.title : undefined}
-            className={`${navCls(false)} ${collapsed ? "relative" : ""}`}
+            className={`${navCls(false)} ${collapsed ? "relative" : ""} w-full text-left`}
           >
             <item.icon className={iconCls(false)} strokeWidth={1.5} />
             {!collapsed && (
