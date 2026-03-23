@@ -132,9 +132,9 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
 
           <Stepper current={0} />
 
-          <div className="bg-surface-container-lowest rounded-2xl p-7 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
+          <div className="bg-surface-container-lowest rounded-2xl p-7 lg:p-6 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
             <h2 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-1">Crie sua conta</h2>
-            <p className="text-sm text-on-surface-variant font-body mb-7">
+            <p className="text-sm text-on-surface-variant font-body mb-7 lg:mb-4">
               O ViaHub é exclusivo para pessoas jurídicas (CNPJ ou MEI)
             </p>
 
