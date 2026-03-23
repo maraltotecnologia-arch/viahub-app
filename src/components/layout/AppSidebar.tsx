@@ -195,7 +195,7 @@ export function AppSidebar() {
             <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
               {/* AI Copilot shortcut */}
-              {renderItem({ title: "Assistente IA", url: "#ai-copilot", icon: Bot, badge: undefined })}
+              {renderItem({ title: "Assistente IA", url: "#", icon: Bot, onClick: () => setAiModalOpen(true), proBadge: true })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
