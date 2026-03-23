@@ -53,6 +53,13 @@
     --surface-bright: #f8f9ff;
     --on-surface: #0d1c2d;
     --on-surface-variant: #434655;
+
+    /* Compat aliases for legacy inline styles */
+    --text-primary: #0d1c2d;
+    --text-secondary: #434655;
+    --bg-card: #ffffff;
+    --bg-secondary: #eef4ff;
+    --border-color: #dce3f3;
   }
 
   .dark,
@@ -105,6 +112,13 @@
     --surface-bright: #1a2030;
     --on-surface: #e8eaf6;
     --on-surface-variant: #b0b3cc;
+
+    /* Compat aliases for legacy inline styles */
+    --text-primary: #e8eaf6;
+    --text-secondary: #b0b3cc;
+    --bg-card: #0a0e17;
+    --bg-secondary: #131820;
+    --border-color: #263050;
   }
 }
 

@@ -96,8 +96,8 @@ export default function Pipeline() {
   return (
     <TooltipProvider>
     <div className="animate-fade-in-up flex-1 flex flex-col h-[calc(100vh-56px)] overflow-hidden bg-surface">
-      <div className="px-8 py-5 bg-surface-container-lowest/80 backdrop-blur-sm border-b border-outline-variant/10 flex items-center justify-between">
-        <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Pipeline de Vendas</h2>
+      <div className="px-4 sm:px-8 py-4 sm:py-5 bg-surface-container-lowest/80 backdrop-blur-sm border-b border-outline-variant/10 flex items-center justify-between">
+        <h2 className="text-2xl sm:text-3xl font-bold font-display tracking-tight text-on-surface">Pipeline de Vendas</h2>
       </div>
       {(!orcamentos || orcamentos.length === 0) ? (
         <div className="flex-1 flex items-center justify-center">
@@ -108,7 +108,7 @@ export default function Pipeline() {
           />
         </div>
       ) : (
-      <div className="flex-1 overflow-x-auto p-6 flex gap-4 items-start">
+      <div className="flex-1 overflow-x-auto p-4 sm:p-6 flex gap-4 items-start snap-x snap-mandatory sm:snap-none">
         {statusConfig.map((col) => {
           const cards = orcamentos?.filter((o) => o.status === col.id) || [];
           const total = cards.reduce((s, c) => s + (Number(c.valor_final) || 0), 0);
@@ -117,7 +117,7 @@ export default function Pipeline() {
           return (
             <div
               key={col.id}
-              className="min-w-[288px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200"
+              className="min-w-[280px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200 snap-start"
               style={{
                 background: isDropActive ? "rgba(0,55,176,0.06)" : "transparent",
                 border: isDropActive ? "2px dashed #0037b0" : "2px dashed transparent",

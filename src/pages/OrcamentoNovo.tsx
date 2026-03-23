@@ -811,7 +811,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <span className="text-sm font-semibold font-headline text-on-surface-variant">Item {idx + 1}</span>
                 {itens.length > 1 && <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-error hover:bg-error-container/20" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Tipo</Label>
                   <Select value={item.tipo} onValueChange={(v) => updateItem(item.id, "tipo", v)}>
@@ -821,7 +821,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 </div>
                 <div className="space-y-1 md:col-span-2"><Label className="text-xs">Descrição</Label><Input placeholder="Descrição do serviço" value={item.descricao} onChange={(e) => updateItem(item.id, "descricao", e.target.value)} /></div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                 <div className="space-y-1"><Label className="text-xs">Custo (R$)</Label><Input type="number" min={0} value={item.valor_custo || ""} onChange={(e) => updateItem(item.id, "valor_custo", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Markup %</Label><Input type="number" min={0} value={item.markup_percentual || ""} onChange={(e) => updateItem(item.id, "markup_percentual", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
@@ -935,8 +935,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         </Alert>
       )}
 
-      {/* Ações */}
-      <div className="flex gap-3 justify-end pb-6">
+      {/* Ações — mobile: fixed bottom bar */}
+      <div className="hidden sm:flex gap-3 justify-end pb-6">
         {isEdicao ? (
           <>
             <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
@@ -958,6 +958,29 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           </>
         )}
       </div>
+      {/* Mobile fixed bottom actions */}
+      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/15 flex gap-3 px-4 py-3">
+        {isEdicao ? (
+          <>
+            <Button variant="outline" className="flex-1" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
+            <Button variant="default" className="flex-1" onClick={() => handleSave(false)} disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+              Salvar
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" className="flex-1" onClick={() => handleSave(false)} disabled={loading}>
+              <Save className="h-4 w-4 mr-1" /> Rascunho
+            </Button>
+            <Button variant="default" className="flex-1" onClick={() => handleSave(true)} disabled={loading}>
+              <Send className="h-4 w-4 mr-1" /> Enviar
+            </Button>
+          </>
+        )}
+      </div>
+      {/* Spacer for mobile fixed bottom bar */}
+      <div className="sm:hidden h-16" />
       <ConfirmDialog
         open={showZeroConfirm}
         onOpenChange={setShowZeroConfirm}
