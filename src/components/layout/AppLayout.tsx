@@ -12,16 +12,16 @@ import GlobalSearch from "@/components/GlobalSearch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CARGO_BADGE_CLASSES: Record<string, string> = {
-  Superadmin: "bg-purple-500/15 text-purple-600 border border-purple-500/20 dark:text-purple-400",
-  Administrador: "bg-primary/15 text-primary border border-primary/20",
-  Agente: "bg-emerald-500/15 text-emerald-600 border border-emerald-500/20 dark:text-emerald-400",
-  Financeiro: "bg-amber-500/15 text-amber-600 border border-amber-500/20 dark:text-amber-400",
+  Superadmin: "bg-purple-50 text-purple-700 dark:bg-purple-950 dark:text-purple-300",
+  Administrador: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+  Agente: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
+  Financeiro: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
 };
 
 function CargoBadge({ cargo }: { cargo: string }) {
-  const cls = CARGO_BADGE_CLASSES[cargo] || "bg-muted text-muted-foreground border border-border";
+  const cls = CARGO_BADGE_CLASSES[cargo] || "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300";
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold ${cls}`}>
+    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${cls}`}>
       {cargo}
     </span>
   );
@@ -45,76 +45,73 @@ export default function AppLayout() {
   return (
     <TooltipProvider delayDuration={300}>
     <SidebarProvider>
-      <div
-        className="min-h-screen flex w-full"
-        style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}
-      >
+      <div className="min-h-screen flex w-full bg-background text-foreground">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header
-            className="h-16 flex items-center px-4 shrink-0 sticky top-0 z-20 shadow-sm"
-            style={{
-              background: "var(--bg-header)",
-              backdropFilter: "blur(20px)",
-              WebkitBackdropFilter: "blur(20px)",
-            }}
-          >
+          <header className="h-14 flex items-center px-4 sm:px-6 shrink-0 sticky top-0 z-20 bg-card border-b border-border">
             <Tooltip>
               <TooltipTrigger asChild>
-                <SidebarTrigger className="shrink-0">
+                <SidebarTrigger className="shrink-0 p-2 rounded-lg hover:bg-accent text-muted-foreground">
                   {isMobile && <Menu className="h-5 w-5" />}
                 </SidebarTrigger>
               </TooltipTrigger>
               <TooltipContent side="bottom">Recolher menu</TooltipContent>
             </Tooltip>
-            {/* Center — Search bar */}
-            <div className="flex-1 flex justify-center mx-4">
-              <div className="w-full max-w-lg">
+
+            <div className="flex-1" />
+
+            {/* Right — actions */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Search */}
+              <div className="hidden sm:block w-64">
                 <GlobalSearch />
               </div>
-            </div>
-            {/* Right — User info & actions */}
-            <div className="flex items-center gap-3 shrink-0">
-              {!isMobile && (
-                <>
-                  <span className="text-sm font-medium text-foreground">{displayName}</span>
-                  {cargoLabel && <CargoBadge cargo={cargoLabel} />}
-                </>
-              )}
+              <div className="sm:hidden">
+                <GlobalSearch />
+              </div>
+
+              {/* Theme toggle */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     onClick={toggleTheme}
-                    className="p-2 rounded-full bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors"
                   >
                     {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">Alternar tema</TooltipContent>
               </Tooltip>
+
+              {/* Notifications */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <span><NotificacoesDropdown /></span>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">Notificações</TooltipContent>
               </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div
-                    className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-[hsl(var(--primary)/0.7)] flex items-center justify-center text-primary-foreground text-xs font-semibold shadow-sm cursor-default"
-                  >
-                    {initials}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{displayName}</TooltipContent>
-              </Tooltip>
+
+              {/* Divider */}
+              <div className="hidden sm:block w-px h-6 bg-border" />
+
+              {/* Avatar + name */}
+              <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-accent cursor-default">
+                <div className="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                  {initials}
+                </div>
+                {!isMobile && (
+                  <>
+                    <span className="text-sm font-medium text-foreground">{displayName}</span>
+                    {cargoLabel && <CargoBadge cargo={cargoLabel} />}
+                  </>
+                )}
+              </div>
             </div>
           </header>
-          <main
-            className="flex-1 flex flex-col p-4 md:p-6 overflow-auto"
-            style={{ background: "var(--bg-primary)", color: "var(--text-primary)", height: "calc(100vh - 4rem)" }}
-          >
-            <Outlet />
+          <main className="flex-1 flex flex-col overflow-auto bg-background" style={{ height: "calc(100vh - 3.5rem)" }}>
+            <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 flex-1">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>
