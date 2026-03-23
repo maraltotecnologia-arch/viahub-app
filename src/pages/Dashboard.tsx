@@ -52,11 +52,8 @@ export default function Dashboard() {
   }, [user, navigate]);
 
   if (checkingAccess) return (
-    <div className="space-y-6 animate-fade-in-up">
-      <Skeleton className="h-8 w-40" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
-      </div>
+    <div className="flex items-center justify-center w-full" style={{ minHeight: "calc(100vh - 3.5rem)" }}>
+      <Skeleton className="h-8 w-8 rounded-full" />
     </div>
   );
 
@@ -70,23 +67,23 @@ function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
 }) {
   return (
     <Card className="rounded-2xl shadow-ambient">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wider mb-2">{title}</p>
+            <p className="text-xs font-medium font-label text-muted-foreground uppercase tracking-wider mb-2">{title}</p>
             {isLoading ? (
-              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-8 w-20" />
             ) : (
               <>
-                <p className="text-2xl sm:text-4xl font-extrabold font-display text-on-surface tracking-tight truncate">
+                <p className="text-lg sm:text-xl lg:text-2xl font-extrabold font-display text-foreground tracking-tight truncate">
                   {value}
                 </p>
-                {subtitle && <p className="text-xs text-on-surface-variant mt-1 truncate">{subtitle}</p>}
+                {subtitle && <p className="text-xs text-muted-foreground mt-1 truncate">{subtitle}</p>}
               </>
             )}
           </div>
-          <div className={`rounded-xl p-3 shrink-0 ${iconBg}`}>
-            <Icon className="h-5 w-5" />
+          <div className={`rounded-xl p-2.5 shrink-0 ${iconBg}`}>
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
         </div>
       </CardContent>
@@ -191,15 +188,15 @@ function MinhaMetaCard({ agenciaId }: { agenciaId: string }) {
   const progressColor = pct >= 100 ? "#16A34A" : pct >= 80 ? "#2563EB" : pct >= 50 ? "#F59E0B" : "#EF4444";
 
   return (
-    <Card className="rounded-2xl" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+    <Card className="rounded-2xl">
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-3">
           <div className="h-10 w-10 rounded-xl bg-amber-500/15 text-amber-500 dark:bg-amber-500/20 dark:text-amber-400 flex items-center justify-center">
             <Target className="h-5 w-5" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium" style={{ color: "var(--text-secondary)" }}>Minha Meta</p>
-            <p className="text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+            <p className="text-sm font-medium text-muted-foreground">Minha Meta</p>
+            <p className="text-lg font-bold text-foreground">
               {fmt(valorRealizado)} <span className="text-sm font-normal text-muted-foreground">de {fmt(metaValor)}</span>
             </p>
           </div>
@@ -395,17 +392,17 @@ function SuperadminDashboard() {
       {/* Linha 2 — Métricas de performance */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Taxa de Conversão Média */}
-        <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+        <Card className="rounded-2xl shadow-ambient">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/15 text-cyan-500 dark:bg-cyan-500/20 dark:text-cyan-400">
-                <Percent className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-cyan-500/15 text-cyan-500 dark:bg-cyan-500/20 dark:text-cyan-400">
+                <Percent className="h-5 w-5" />
               </div>
-              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Taxa de Conversão Média</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate text-muted-foreground">Taxa de Conversão Média</span>
             </div>
             {conversaoLoading ? <Skeleton className="h-8 w-24" /> : (
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
+                <p className="text-xl sm:text-2xl font-bold leading-tight truncate text-foreground">
                   {convAtual.toFixed(1)}%
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: convDiff >= 0 ? "#16A34A" : "#EF4444" }}>
@@ -418,17 +415,17 @@ function SuperadminDashboard() {
         </Card>
 
         {/* Churn do Mês */}
-        <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+        <Card className="rounded-2xl shadow-ambient">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400">
-                <UserX className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400">
+                <UserX className="h-5 w-5" />
               </div>
-              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate text-muted-foreground">Churn do Mês</span>
             </div>
             {metricsLoading ? <Skeleton className="h-8 w-24" /> : (
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
+                <p className="text-xl sm:text-2xl font-bold leading-tight truncate text-foreground">
                   {metrics?.churnAtual ?? 0} {(metrics?.churnAtual ?? 0) === 1 ? "agência" : "agências"}
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: churnDiff <= 0 ? "#16A34A" : "#EF4444" }}>

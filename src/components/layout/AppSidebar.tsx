@@ -65,8 +65,8 @@ export function AppSidebar() {
   const navCls = (isActive: boolean) =>
     `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 mx-3 px-3 py-2.5"} rounded-xl text-sm transition-all duration-150 ${
       isActive
-        ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-semibold border-l-2 border-primary"
-        : "text-on-surface-variant font-medium hover:bg-surface-container-high hover:text-on-surface"
+        ? "bg-primary/10 text-primary font-semibold border-l-2 border-primary"
+        : "text-sidebar-foreground/70 font-medium hover:bg-sidebar-accent hover:text-sidebar-foreground"
     }`;
 
   const mainItems = [
@@ -122,16 +122,16 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-4 pt-6 pb-1.5 text-[10px] font-bold font-label text-on-surface-variant/50 uppercase tracking-widest">{label}</p>
+      <p className="px-4 pt-6 pb-1.5 text-[10px] font-bold font-label text-sidebar-foreground/40 uppercase tracking-widest">{label}</p>
     ) : (
-      <Separator className="mx-3 my-1 bg-outline-variant/15" />
+      <Separator className="mx-3 my-1 bg-sidebar-border" />
     );
 
   return (
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:!bg-surface-variant/60 [&_[data-sidebar=sidebar]]:backdrop-blur-[12px] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-outline-variant/15"
+      className="md:flex [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-sidebar-border"
     >
       <SidebarContent className="flex flex-col">
         {/* Logo */}
@@ -146,8 +146,8 @@ export function AppSidebar() {
                 <span className="text-sm font-bold text-white">VH</span>
               </div>
               <div>
-                <span className="text-lg font-bold font-display tracking-tight text-on-surface block">ViaHub</span>
-                <span className="text-[10px] font-semibold font-label text-on-surface-variant/60 uppercase tracking-widest block">O ecossistema da sua agência</span>
+                <span className="text-lg font-bold font-display tracking-tight text-sidebar-foreground block">ViaHub</span>
+                <span className="text-[10px] font-semibold font-label text-sidebar-foreground/50 uppercase tracking-widest block">O ecossistema da sua agência</span>
               </div>
             </div>
           )}
@@ -208,7 +208,7 @@ export function AppSidebar() {
 
         {/* Ajuda e Suporte */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-0 mt-auto border-t border-outline-variant/15">
+          <SidebarGroup className="py-1 px-0 mt-auto border-t border-sidebar-border">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -232,22 +232,22 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed && (
         <SidebarFooter>
-          <div className="border-t border-outline-variant/15 p-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container-high cursor-pointer transition-colors">
+          <div className="border-t border-sidebar-border p-4">
+            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-sidebar-accent cursor-pointer transition-colors">
               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container text-white text-sm font-bold font-display flex items-center justify-center shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold font-headline text-on-surface truncate">{nome || user?.email || "Usuário"}</p>
-                <p className="text-xs text-on-surface-variant font-label">{cargoLabel}</p>
+                <p className="text-sm font-semibold font-headline text-sidebar-foreground truncate">{nome || user?.email || "Usuário"}</p>
+                <p className="text-xs text-sidebar-foreground/60 font-label">{cargoLabel}</p>
                 {nomeAgencia && (
-                  <p className="flex items-center gap-1 text-xs text-on-surface-variant/60 font-label truncate mt-0.5" title={nomeAgencia}>
+                  <p className="flex items-center gap-1 text-xs text-sidebar-foreground/40 font-label truncate mt-0.5" title={nomeAgencia}>
                     <Building2 className="w-3 h-3 shrink-0" />
                     {nomeAgencia}
                   </p>
                 )}
               </div>
-              <button onClick={handleSignOut} className="p-1.5 rounded-lg text-on-surface-variant/60 hover:text-error hover:bg-error-container/20 transition-colors shrink-0 ml-auto" title="Sair">
+              <button onClick={handleSignOut} className="p-1.5 rounded-lg text-sidebar-foreground/40 hover:text-error hover:bg-error-container/20 transition-colors shrink-0 ml-auto" title="Sair">
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
