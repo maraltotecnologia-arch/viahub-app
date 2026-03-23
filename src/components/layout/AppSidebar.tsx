@@ -1,5 +1,5 @@
 import { LayoutDashboard, FileText, BarChart3, TrendingUp, Users, Settings, LogOut, Building2, Shield, Bell, Target, Percent, CreditCard, MessageCircle, Bot, LifeBuoy } from "lucide-react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import AICopilotModal from "@/components/ai/AICopilotModal";
 import {
@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { supabase } from "@/integrations/supabase/client";
 import useUserRole from "@/hooks/useUserRole";
 import useAgenciaId from "@/hooks/useAgenciaId";
@@ -108,33 +107,26 @@ export function AppSidebar() {
   const renderItem = (item: { title: string; url: string; icon: any; badge?: number; onClick?: () => void; proBadge?: boolean }) => (
     <SidebarMenuItem key={item.title}>
       <SidebarMenuButton asChild tooltip={collapsed ? item.title : undefined}>
-        {item.onClick ? (
-          <NavLink
-            to="#"
-            onClick={(e) => { e.preventDefault(); item.onClick!(); }}
-            title={collapsed ? item.title : undefined}
-            className={`${navCls(false)} ${collapsed ? "relative" : ""}`}
-          >
-            <item.icon className={iconCls(false)} strokeWidth={1.5} />
-            {!collapsed && (
-              <span className="flex-1 flex items-center gap-2">
-                {item.title}
-                {item.proBadge && (
+        <NavLink
+          to={item.url}
+          onClick={item.onClick ? (e) => {
+            e.preventDefault();
+            item.onClick?.();
+          } : undefined}
+          title={collapsed ? item.title : undefined}
+          className={({ isActive }) => `${navCls(item.onClick ? false : isActive)} ${collapsed ? "relative" : ""}`}
+        >
+          {({ isActive }) => {
+            const active = item.onClick ? false : isActive;
+            return (
+              <>
+                <span className="h-4 w-4 shrink-0 flex items-center justify-center">
+                  <item.icon className={iconCls(active)} strokeWidth={active ? 2 : 1.5} />
+                </span>
+                {!collapsed && <span className="flex-1">{item.title}</span>}
+                {!collapsed && item.proBadge && (
                   <span className="ml-auto text-[10px] font-bold px-2 py-0.5 bg-blue-600 text-white rounded-full">PRO</span>
                 )}
-              </span>
-            )}
-          </NavLink>
-        ) : (
-          <NavLink
-            to={item.url}
-            title={collapsed ? item.title : undefined}
-            className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
-          >
-            {({ isActive }) => (
-              <>
-                <item.icon className={iconCls(isActive)} strokeWidth={isActive ? 2 : 1.5} />
-                {!collapsed && <span className="flex-1">{item.title}</span>}
                 {!collapsed && (item.badge ?? 0) > 0 && (
                   <span className="ml-auto inline-flex items-center justify-center rounded-full bg-destructive text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
                     {item.badge}
@@ -146,9 +138,9 @@ export function AppSidebar() {
                   </span>
                 )}
               </>
-            )}
-          </NavLink>
-        )}
+            );
+          }}
+        </NavLink>
       </SidebarMenuButton>
     </SidebarMenuItem>
   );
