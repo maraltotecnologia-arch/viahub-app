@@ -225,7 +225,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
 
             {/* Payment tabs */}
             <h3 className="text-xs font-semibold font-label text-on-surface uppercase tracking-wide mb-3">Forma de pagamento</h3>
-            <div className="flex bg-surface-container-low rounded-xl p-1 mb-6 gap-1">
+            <div className="flex bg-surface-container-low rounded-xl p-1 mb-6 lg:mb-4 gap-1">
               {tabs.map((t) => {
                 const Icon = t.icon;
                 const active = activeTab === t.key;
