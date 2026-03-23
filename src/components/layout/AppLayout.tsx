@@ -59,17 +59,15 @@ export default function AppLayout() {
               <TooltipContent side="bottom">Recolher menu</TooltipContent>
             </Tooltip>
 
-            <div className="flex-1" />
+            {/* Center — search */}
+            <div className="flex-1 flex justify-center">
+              <div className="w-full max-w-lg">
+                <GlobalSearch />
+              </div>
+            </div>
 
             {/* Right — actions */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Search */}
-              <div className="hidden sm:block max-w-xs w-full">
-                <GlobalSearch />
-              </div>
-              <div className="sm:hidden">
-                <GlobalSearch />
-              </div>
 
               {/* Theme toggle */}
               <Tooltip>
