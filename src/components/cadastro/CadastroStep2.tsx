@@ -180,7 +180,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
       </div>
 
       {/* Right form */}
-      <div className="overflow-y-auto flex items-start justify-center px-6 py-12">
+      <div className="overflow-y-auto flex items-start justify-center px-6 py-12 lg:py-6">
         <div className="max-w-xl w-full mx-auto">
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center">
