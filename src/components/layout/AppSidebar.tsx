@@ -63,10 +63,10 @@ export function AppSidebar() {
   };
 
   const navCls = (isActive: boolean) =>
-    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 px-3 py-2"} rounded-lg text-sm transition-colors duration-100 ${
+    `flex items-center ${collapsed ? "justify-center px-0 py-1.5" : "gap-3 mx-3 px-3 py-2.5"} rounded-xl text-sm transition-all duration-150 ${
       isActive
-        ? "bg-blue-600 text-white font-semibold"
-        : "text-gray-400 hover:text-white hover:bg-gray-800"
+        ? "bg-gradient-to-r from-primary/15 to-primary/5 text-primary font-semibold border-l-2 border-primary"
+        : "text-on-surface-variant font-medium hover:bg-surface-container-high hover:text-on-surface"
     }`;
 
   const mainItems = [
@@ -103,15 +103,15 @@ export function AppSidebar() {
           title={collapsed ? item.title : undefined}
           className={({ isActive }) => `${navCls(isActive)} ${collapsed ? "relative" : ""}`}
         >
-          <item.icon className="h-4 w-4 shrink-0" />
+          <item.icon className={`h-4 w-4 shrink-0`} />
           {!collapsed && <span className="flex-1">{item.title}</span>}
           {!collapsed && (item.badge ?? 0) > 0 && (
-            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
+            <span className="ml-auto inline-flex items-center justify-center rounded-full bg-gradient-to-br from-error to-error text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1">
               {item.badge}
             </span>
           )}
           {collapsed && (item.badge ?? 0) > 0 && (
-            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
+            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-gradient-to-br from-error to-error text-white text-[9px] font-bold min-w-[14px] h-[14px] px-0.5">
               {item.badge}
             </span>
           )}
@@ -122,36 +122,39 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-3 pt-5 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">{label}</p>
+      <p className="px-4 pt-6 pb-1.5 text-[10px] font-bold font-label text-on-surface-variant/50 uppercase tracking-widest">{label}</p>
     ) : (
-      <Separator className="mx-3 my-1 bg-gray-800" />
+      <Separator className="mx-3 my-1 bg-outline-variant/15" />
     );
 
   return (
     <>
     <Sidebar
       collapsible="icon"
-      className="md:flex [&_[data-sidebar=sidebar]]:!bg-gray-900 [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-gray-800"
+      className="md:flex [&_[data-sidebar=sidebar]]:!bg-surface-variant/60 [&_[data-sidebar=sidebar]]:backdrop-blur-[12px] [&_[data-sidebar=sidebar]]:border-r [&_[data-sidebar=sidebar]]:border-outline-variant/15"
     >
       <SidebarContent className="flex flex-col">
         {/* Logo */}
-        <div className={`${collapsed ? "py-3 flex items-center justify-center" : "px-4 pt-5 pb-4"}`}>
+        <div className={`${collapsed ? "py-3 flex items-center justify-center" : "px-5 pt-6 pb-5"}`}>
           {collapsed ? (
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center">
               <span className="text-sm font-bold text-white">VH</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center shrink-0">
                 <span className="text-sm font-bold text-white">VH</span>
               </div>
-              <span className="text-base font-bold text-white">ViaHub</span>
+              <div>
+                <span className="text-lg font-bold font-display tracking-tight text-on-surface block">ViaHub</span>
+                <span className="text-[10px] font-semibold font-label text-on-surface-variant/60 uppercase tracking-widest block">O ecossistema da sua agência</span>
+              </div>
             </div>
           )}
         </div>
 
         {/* Main items */}
-        <SidebarGroup className="py-2 px-3">
+        <SidebarGroup className="py-2 px-0">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-0.5">
               {mainItems.filter(i => i.show).map(renderItem)}
@@ -166,7 +169,7 @@ export function AppSidebar() {
                     {!collapsed && (
                       <span className="flex-1 flex items-center gap-2">
                         Assistente IA
-                        <span className="text-[9px] font-semibold uppercase tracking-wide px-1.5 py-px rounded-full bg-white/10 text-gray-500">Pro</span>
+                        <span className="text-[9px] font-semibold font-label uppercase tracking-wide px-1.5 py-px rounded-full bg-primary/10 text-primary">Pro</span>
                       </span>
                     )}
                   </button>
@@ -178,7 +181,7 @@ export function AppSidebar() {
 
         {/* Configurações */}
         {canAccessConfig && (
-          <SidebarGroup className="py-1 px-3">
+          <SidebarGroup className="py-1 px-0">
             {sectionLabel("Configurações")}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
@@ -190,7 +193,7 @@ export function AppSidebar() {
 
         {/* Administração */}
         {isSuperadmin && (
-          <SidebarGroup className="py-1 px-3">
+          <SidebarGroup className="py-1 px-0">
             {sectionLabel("Administração")}
             <SidebarGroupContent>
               <SidebarMenu className="space-y-0.5">
@@ -205,7 +208,7 @@ export function AppSidebar() {
 
         {/* Ajuda e Suporte */}
         {!isSuperadmin && (
-          <SidebarGroup className="py-1 px-3 mt-auto border-t border-gray-800">
+          <SidebarGroup className="py-1 px-0 mt-auto border-t border-outline-variant/15">
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -229,23 +232,25 @@ export function AppSidebar() {
       {/* Footer */}
       {!collapsed && (
         <SidebarFooter>
-          <div className="flex items-center border-t border-gray-800 gap-3 px-3 pb-4 pt-4">
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
-              {initials}
+          <div className="border-t border-outline-variant/15 p-4">
+            <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-surface-container-high cursor-pointer transition-colors">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-primary-container text-white text-sm font-bold font-display flex items-center justify-center shrink-0">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold font-headline text-on-surface truncate">{nome || user?.email || "Usuário"}</p>
+                <p className="text-xs text-on-surface-variant font-label">{cargoLabel}</p>
+                {nomeAgencia && (
+                  <p className="flex items-center gap-1 text-xs text-on-surface-variant/60 font-label truncate mt-0.5" title={nomeAgencia}>
+                    <Building2 className="w-3 h-3 shrink-0" />
+                    {nomeAgencia}
+                  </p>
+                )}
+              </div>
+              <button onClick={handleSignOut} className="p-1.5 rounded-lg text-on-surface-variant/60 hover:text-error hover:bg-error-container/20 transition-colors shrink-0 ml-auto" title="Sair">
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{nome || user?.email || "Usuário"}</p>
-              <p className="text-xs text-gray-500">{cargoLabel}</p>
-              {nomeAgencia && (
-                <p className="flex items-center gap-1 text-xs text-gray-600 truncate mt-0.5" title={nomeAgencia}>
-                  <Building2 className="w-3 h-3 shrink-0" />
-                  {nomeAgencia}
-                </p>
-              )}
-            </div>
-            <button onClick={handleSignOut} className="p-1.5 rounded-lg text-gray-600 hover:text-white hover:bg-gray-800 transition-colors shrink-0" title="Sair">
-              <LogOut className="h-4 w-4" />
-            </button>
           </div>
         </SidebarFooter>
       )}

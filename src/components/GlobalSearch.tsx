@@ -135,7 +135,7 @@ export default function GlobalSearch() {
     return (
       <button
         onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        className="p-2 rounded-lg hover:bg-accent text-muted-foreground transition-colors"
+        className="p-2 rounded-xl hover:bg-surface-container-high text-on-surface-variant transition-colors"
       >
         <Search className="w-4 h-4" />
       </button>
@@ -145,23 +145,23 @@ export default function GlobalSearch() {
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative">
-        <Search className="absolute left-2.5 top-2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-2.5 w-4 h-4 text-on-surface-variant/50" />
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => { setQuery(e.target.value); if (!open) setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder={`Buscar orçamentos, clientes...`}
-          className="w-full text-sm px-3 py-1.5 pl-8 bg-muted border-0 rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-2 focus:ring-ring/20 transition-colors"
+          className="w-full text-sm font-body px-4 py-2 pl-9 bg-surface-container-high rounded-xl border-none text-on-surface placeholder:text-on-surface-variant/50 focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary/30 transition-all"
         />
-        {loading && <Loader2 className="absolute right-2.5 top-2 w-4 h-4 animate-spin text-muted-foreground" />}
+        {loading && <Loader2 className="absolute right-3 top-2.5 w-4 h-4 animate-spin text-on-surface-variant" />}
         {query && !loading && (
-          <button onClick={() => setQuery("")} className="absolute right-2.5 top-2 p-0.5">
-            <X className="w-3.5 h-3.5 text-muted-foreground" />
+          <button onClick={() => setQuery("")} className="absolute right-3 top-2.5 p-0.5">
+            <X className="w-3.5 h-3.5 text-on-surface-variant" />
           </button>
         )}
         {!isMobile && !query && !loading && (
-          <kbd className="absolute right-2.5 top-1.5 hidden md:inline-flex items-center rounded px-1.5 text-[10px] font-medium bg-background text-muted-foreground border border-border">
+          <kbd className="absolute right-3 top-2 hidden md:inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium font-label bg-surface-container text-on-surface-variant/40">
             {shortcutLabel}
           </kbd>
         )}
@@ -169,47 +169,47 @@ export default function GlobalSearch() {
 
       {showDropdown && (
         <div
-          className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-50 bg-popover border border-border shadow-lg"
+          className="absolute top-full left-0 right-0 mt-1 rounded-xl overflow-hidden z-50 bg-surface-container-lowest shadow-ambient dark:bg-surface-container"
           style={{ maxHeight: 420, overflowY: "auto" }}
         >
           {!hasResults && !loading && (
-            <div className="px-4 py-6 text-center text-sm text-muted-foreground">
+            <div className="px-4 py-6 text-center text-sm text-on-surface-variant font-body">
               Nenhum resultado encontrado
             </div>
           )}
 
           {orcamentos.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground bg-muted/50">
+              <div className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold font-label uppercase tracking-widest text-on-surface-variant/50 bg-surface-container-low">
                 <FileText className="w-3.5 h-3.5" /> Orçamentos
               </div>
               {orcamentos.map((o) => (
                 <button
                   key={o.id}
                   onClick={() => goTo(`/orcamentos/${o.id}`)}
-                  className="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors hover:bg-accent text-foreground cursor-pointer"
+                  className="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors hover:bg-surface-container-high text-on-surface cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold truncate">
+                      <span className="text-sm font-semibold font-headline truncate">
                         {o.numero_orcamento || "Sem número"}
                       </span>
                       {o.status && <StatusBadge status={o.status} />}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs truncate text-muted-foreground">
+                      <span className="text-xs truncate text-on-surface-variant font-body">
                         {o.cliente_nome || o.titulo || "—"}
                       </span>
                     </div>
                   </div>
-                  <span className="text-sm font-medium shrink-0 text-muted-foreground">
+                  <span className="text-sm font-medium shrink-0 text-on-surface-variant font-body">
                     {formatCurrency(o.valor_final)}
                   </span>
                 </button>
               ))}
               <button
                 onClick={() => goTo("/orcamentos")}
-                className="w-full text-left px-3 py-2 text-xs font-medium text-blue-600 hover:bg-accent transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-medium font-label text-primary hover:bg-surface-container-high transition-colors"
               >
                 Ver todos em Orçamentos →
               </button>
@@ -218,29 +218,29 @@ export default function GlobalSearch() {
 
           {clientes.length > 0 && (
             <div>
-              <div className="flex items-center gap-2 px-4 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground bg-muted/50">
+              <div className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold font-label uppercase tracking-widest text-on-surface-variant/50 bg-surface-container-low">
                 <Users className="w-3.5 h-3.5" /> Clientes
               </div>
               {clientes.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => goTo(`/clientes/${c.id}`)}
-                  className="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors hover:bg-accent text-foreground cursor-pointer"
+                  className="w-full text-left px-3 py-2 flex items-center gap-3 transition-colors hover:bg-surface-container-high text-on-surface cursor-pointer"
                 >
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-semibold truncate block">{c.nome}</span>
-                    <span className="text-xs truncate block text-muted-foreground">
+                    <span className="text-sm font-semibold font-headline truncate block">{c.nome}</span>
+                    <span className="text-xs truncate block text-on-surface-variant font-body">
                       {c.email || "Sem email"}
                     </span>
                   </div>
-                  <span className="text-xs shrink-0 text-muted-foreground">
+                  <span className="text-xs shrink-0 text-on-surface-variant font-label">
                     {c.orcamentos_count} orç.
                   </span>
                 </button>
               ))}
               <button
                 onClick={() => goTo("/clientes")}
-                className="w-full text-left px-3 py-2 text-xs font-medium text-blue-600 hover:bg-accent transition-colors"
+                className="w-full text-left px-3 py-2 text-xs font-medium font-label text-primary hover:bg-surface-container-high transition-colors"
               >
                 Ver todos em Clientes →
               </button>
