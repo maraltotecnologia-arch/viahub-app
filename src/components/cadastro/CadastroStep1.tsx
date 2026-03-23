@@ -20,7 +20,7 @@ const STEPS = ["Dados", "Plano", "Confirmação"];
 
 function Stepper({ current }: { current: number }) {
   return (
-    <div className="flex items-center gap-2 mb-10 max-w-md mx-auto">
+    <div className="flex items-center gap-2 mb-10 lg:mb-6 max-w-md mx-auto">
       {STEPS.map((label, i) => (
         <div key={i} className="flex items-center gap-2 flex-1">
           <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
       </div>
 
       {/* Right form column */}
-      <div className="overflow-y-auto flex items-start justify-center px-6 py-12">
+      <div className="overflow-y-auto flex items-start justify-center px-6 py-12 lg:py-6">
         <div className="max-w-xl w-full mx-auto">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
@@ -132,21 +132,21 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
 
           <Stepper current={0} />
 
-          <div className="bg-surface-container-lowest rounded-2xl p-7 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
+          <div className="bg-surface-container-lowest rounded-2xl p-7 lg:p-6 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
             <h2 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-1">Crie sua conta</h2>
-            <p className="text-sm text-on-surface-variant font-body mb-7">
+            <p className="text-sm text-on-surface-variant font-body mb-7 lg:mb-4">
               O ViaHub é exclusivo para pessoas jurídicas (CNPJ ou MEI)
             </p>
 
-            <div className="space-y-4">
+            <div className="space-y-4 lg:space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="nomeAgencia" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Nome da Agência *</Label>
                 <Input id="nomeAgencia" placeholder="Minha Agência de Viagens" value={data.nomeAgencia} onChange={(e) => updateData({ nomeAgencia: e.target.value })} />
                 <FieldError field="nomeAgencia" />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
+                <div className="space-y-1.5 lg:space-y-1">
                   <Label htmlFor="cnpj" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">CNPJ *</Label>
                   <Input id="cnpj" placeholder="00.000.000/0001-00" value={data.cnpj} onChange={(e) => updateData({ cnpj: maskCNPJ(e.target.value) })} />
                   <FieldError field="cnpj" />
@@ -159,8 +159,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
+                <div className="space-y-1.5 lg:space-y-1">
                   <Label htmlFor="telefone" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Telefone *</Label>
                   <Input id="telefone" placeholder="(11) 99999-9999" value={data.telefone} onChange={(e) => updateData({ telefone: maskTelefone(e.target.value) })} />
                   <FieldError field="telefone" />
@@ -179,8 +179,8 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
               </div>
 
               {/* Password section */}
-              <div className="bg-surface-container-low rounded-xl p-5 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-surface-container-low rounded-xl p-5 lg:p-4 space-y-4 lg:space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-3">
                   <div className="space-y-1.5">
                     <Label htmlFor="senha" className="text-xs font-medium font-label text-on-surface-variant uppercase tracking-wide">Senha *</Label>
                     <div className="relative">

@@ -180,7 +180,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
       </div>
 
       {/* Right form */}
-      <div className="overflow-y-auto flex items-start justify-center px-6 py-12">
+      <div className="overflow-y-auto flex items-start justify-center px-6 py-12 lg:py-6">
         <div className="max-w-xl w-full mx-auto">
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary-container shadow-md shadow-primary/30 flex items-center justify-center">
@@ -191,12 +191,12 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
 
           <Stepper current={1} />
 
-          <div className="bg-surface-container-lowest rounded-2xl p-7 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
+          <div className="bg-surface-container-lowest rounded-2xl p-7 lg:p-6 shadow-[0_8px_24px_0_rgba(13,28,45,0.08)] border border-outline-variant/15">
             <h2 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-1">Escolha seu plano</h2>
-            <p className="text-sm text-on-surface-variant font-body mb-6">Selecione o plano ideal para sua agência</p>
+            <p className="text-sm text-on-surface-variant font-body mb-6 lg:mb-4">Selecione o plano ideal para sua agência</p>
 
             {/* Plans */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2 mb-6 lg:mb-4">
               {planos.map((p) => {
                 const selected = data.plano === p.value;
                 return (
@@ -225,7 +225,7 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
 
             {/* Payment tabs */}
             <h3 className="text-xs font-semibold font-label text-on-surface uppercase tracking-wide mb-3">Forma de pagamento</h3>
-            <div className="flex bg-surface-container-low rounded-xl p-1 mb-6 gap-1">
+            <div className="flex bg-surface-container-low rounded-xl p-1 mb-6 lg:mb-4 gap-1">
               {tabs.map((t) => {
                 const Icon = t.icon;
                 const active = activeTab === t.key;
@@ -240,8 +240,8 @@ export default function CadastroStep2({ data, updateData, onBack, onComplete }: 
 
             {/* Card */}
             {activeTab === "cartao" && (
-              <div className="space-y-4">
-                <div className="bg-surface-container-low rounded-xl p-4 space-y-3 border border-outline-variant/10">
+              <div className="space-y-4 lg:space-y-3">
+                <div className="bg-surface-container-low rounded-xl p-4 lg:p-3 space-y-3 lg:space-y-2 border border-outline-variant/10">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium font-label text-on-surface-variant">Número do cartão</Label>
                     <div className="relative">
