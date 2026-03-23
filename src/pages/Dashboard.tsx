@@ -692,15 +692,15 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
             ) : (
               <div className="space-y-3">
                 {recentes?.map((o) => (
-                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-muted/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
+                  <Link key={o.id} to={`/orcamentos/${o.id}`} className="flex flex-col sm:flex-row sm:items-center justify-between py-2.5 border-b last:border-0 hover:bg-surface-container-low/50 -mx-2 px-2 rounded-lg transition-colors gap-1">
                     <div>
-                      <p className="font-medium text-sm" style={{ color: "var(--text-primary)" }}>{o.titulo || "Sem título"}</p>
-                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                      <p className="font-medium text-sm text-on-surface">{o.titulo || "Sem título"}</p>
+                      <p className="text-xs text-on-surface-variant">
                         {(o.clientes as any)?.nome || "Sem cliente"} • {o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : ""}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{fmt(Number(o.valor_final) || 0)}</span>
+                      <span className="text-sm font-semibold text-on-surface">{fmt(Number(o.valor_final) || 0)}</span>
                       <StatusBadge status={o.status || "rascunho"} />
                     </div>
                   </Link>
