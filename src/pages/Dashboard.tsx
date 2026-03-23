@@ -415,17 +415,17 @@ function SuperadminDashboard() {
         </Card>
 
         {/* Churn do Mês */}
-        <Card className="rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 transition-all duration-200" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)" }}>
+        <Card className="rounded-2xl shadow-ambient">
           <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-3">
-              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400">
-                <UserX className="h-5 w-5 sm:h-[22px] sm:w-[22px]" />
+              <div className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 bg-red-500/15 text-red-500 dark:bg-red-500/20 dark:text-red-400">
+                <UserX className="h-5 w-5" />
               </div>
-              <span className="text-xs sm:text-sm min-w-0 truncate" style={{ color: "var(--text-secondary)" }}>Churn do Mês</span>
+              <span className="text-xs sm:text-sm min-w-0 truncate text-muted-foreground">Churn do Mês</span>
             </div>
             {metricsLoading ? <Skeleton className="h-8 w-24" /> : (
               <div className="min-w-0">
-                <p className="text-xl sm:text-2xl xl:text-[28px] font-bold leading-tight truncate" style={{ color: "var(--text-primary)" }}>
+                <p className="text-xl sm:text-2xl font-bold leading-tight truncate text-foreground">
                   {metrics?.churnAtual ?? 0} {(metrics?.churnAtual ?? 0) === 1 ? "agência" : "agências"}
                 </p>
                 <p className="text-xs mt-1 flex items-center gap-1" style={{ color: churnDiff <= 0 ? "#16A34A" : "#EF4444" }}>
