@@ -120,7 +120,7 @@ export default function CadastroStep1({ data, updateData, onNext }: Props) {
       </div>
 
       {/* Right form column */}
-      <div className="overflow-y-auto flex items-start justify-center px-6 py-12">
+      <div className="overflow-y-auto flex items-start justify-center px-6 py-12 lg:py-6">
         <div className="max-w-xl w-full mx-auto">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2.5 mb-8">
