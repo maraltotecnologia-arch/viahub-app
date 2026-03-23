@@ -826,7 +826,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <div className="space-y-1"><Label className="text-xs">Markup %</Label><Input type="number" min={0} value={item.markup_percentual || ""} onChange={(e) => updateItem(item.id, "markup_percentual", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
-                <div className="space-y-1"><Label className="text-xs">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-md bg-muted text-sm font-semibold">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
+                <div className="space-y-1"><Label className="text-xs font-label">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-xl bg-primary/8 text-sm font-semibold text-primary">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
               </div>
               {/* Conditional date/time fields by service type */}
               {(item.tipo === "Aéreo" || item.tipo === "Transfer") && (
