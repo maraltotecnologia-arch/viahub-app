@@ -117,7 +117,7 @@ export default function Pipeline() {
           return (
             <div
               key={col.id}
-              className="min-w-[288px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200"
+              className="min-w-[280px] w-72 flex-shrink-0 flex flex-col rounded-2xl p-2 transition-all duration-200 snap-start"
               style={{
                 background: isDropActive ? "rgba(0,55,176,0.06)" : "transparent",
                 border: isDropActive ? "2px dashed #0037b0" : "2px dashed transparent",

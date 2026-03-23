@@ -112,7 +112,7 @@ export default function AppLayout() {
 
           {/* Main content */}
           <main className="flex-1 flex flex-col overflow-auto bg-surface" style={{ height: "calc(100vh - 3.5rem)" }}>
-            <div className="max-w-[1400px] mx-auto w-full px-6 sm:px-8 py-8 flex-1">
+            <div className="max-w-[1400px] mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex-1">
               <Outlet />
             </div>
           </main>
