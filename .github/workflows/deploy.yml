@@ -27,7 +27,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: brunomach/viahub-app:latest
+          tags: maralto/viahub-app:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
