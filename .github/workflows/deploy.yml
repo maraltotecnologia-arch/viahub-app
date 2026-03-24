@@ -1,0 +1,36 @@
+name: Deploy ViaHub
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build e Push da imagem
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: brunomach/viahub-app:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Acionar update no Portainer
+        run: |
+          curl -X POST "${{ secrets.PORTAINER_WEBHOOK_URL }}"
