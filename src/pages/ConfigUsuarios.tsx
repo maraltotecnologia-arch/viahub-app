@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import useAgenciaId from "@/hooks/useAgenciaId";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,7 +22,6 @@ const CARGO_LABELS: Record<string, string> = { admin: "Administrador", agente: "
 
 export default function ConfigUsuarios() {
   const { user } = useAuth();
-  const { isDark } = useTheme();
   const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -95,12 +93,12 @@ export default function ConfigUsuarios() {
 
   const openEdit = (u: any) => { setEditUser(u); setEditForm({ nome: u.nome || "", cargo: u.cargo || "agente" }); setEditOpen(true); };
 
-  if (isLoading) return <div className="space-y-4 max-w-3xl mx-auto"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full rounded-2xl" /></div>;
+  if (isLoading) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full rounded-2xl" /></div>;
 
   const total = usuarios?.length || 0;
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Usuários da Agência</h2>

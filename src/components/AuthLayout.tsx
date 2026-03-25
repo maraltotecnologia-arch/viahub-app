@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+    <div data-theme="light" className="min-h-screen bg-surface flex items-center justify-center px-4">
       <div className="w-full max-w-sm bg-surface-container-lowest rounded-2xl p-8 shadow-[0_24px_60px_rgba(13,28,45,0.10)] border border-outline-variant/20">
         {/* Logo */}
         <div className="flex items-center gap-2.5 mb-8">

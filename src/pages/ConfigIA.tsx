@@ -58,7 +58,7 @@ export default function ConfigIA() {
   };
 
   return (
-    <div className="space-y-4 animate-fade-in-up max-w-3xl mx-auto">
+    <div className="space-y-4 animate-fade-in-up">
       <div className="flex items-center gap-3 mb-8">
         <div className="flex items-center justify-center h-10 w-10 rounded-xl bg-primary/8 text-primary">
           <Bot className="h-5 w-5" />

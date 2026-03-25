@@ -71,7 +71,7 @@ export default function AdminChamados() {
   });
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="space-y-6 animate-fade-in-up">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Chamados (Help Desk)</h1>
         <p className="text-muted-foreground mt-1">Gerencie as solicitações de suporte de todas as agências.</p>

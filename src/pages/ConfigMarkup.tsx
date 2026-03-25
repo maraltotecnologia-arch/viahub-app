@@ -63,16 +63,16 @@ export default function ConfigMarkup() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in-up max-w-3xl mx-auto">
+    <div className="space-y-6 animate-fade-in-up">
       <div>
         <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Configurações de Markup</h2>
         <p className="text-sm text-on-surface-variant font-body mt-1">Configure o markup padrão para cada tipo de serviço.</p>
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-2xl" />)}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-2xl" />)}</div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {configs.map((c) => {
             const Icon = tiposIcon[c.tipo] || Plane;
             return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,7 +18,7 @@ import { maskCNPJ, maskTelefone } from "@/lib/masks";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default function ConfigAgencia() {
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const agenciaId = useAgenciaId();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -79,10 +79,10 @@ export default function ConfigAgencia() {
     if (error) { toast({ title: "Erro ao atualizar", variant: "destructive" }); } else { queryClient.invalidateQueries({ queryKey: ["agencia-usuarios"] }); toast({ title: ativo ? "Usuário desativado" : "Usuário ativado" }); }
   };
 
-  if (isLoading) return <div className="space-y-6 max-w-3xl mx-auto"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full rounded-2xl" /></div>;
+  if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full rounded-2xl" /></div>;
 
   return (
-    <div className="space-y-4 max-w-3xl mx-auto animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       <div className="mb-8">
         <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Configurações da Agência</h2>
         <p className="text-sm text-on-surface-variant font-body mt-1">Gerencie os dados da sua agência</p>

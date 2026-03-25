@@ -100,24 +100,19 @@ export default function Index() {
   useEffect(() => {
     document.title = "ViaHub — O ecossistema da sua agência de viagens";
     const html = document.documentElement;
-    const hadDark = html.classList.contains('dark');
     html.classList.remove('dark');
-    html.classList.add('light');
     html.setAttribute('data-theme', 'light');
     return () => {
-      html.classList.remove('light');
       const saved = localStorage.getItem('viahub-theme') || 'dark';
       html.setAttribute('data-theme', saved);
-      if (hadDark || saved === 'dark') {
-        html.classList.add('dark');
-      }
+      html.classList.toggle('dark', saved === 'dark');
     };
   }, []);
 
   if (loading || user) return null;
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface font-body overflow-x-hidden">
+    <div data-theme="light" className="min-h-screen bg-surface text-on-surface font-body overflow-x-hidden">
       <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <Hero />
       <LogosSection />

@@ -50,7 +50,7 @@ export default function ConfigTemplates() {
 
   return (
     <div className="space-y-6 w-full animate-fade-in flex-1 flex flex-col">
-      <h2 className="text-2xl font-bold">Templates de Orçamento</h2>
+      <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">Templates de Orçamento</h2>
 
       {(!templates || templates.length === 0) ? (
         <div className="flex-1 flex items-center justify-center">
