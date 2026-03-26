@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { AlertTriangle, CheckCircle2, MessageCircle, Wifi, WifiOff, ChevronDown, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Wifi, WifiOff, ChevronDown, Loader2, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +34,7 @@ export default function ConfigWhatsapp() {
   const [mensagem, setMensagem] = useState("");
   const [savingMsg, setSavingMsg] = useState(false);
   const [infoOpen, setInfoOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pollingStartRef = useRef<number>(0);
@@ -334,11 +335,12 @@ export default function ConfigWhatsapp() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Textarea
-              rows={4}
+              rows={10}
               value={mensagem}
               onChange={(e) => setMensagem(e.target.value.slice(0, 1000))}
               placeholder="Mensagem padrão do WhatsApp..."
               maxLength={1000}
+              className="resize-none font-mono text-sm"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Variáveis: {"{nome_cliente}"} {"{titulo_orcamento}"} {"{link_orcamento}"} {"{nome_agente}"} {"{nome_agencia}"}</span>
@@ -346,35 +348,15 @@ export default function ConfigWhatsapp() {
             </div>
           </div>
 
-          {/* Preview — WhatsApp bubble (always light, identity-preserving) */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Pré-visualização</p>
-            <div className="rounded-xl p-4" style={{ backgroundColor: "#efeae2", backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
-              <div className="rounded-lg rounded-tl-none shadow-sm p-4 max-w-[90%]" style={{ backgroundColor: "#E7FFDB" }}>
-                <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: "#111B21" }}>{previewMsg}</p>
-                <p className="text-right mt-1" style={{ fontSize: "10px", color: "#667781" }}>agora</p>
-              </div>
-              {/* PDF attachment simulation */}
-              <div className="rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[65%] flex items-center gap-3" style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0" }}>
-                <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#FEF2F2" }}>
-                  <svg className="h-5 w-5" style={{ color: "#EF4444" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium truncate" style={{ color: "#334155" }}>orcamento_ORC-2026-0001.pdf</p>
-                  <p style={{ fontSize: "10px", color: "#94A3B8" }}>PDF · Documento</p>
-                </div>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSaveMessage} disabled={savingMsg}>
+              {savingMsg ? "Salvando..." : "Salvar mensagem"}
+            </Button>
+            <Button variant="outline" onClick={() => setPreviewOpen(true)}>
+              <Eye className="h-4 w-4 mr-2" />
+              Pré-visualização
+            </Button>
           </div>
-
-          <Button onClick={handleSaveMessage} disabled={savingMsg}>
-            {savingMsg ? "Salvando..." : "Salvar mensagem"}
-          </Button>
         </CardContent>
       </Card>
 
@@ -403,6 +385,38 @@ export default function ConfigWhatsapp() {
           </CollapsibleContent>
         </Card>
       </Collapsible>
+
+      {/* Preview Modal */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Pré-visualização da Mensagem</DialogTitle>
+            <DialogDescription>
+              Como o cliente verá a mensagem no WhatsApp
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl p-4 overflow-y-auto max-h-[60vh]" style={{ backgroundColor: "#efeae2", backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d5cfc4' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }}>
+            <div className="rounded-lg rounded-tl-none shadow-sm p-4 max-w-[90%]" style={{ backgroundColor: "#E7FFDB" }}>
+              <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: "#111B21" }}>{previewMsg}</p>
+              <p className="text-right mt-1" style={{ fontSize: "10px", color: "#667781" }}>agora</p>
+            </div>
+            <div className="rounded-lg rounded-tl-none shadow-sm p-3 mt-2 max-w-[65%] flex items-center gap-3" style={{ backgroundColor: "#FFFFFF", border: "1px solid #E2E8F0" }}>
+              <div className="h-9 w-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#FEF2F2" }}>
+                <svg className="h-5 w-5" style={{ color: "#EF4444" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-medium truncate" style={{ color: "#334155" }}>orcamento_ORC-2026-0001.pdf</p>
+                <p style={{ fontSize: "10px", color: "#94A3B8" }}>PDF · Documento</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* QR Code Modal */}
       <Dialog open={qrModalOpen} onOpenChange={(open) => { if (!open) handleCancelQr(); }}>

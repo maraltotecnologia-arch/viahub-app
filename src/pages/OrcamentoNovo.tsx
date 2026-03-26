@@ -622,8 +622,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   };
 
   return (
-    <div className="space-y-6 w-full max-w-4xl mx-auto animate-fade-in">
-      <div className="flex items-center gap-3 mb-8">
+    <div className="animate-fade-in space-y-6">
+      <div className="flex items-center gap-3">
         {isEdicao && (
           <Button variant="ghost" size="icon" onClick={() => navigate(`/orcamentos/${orcamentoId}`)}>
             <ArrowLeft className="h-4 w-4" />
@@ -631,6 +631,10 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         )}
         <h2 className="text-3xl font-bold font-display tracking-tight text-on-surface">{isEdicao ? "Editar Orçamento" : "Novo Orçamento"}</h2>
       </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+      {/* ── Left column — main content ── */}
+      <div className="flex-1 min-w-0 space-y-6">
 
       {/* Cliente */}
       <Card>
@@ -883,12 +887,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         </CardContent>
       </Card>
       </div>
+      {/* ── end left column ── */}
+      </div>
 
-      {/* Pagamento */}
-      <Card>
-        <CardHeader><CardTitle className="text-base">Forma de Pagamento</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ── Right column — sidebar ── */}
+      <div className="w-full lg:w-80 xl:w-96 shrink-0 space-y-4 lg:sticky lg:top-[4.5rem]">
+
+        {/* Pagamento */}
+        <Card>
+          <CardHeader><CardTitle className="text-base">Forma de Pagamento</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
             <div className="space-y-2">
               <Label>Forma</Label>
               <Select value={formaPagamento} onValueChange={setFormaPagamento}>
@@ -904,62 +912,78 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
             {formaPagamento === "credito" && (
               <div className="space-y-2"><Label>Acréscimo cartão (%)</Label><Input type="number" min={0} value={acrescimoCartao} onChange={(e) => setAcrescimoCartao(Number(e.target.value))} /></div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Resumo */}
-      <Card className="border-primary/30">
-        <CardHeader><CardTitle className="text-base">Resumo Financeiro</CardTitle></CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div><p className="text-xs text-muted-foreground">Custo Total</p><p className="text-lg font-bold">{fmt(custoTotal)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Valor Final</p><p className="text-lg font-bold text-primary">{fmt(valorFinal)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Lucro</p><p className="text-lg font-bold text-success">{fmt(lucroReal)}</p></div>
-            <div><p className="text-xs text-muted-foreground">Margem</p><p className="text-lg font-bold">{margemReal.toFixed(1)}%</p></div>
-          </div>
-          {acrescimo > 0 && <p className="text-xs text-muted-foreground mt-3">Inclui acréscimo de cartão: {fmt(acrescimo)}</p>}
-          <p className="text-[11px] text-muted-foreground mt-3">
-            Os valores apresentados já incluem todas as taxas de embarque, turismo e serviço aplicáveis.
-          </p>
-        </CardContent>
-      </Card>
+        {/* Resumo */}
+        <Card className="border-primary/30 bg-primary/3">
+          <CardHeader className="pb-3"><CardTitle className="text-base">Resumo Financeiro</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-surface-container-low rounded-xl p-3">
+                <p className="text-xs text-on-surface-variant mb-1">Custo Total</p>
+                <p className="text-base font-bold text-on-surface">{fmt(custoTotal)}</p>
+              </div>
+              <div className="bg-primary/8 rounded-xl p-3">
+                <p className="text-xs text-on-surface-variant mb-1">Valor Final</p>
+                <p className="text-base font-bold text-primary">{fmt(valorFinal)}</p>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3">
+                <p className="text-xs text-on-surface-variant mb-1">Lucro</p>
+                <p className="text-base font-bold text-success">{fmt(lucroReal)}</p>
+              </div>
+              <div className="bg-surface-container-low rounded-xl p-3">
+                <p className="text-xs text-on-surface-variant mb-1">Margem</p>
+                <p className="text-base font-bold text-on-surface">{margemReal.toFixed(1)}%</p>
+              </div>
+            </div>
+            {acrescimo > 0 && <p className="text-xs text-on-surface-variant">Inclui acréscimo de cartão: {fmt(acrescimo)}</p>}
+            <p className="text-[11px] text-on-surface-variant/70">
+              Valores incluem todas as taxas aplicáveis.
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* Zero-margin warning — internal only */}
-      {todosMargemZero && itens.length > 0 && (
-        <Alert variant="default" className="border-warning/50 bg-warning/10">
-          <AlertTriangle className="h-4 w-4 text-warning" />
-          <AlertDescription className="text-sm text-warning">
-            Este orçamento está com margem 0 de lucro. O valor será repassado integralmente ao fornecedor.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Ações — mobile: fixed bottom bar */}
-      <div className="hidden sm:flex gap-3 justify-end pb-6">
-        {isEdicao ? (
-          <>
-            <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
-            <Button variant="default" onClick={() => handleSave(false)} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              {loading ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          </>
-        ) : (
-          <>
-            <Button variant="outline" onClick={() => handleSave(false)} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-              {loading ? "Salvando..." : "Salvar Rascunho"}
-            </Button>
-            <Button variant="default" onClick={() => handleSave(true)} disabled={loading}>
-              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
-              {loading ? "Salvando..." : "Salvar e Enviar"}
-            </Button>
-          </>
+        {/* Zero-margin warning */}
+        {todosMargemZero && itens.length > 0 && (
+          <Alert variant="default" className="border-warning/50 bg-warning/10">
+            <AlertTriangle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-sm text-warning">
+              Margem 0 de lucro — valor repassado integralmente ao fornecedor.
+            </AlertDescription>
+          </Alert>
         )}
+
+        {/* Ações */}
+        <div className="hidden lg:flex flex-col gap-2 pb-6">
+          {isEdicao ? (
+            <>
+              <Button variant="default" onClick={() => handleSave(false)} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                {loading ? "Salvando..." : "Salvar Alterações"}
+              </Button>
+              <Button variant="outline" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading} className="w-full">Cancelar</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="default" onClick={() => handleSave(true)} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Send className="h-4 w-4 mr-2" />}
+                {loading ? "Salvando..." : "Salvar e Enviar"}
+              </Button>
+              <Button variant="outline" onClick={() => handleSave(false)} disabled={loading} className="w-full">
+                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+                {loading ? "Salvando..." : "Salvar Rascunho"}
+              </Button>
+            </>
+          )}
+        </div>
+
       </div>
+      {/* ── end right column ── */}
+      </div>{/* end flex row */}
+
       {/* Mobile fixed bottom actions */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/15 flex gap-3 px-4 py-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/15 flex gap-3 px-4 py-3">
         {isEdicao ? (
           <>
             <Button variant="outline" className="flex-1" onClick={() => navigate(`/orcamentos/${orcamentoId}`)} disabled={loading}>Cancelar</Button>
@@ -980,7 +1004,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         )}
       </div>
       {/* Spacer for mobile fixed bottom bar */}
-      <div className="sm:hidden h-16" />
+      <div className="lg:hidden h-16" />
       <ConfirmDialog
         open={showZeroConfirm}
         onOpenChange={setShowZeroConfirm}
