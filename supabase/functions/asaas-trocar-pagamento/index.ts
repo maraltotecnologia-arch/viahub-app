@@ -353,7 +353,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      console.log(`[asaas-trocar-pagamento] Nova cobrança criada: id=${newPaymentResult.id}, método=${novo_metodo}, dueDate=${dueDate}`);
+      console.log(`[asaas-trocar-pagamento] Nova cobrança criada: id=${newPaymentResult!.id}, método=${novo_metodo}, dueDate=${dueDate}`);
 
       // ─── STEP 4: Update asaas_pagamentos table ───
       // Mark old payment as cancelled
