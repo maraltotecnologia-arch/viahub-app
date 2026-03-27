@@ -142,7 +142,7 @@ export default function Clientes() {
     queryFn: async () => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, email, telefone, criado_em, tags, origem_lead, temperatura, data_nascimento, orcamentos(count)", { count: "exact" })
+        .select("id, nome, email, telefone, criado_em, tags, origem_lead, temperatura, data_nascimento, orcamentos(count)" as any, { count: "exact" })
         .eq("agencia_id", agenciaId!)
         .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
