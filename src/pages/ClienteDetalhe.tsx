@@ -7,18 +7,36 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, BadgeCheck, CheckCheck } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, BadgeCheck, CheckCheck, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatarApenasDatabrasilia, formatarDataSemTimezone } from "@/lib/date-utils";
 import DatePickerInput from "@/components/ui/DatePickerInput";
-import ClienteTagSelector from "@/components/clientes/ClienteTagSelector";
+import ClienteTagsInput from "@/components/clientes/ClienteTagsInput";
 import ContatosCliente from "@/components/clientes/ContatosCliente";
+import PreferenciasViagem from "@/components/clientes/PreferenciasViagem";
+import TimelineCliente from "@/components/clientes/TimelineCliente";
+import CreditoClienteBadge from "@/components/clientes/CreditoClienteBadge";
+import TemperaturaBadge from "@/components/clientes/TemperaturaBadge";
+import TemperaturaControl from "@/components/clientes/TemperaturaControl";
 import { formatError } from "@/lib/errors";
 import { maskTelefone, maskCPFouCNPJ } from "@/lib/masks";
 import { validarCPF, validarEmail, validarDataNascimento } from "@/lib/validators";
+import { diasParaAniversario, formatarDiaMes, waAniversarioLink } from "@/lib/aniversario";
+
+const ORIGENS = [
+  { value: "instagram", label: "Instagram" },
+  { value: "facebook",  label: "Facebook"  },
+  { value: "indicacao", label: "Indicação"  },
+  { value: "google",    label: "Google"     },
+  { value: "site",      label: "Site"       },
+  { value: "whatsapp",  label: "WhatsApp"   },
+  { value: "email",     label: "Email"      },
+  { value: "outros",    label: "Outros"     },
+] as const;
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info",
@@ -31,7 +49,11 @@ export default function ClienteDetalhe() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ nome: "", email: "", telefone: "", cpf: "", passaporte: "", data_nascimento: "", observacoes: "" });
+  const [form, setForm] = useState({
+    nome: "", email: "", telefone: "", cpf: "",
+    passaporte: "", data_nascimento: "", observacoes: "",
+    origem_lead: "", temperatura: "frio",
+  });
   const [obsTimer, setObsTimer] = useState<NodeJS.Timeout | null>(null);
 
   const { data: cliente, isLoading } = useQuery({
@@ -63,13 +85,15 @@ export default function ClienteDetalhe() {
   useEffect(() => {
     if (cliente) {
       setForm({
-        nome: cliente.nome || "",
-        email: cliente.email || "",
-        telefone: cliente.telefone ? maskTelefone(cliente.telefone) : "",
-        cpf: cliente.cpf ? maskCPFouCNPJ(cliente.cpf) : "",
-        passaporte: cliente.passaporte || "",
+        nome:           cliente.nome || "",
+        email:          cliente.email || "",
+        telefone:       cliente.telefone ? maskTelefone(cliente.telefone) : "",
+        cpf:            cliente.cpf ? maskCPFouCNPJ(cliente.cpf) : "",
+        passaporte:     cliente.passaporte || "",
         data_nascimento: cliente.data_nascimento ? formatarDataSemTimezone(cliente.data_nascimento) : "",
-        observacoes: cliente.observacoes || "",
+        observacoes:    cliente.observacoes || "",
+        origem_lead:    (cliente as any).origem_lead || "",
+        temperatura:    (cliente as any).temperatura || "frio",
       });
     }
   }, [cliente]);
@@ -91,14 +115,16 @@ export default function ClienteDetalhe() {
     }
     setSaving(true);
     const { error } = await supabase.from("clientes").update({
-      nome: form.nome,
-      email: form.email || null,
-      telefone: form.telefone.replace(/\D/g, "") || null,
-      cpf: cpfLimpo || null,
-      passaporte: form.passaporte || null,
+      nome:           form.nome,
+      email:          form.email || null,
+      telefone:       form.telefone.replace(/\D/g, "") || null,
+      cpf:            cpfLimpo || null,
+      passaporte:     form.passaporte || null,
       data_nascimento: form.data_nascimento || null,
-      observacoes: form.observacoes || null,
-    }).eq("id", id);
+      observacoes:    form.observacoes || null,
+      origem_lead:    form.origem_lead || null,
+      temperatura:    form.temperatura,
+    } as any).eq("id", id);
     if (error) { toast({ title: formatError("CLI002"), variant: "destructive" }); } else {
       toast({ title: "Cliente atualizado!" });
       queryClient.invalidateQueries({ queryKey: ["cliente", id] });
@@ -118,22 +144,63 @@ export default function ClienteDetalhe() {
   };
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
-  if (!cliente) return <div className="text-center py-12"><p className="text-muted-foreground">Cliente não encontrado</p><Button variant="link" asChild><Link to="/clientes">Voltar</Link></Button></div>;
+  if (!cliente)  return <div className="text-center py-12"><p className="text-muted-foreground">Cliente não encontrado</p><Button variant="link" asChild><Link to="/clientes">Voltar</Link></Button></div>;
 
   const clienteTags = (cliente as any).tags || [];
+  const dataNasc    = cliente.data_nascimento ?? null;
+  const diasAniv    = diasParaAniversario(dataNasc);
+  const showAniv    = diasAniv !== null && diasAniv <= 7;
 
   return (
     <div className="space-y-6 w-full animate-fade-in-up">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <Button variant="ghost" size="icon" asChild><Link to="/clientes"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <h2 className="text-2xl font-bold">{form.nome}</h2>
+        <TemperaturaBadge temperatura={form.temperatura} size="md" />
       </div>
+
+      {/* ── Credit badge ────────────────────────────────────────────── */}
+      {Number((cliente as any).credito_disponivel) > 0 && (
+        <CreditoClienteBadge
+          clienteId={cliente.id}
+          agenciaId={cliente.agencia_id}
+          credito={Number((cliente as any).credito_disponivel)}
+        />
+      )}
+
+      {/* ── Birthday alert ─────────────────────────────────────────── */}
+      {showAniv && dataNasc && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-warning/10 border border-warning/25">
+          <span className="text-xl shrink-0">🎂</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-warning">
+              {diasAniv === 0
+                ? `Hoje é o aniversário de ${form.nome.split(" ")[0]}! 🎉`
+                : `Aniversário em ${diasAniv} dia${diasAniv !== 1 ? "s" : ""} — ${formatarDiaMes(dataNasc)}`}
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">Que tal enviar uma mensagem de parabéns?</p>
+          </div>
+          {waAniversarioLink(cliente.telefone, form.nome, diasAniv!) && (
+            <a
+              href={waAniversarioLink(cliente.telefone, form.nome, diasAniv!)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0"
+            >
+              <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8 border-warning/30 hover:bg-warning/10">
+                <MessageCircle className="h-3.5 w-3.5 text-[#25D366]" />
+                Enviar parabéns
+              </Button>
+            </a>
+          )}
+        </div>
+      )}
 
       {/* Tags */}
       <Card>
         <CardHeader><CardTitle className="text-base">Tags</CardTitle></CardHeader>
         <CardContent>
-          <ClienteTagSelector clienteId={cliente.id} tags={clienteTags} />
+          <ClienteTagsInput tags={clienteTags} clienteId={cliente.id} />
         </CardContent>
       </Card>
 
@@ -156,6 +223,20 @@ export default function ClienteDetalhe() {
                 minDate={new Date(1900, 0, 1)}
               />
             </div>
+            <div className="space-y-2">
+              <Label>Origem do lead</Label>
+              <Select value={form.origem_lead || "none"} onValueChange={(v) => setForm({ ...form, origem_lead: v === "none" ? "" : v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione a origem..." /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Não informado</SelectItem>
+                  {ORIGENS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Temperatura do lead</Label>
+              <TemperaturaControl value={form.temperatura} onChange={(v) => setForm({ ...form, temperatura: v })} />
+            </div>
           </div>
           <div className="mt-4 space-y-2">
             <Label>Observações <span className="text-xs text-muted-foreground">(salva automaticamente)</span></Label>
@@ -173,7 +254,16 @@ export default function ClienteDetalhe() {
         </CardContent>
       </Card>
 
-      {/* Total Recebido Card */}
+      {/* Preferências de Viagem */}
+      <PreferenciasViagem
+        clienteId={cliente.id}
+        preferencias={(cliente as any).preferencias ?? null}
+      />
+
+      {/* Histórico de Interações */}
+      <TimelineCliente clienteId={cliente.id} agenciaId={cliente.agencia_id} />
+
+      {/* Total Recebido */}
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-3">

@@ -48,8 +48,15 @@ export const ERROR_MESSAGES: Record<string, string> = {
   CLI001: "Erro ao criar cliente",
   CLI002: "Erro ao atualizar cliente",
   CLI003: "Erro ao excluir cliente",
-  CLI004: "Cliente não encontrado",
+  CLI004: "Erro ao registrar interação",
   CLI005: "E-mail de cliente já cadastrado",
+  CLI006: "Erro ao aplicar crédito do cliente",
+
+  // CTC — Contacts
+  CTC001: "Erro ao adicionar contato",
+  CTC002: "Erro ao atualizar contato",
+  CTC003: "Erro ao remover contato",
+  CTC004: "Limite de 10 contatos por cliente atingido",
 
   // USR — Users
   USR001: "Erro ao criar usuário",

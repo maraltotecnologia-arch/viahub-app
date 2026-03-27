@@ -75,7 +75,7 @@ export function AppSidebar() {
       "h-4 w-4 shrink-0",
       isActive
         ? "text-blue-600 dark:text-blue-400"
-        : "text-gray-400 dark:text-gray-500",
+        : "text-gray-400 dark:text-gray-400",
     ].join(" ");
 
   const mainItems = [
@@ -147,7 +147,7 @@ export function AppSidebar() {
 
   const sectionLabel = (label: string) =>
     !collapsed ? (
-      <p className="px-2 pt-5 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-600 mx-3">
+      <p className="px-2 pt-5 pb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider dark:text-gray-400 mx-3">
         {label}
       </p>
     ) : (
@@ -174,7 +174,7 @@ export function AppSidebar() {
               </div>
               <div>
                 <span className="text-base font-bold text-gray-900 leading-tight block dark:text-white">ViaHub</span>
-                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider leading-tight block dark:text-gray-500">
+                <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider leading-tight block dark:text-gray-400">
                   O ecossistema da sua agência
                 </span>
               </div>
@@ -263,7 +263,7 @@ export function AppSidebar() {
                   {cargoLabel}
                 </p>
                 {nomeAgencia && (
-                  <p className="flex items-center gap-1 text-xs text-gray-400 truncate mt-0.5 dark:text-gray-500" title={nomeAgencia}>
+                  <p className="flex items-center gap-1 text-xs text-gray-400 truncate mt-0.5 dark:text-gray-400" title={nomeAgencia}>
                     <Building2 className="w-3 h-3 shrink-0" />
                     {nomeAgencia}
                   </p>

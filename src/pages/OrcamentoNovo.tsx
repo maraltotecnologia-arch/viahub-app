@@ -22,6 +22,7 @@ import { getPlanoMultiplier } from "@/lib/plan-commission";
 import { calcularLucroReal, getTaxaEmbutida, isMargemZero } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatError } from "@/lib/errors";
 
 interface Item {
@@ -82,7 +83,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [clienteSearch, setClienteSearch] = useState("");
   const [clienteId, setClienteId] = useState<string | null>(null);
   const [clienteNome, setClienteNome] = useState("");
-  const [clienteResults, setClienteResults] = useState<{ id: string; nome: string; tags?: string[] | null }[]>([]);
+  const [clienteResults, setClienteResults] = useState<{ id: string; nome: string; tags?: string[] | null; credito_disponivel?: number | null }[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [clienteTagFilter, setClienteTagFilter] = useState<string | null>(null);
   const TAGS_DISPONIVEIS = ["VIP", "Corporativo", "Eventual", "Recorrente", "Inativo", "Prospect"] as const;
@@ -99,6 +100,9 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [formaPagamento, setFormaPagamento] = useState("pix");
   const [acrescimoCartao, setAcrescimoCartao] = useState(3);
   const [showZeroConfirm, setShowZeroConfirm] = useState(false);
+  const [clienteCredito, setClienteCredito] = useState(0);
+  const [aplicarCredito, setAplicarCredito] = useState(false);
+  const [valorCredito, setValorCredito] = useState(0);
   const [pendingEnviar, setPendingEnviar] = useState(false);
   const [removeItemId, setRemoveItemId] = useState<string | null>(null);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
@@ -278,7 +282,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     const timeout = setTimeout(async () => {
       let query = supabase
         .from("clientes")
-        .select("id, nome, tags")
+        .select("id, nome, tags, credito_disponivel")
         .eq("agencia_id", agenciaId);
       if (clienteSearch.length >= 2) {
         query = query.ilike("nome", `%${clienteSearch}%`);
@@ -293,12 +297,15 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     return () => clearTimeout(timeout);
   }, [clienteSearch, agenciaId, clienteTagFilter]);
 
-  const selectCliente = (c: { id: string; nome: string }) => {
+  const selectCliente = (c: { id: string; nome: string; credito_disponivel?: number | null }) => {
     setClienteId(c.id);
     setClienteNome(c.nome);
     setClienteSearch("");
     setClienteResults([]);
     setShowResults(false);
+    setAplicarCredito(false);
+    setValorCredito(0);
+    setClienteCredito(Number(c.credito_disponivel) || 0);
   };
 
   const handleCreateCliente = async () => {
@@ -380,7 +387,11 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i), 0);
   const acrescimo = formaPagamento === "credito" ? valorFinalBase * (acrescimoCartao / 100) : 0;
   const valorFinal = valorFinalBase + acrescimo;
-  const lucroReal = valorFinal - custoTotal;
+  const descontoCredito = aplicarCredito && valorCredito > 0
+    ? Math.min(valorCredito, clienteCredito, valorFinal)
+    : 0;
+  const valorFinalComCredito = Math.max(0, valorFinal - descontoCredito);
+  const lucroReal = valorFinalComCredito - custoTotal;
   const margemReal = custoTotal > 0 ? (lucroReal / custoTotal) * 100 : 0;
   const todosMargemZero = isMargemZero(itens.map(i => ({ valor_custo: i.valor_custo, valor_final: calcValorFinal(i), markup_percentual: i.markup_percentual })));
 
@@ -552,9 +563,9 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           titulo,
           status: enviar ? "enviado" : "rascunho",
           valor_custo: custoTotal,
-          valor_final: valorFinal,
-          lucro_bruto: valorFinal - custoTotal,
-          margem_percentual: Number(((custoTotal > 0 ? ((valorFinal - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
+          valor_final: valorFinalComCredito,
+          lucro_bruto: valorFinalComCredito - custoTotal,
+          margem_percentual: Number(((custoTotal > 0 ? ((valorFinalComCredito - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
           moeda,
           validade: validade || null,
           observacoes,
@@ -567,7 +578,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
 
       if (error) { toast({ title: formatError("ORC001"), variant: "destructive" }); setLoading(false); return; }
 
-      const itensRows = itens.map((i) => ({
+      const itensRows: any[] = itens.map((i) => ({
         orcamento_id: orc.id,
         tipo: i.tipo,
         descricao: i.descricao,
@@ -585,10 +596,52 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         checkin_hora: i.checkin_hora || null,
         checkout_data: i.checkout_data || null,
         checkout_hora: i.checkout_hora || null,
-      } as any));
+      }));
+
+      // Item de desconto de crédito (valor negativo)
+      if (descontoCredito > 0) {
+        itensRows.push({
+          orcamento_id: orc.id,
+          tipo: "credito",
+          descricao: "Crédito aplicado",
+          valor_custo: 0,
+          markup_percentual: 0,
+          taxa_fixa: 0,
+          valor_final: -descontoCredito,
+          quantidade: 1,
+        });
+      }
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
       if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
+
+      // Deduzir crédito do cliente e registrar histórico
+      if (descontoCredito > 0 && clienteId) {
+        const [updateErr, historicoErr] = await Promise.all([
+          supabase
+            .from("clientes")
+            .update({ credito_disponivel: Math.max(0, clienteCredito - descontoCredito) } as any)
+            .eq("id", clienteId)
+            .then(({ error }) => error),
+          supabase
+            .from("historico_credito_cliente" as any)
+            .insert({
+              cliente_id:  clienteId,
+              agencia_id:  agenciaId,
+              tipo:        "uso",
+              valor:       descontoCredito,
+              descricao:   `Aplicado no orçamento ${numero_orcamento}`,
+              orcamento_id: orc.id,
+              usuario_id:  user?.id,
+            } as any)
+            .then(({ error }) => error),
+        ]);
+        if (updateErr || historicoErr) {
+          toast({ title: formatError("CLI006"), variant: "destructive" });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["cliente", clienteId] });
+        }
+      }
 
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -727,6 +780,48 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
               </>
             )}
           </div>
+
+          {/* Banner de crédito disponível */}
+          {clienteId && clienteCredito > 0 && (
+            <div className="mt-3 rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-3 space-y-2">
+              <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                💳 Este cliente possui {fmt(clienteCredito)} em crédito disponível
+              </p>
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="aplicar-credito"
+                  checked={aplicarCredito}
+                  onCheckedChange={(v) => {
+                    setAplicarCredito(!!v);
+                    if (!v) setValorCredito(0);
+                  }}
+                />
+                <Label htmlFor="aplicar-credito" className="text-sm cursor-pointer">
+                  Aplicar crédito neste orçamento
+                </Label>
+              </div>
+              {aplicarCredito && (
+                <div className="space-y-1">
+                  <Label className="text-xs text-muted-foreground">
+                    Valor a aplicar (máx: {fmt(Math.min(clienteCredito, valorFinal))})
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0.01}
+                    max={Math.min(clienteCredito, valorFinal)}
+                    step={0.01}
+                    value={valorCredito || ""}
+                    onChange={(e) => {
+                      const v = Number(e.target.value);
+                      setValorCredito(Math.min(v, clienteCredito, valorFinal));
+                    }}
+                    placeholder={`Máx: ${fmt(Math.min(clienteCredito, valorFinal))}`}
+                    className="h-9 text-sm max-w-[220px]"
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -926,7 +1021,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
               </div>
               <div className="bg-primary/8 rounded-xl p-3">
                 <p className="text-xs text-on-surface-variant mb-1">Valor Final</p>
-                <p className="text-base font-bold text-primary">{fmt(valorFinal)}</p>
+                <p className="text-base font-bold text-primary">{fmt(valorFinalComCredito)}</p>
               </div>
               <div className="bg-surface-container-low rounded-xl p-3">
                 <p className="text-xs text-on-surface-variant mb-1">Lucro</p>
@@ -938,6 +1033,11 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
               </div>
             </div>
             {acrescimo > 0 && <p className="text-xs text-on-surface-variant">Inclui acréscimo de cartão: {fmt(acrescimo)}</p>}
+            {descontoCredito > 0 && (
+              <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                Crédito aplicado: −{fmt(descontoCredito)}
+              </p>
+            )}
             <p className="text-[11px] text-on-surface-variant/70">
               Valores incluem todas as taxas aplicáveis.
             </p>

@@ -468,7 +468,7 @@ export default function OrcamentoDetalhe() {
         if (diasUteis < 1) return null;
         const dias = Math.ceil((new Date().getTime() - new Date(orc.enviado_whatsapp_em).getTime()) / 86400000);
         return (
-          <Card className="border-l-4" style={{ borderLeftColor: "#F59E0B", backgroundColor: "#FFFBEB" }}>
+          <Card className="border-l-4 border-warning bg-warning/10 dark:bg-warning/5">
             <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
               <p className="text-sm flex items-center gap-2"><Clock className="h-4 w-4 text-warning shrink-0" /> Este orçamento foi enviado há <strong>{dias} dias</strong> sem resposta. Que tal fazer um follow-up?</p>
               <Button
