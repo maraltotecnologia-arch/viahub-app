@@ -1,8 +1,10 @@
-import { useState, useRef, KeyboardEvent } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const MAX_TAG_LENGTH = 30;
 
 export const SUGESTOES_TAGS = [
   "Família", "Casal", "Corporativo", "Aventura",
@@ -19,8 +21,20 @@ interface ClienteTagsInputProps {
 export default function ClienteTagsInput({ tags, onChange, clienteId }: ClienteTagsInputProps) {
   const [input, setInput] = useState("");
   const [saving, setSaving] = useState(false);
+  const [lengthError, setLengthError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const queryClient = useQueryClient();
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => { if (errorTimerRef.current) clearTimeout(errorTimerRef.current); };
+  }, []);
+
+  const showLengthError = () => {
+    setLengthError(true);
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    errorTimerRef.current = setTimeout(() => setLengthError(false), 3000);
+  };
 
   const persist = async (newTags: string[]) => {
     if (!clienteId) return;
@@ -40,7 +54,11 @@ export default function ClienteTagsInput({ tags, onChange, clienteId }: ClienteT
 
   const addTag = async (tag: string) => {
     const trimmed = tag.trim();
-    if (!trimmed || tags.includes(trimmed)) { setInput(""); return; }
+    if (!trimmed) { setInput(""); return; }
+    if (trimmed.length > MAX_TAG_LENGTH) { showLengthError(); return; }
+    const isDuplicate = tags.some((t) => t.toLowerCase() === trimmed.toLowerCase());
+    if (isDuplicate) { setInput(""); return; }
+    setLengthError(false);
     const newTags = [...tags, trimmed];
     onChange?.(newTags);
     await persist(newTags);
@@ -62,7 +80,9 @@ export default function ClienteTagsInput({ tags, onChange, clienteId }: ClienteT
     }
   };
 
-  const suggestions = SUGESTOES_TAGS.filter((s) => !tags.includes(s));
+  const suggestions = SUGESTOES_TAGS.filter(
+    (s) => !tags.some((t) => t.toLowerCase() === s.toLowerCase())
+  );
 
   return (
     <div className="space-y-2.5">
@@ -89,7 +109,10 @@ export default function ClienteTagsInput({ tags, onChange, clienteId }: ClienteT
         <input
           ref={inputRef}
           value={input}
-          onChange={(e) => setInput(e.target.value.replace(",", ""))}
+          onChange={(e) => {
+            setLengthError(false);
+            setInput(e.target.value.replace(",", ""));
+          }}
           onKeyDown={handleKeyDown}
           onBlur={() => { if (input.trim()) addTag(input); }}
           placeholder={tags.length === 0 ? "Digite e pressione Enter..." : ""}
@@ -97,6 +120,9 @@ export default function ClienteTagsInput({ tags, onChange, clienteId }: ClienteT
           disabled={saving}
         />
       </div>
+      {lengthError && (
+        <p className="text-xs text-destructive">Tag muito longa (máximo {MAX_TAG_LENGTH} caracteres)</p>
+      )}
       {suggestions.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {suggestions.map((s) => (
