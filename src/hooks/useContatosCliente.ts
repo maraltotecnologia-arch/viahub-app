@@ -39,7 +39,7 @@ export function useContatosCliente(clienteId: string, agenciaId: string) {
         .order("principal", { ascending: false })
         .order("created_at", { ascending: true });
       if (error) throw error;
-      return data as Contato[];
+      return data as unknown as Contato[];
     },
   });
 

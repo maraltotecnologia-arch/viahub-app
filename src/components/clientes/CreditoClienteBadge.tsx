@@ -57,7 +57,7 @@ export default function CreditoClienteBadge({
         .eq("cliente_id", clienteId)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as HistoricoEntry[];
+      return data as unknown as HistoricoEntry[];
     },
   });
 

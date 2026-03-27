@@ -143,41 +143,50 @@ export type Database = {
         Row: {
           agencia_id: string
           cpf: string | null
+          credito_disponivel: number | null
           criado_em: string | null
           data_nascimento: string | null
           email: string | null
           id: string
           nome: string
           observacoes: string | null
+          origem_lead: string | null
           passaporte: string | null
           tags: string[] | null
           telefone: string | null
+          temperatura: string | null
         }
         Insert: {
           agencia_id: string
           cpf?: string | null
+          credito_disponivel?: number | null
           criado_em?: string | null
           data_nascimento?: string | null
           email?: string | null
           id?: string
           nome: string
           observacoes?: string | null
+          origem_lead?: string | null
           passaporte?: string | null
           tags?: string[] | null
           telefone?: string | null
+          temperatura?: string | null
         }
         Update: {
           agencia_id?: string
           cpf?: string | null
+          credito_disponivel?: number | null
           criado_em?: string | null
           data_nascimento?: string | null
           email?: string | null
           id?: string
           nome?: string
           observacoes?: string | null
+          origem_lead?: string | null
           passaporte?: string | null
           tags?: string[] | null
           telefone?: string | null
+          temperatura?: string | null
         }
         Relationships: [
           {
@@ -326,6 +335,61 @@ export type Database = {
             columns: ["cliente_id"]
             isOneToOne: false
             referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_credito_cliente: {
+        Row: {
+          agencia_id: string
+          cliente_id: string
+          created_at: string
+          descricao: string | null
+          id: string
+          tipo: string
+          usuario_id: string | null
+          valor: number
+        }
+        Insert: {
+          agencia_id: string
+          cliente_id: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo: string
+          usuario_id?: string | null
+          valor?: number
+        }
+        Update: {
+          agencia_id?: string
+          cliente_id?: string
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          tipo?: string
+          usuario_id?: string | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_credito_cliente_agencia_id_fkey"
+            columns: ["agencia_id"]
+            isOneToOne: false
+            referencedRelation: "agencias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_credito_cliente_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_credito_cliente_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
