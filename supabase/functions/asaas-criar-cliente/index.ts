@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       if (telefone) updateBody.mobilePhone = telefone;
       const updateRes = await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify(updateBody),
       });
       if (!updateRes.ok) {
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
           delete updateBody.mobilePhone;
           const retryRes = await fetch(`${ASAAS_BASE}/customers/${customerId}`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", "access_token": asaasKey },
+            headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
             body: JSON.stringify(updateBody),
           });
           if (!retryRes.ok) {
@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
       if (telefone) bodyCliente.mobilePhone = telefone;
       const customerRes = await fetch(`${ASAAS_BASE}/customers`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify(bodyCliente),
       });
       const customerData = await customerRes.json();
@@ -142,7 +142,7 @@ Deno.serve(async (req) => {
           delete bodyCliente.mobilePhone;
           const retryRes = await fetch(`${ASAAS_BASE}/customers`, {
             method: "POST",
-            headers: { "Content-Type": "application/json", "access_token": asaasKey },
+            headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
             body: JSON.stringify(bodyCliente),
           });
           const retryData = await retryRes.json();
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
       console.log("[asaas-criar-cliente] Criando cobrança PIX avulsa...");
       const pixPaymentRes = await fetch(`${ASAAS_BASE}/payments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify({
           customer: customerId,
           billingType: "PIX",
@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
       let pixExpirationDate = "";
       try {
         const qrRes = await fetch(`${ASAAS_BASE}/payments/${pixPaymentId}/pixQrCode`, {
-          headers: { "access_token": asaasKey },
+          headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         });
         const qrData = await qrRes.json();
         console.log("[asaas-criar-cliente] QR Code response:", JSON.stringify(qrData));
@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
 
       const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify({
           customer: customerId,
           billingType: "PIX",
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
     console.log("[asaas-criar-cliente] Criando assinatura...", { plano, valor, nextDueStr, billingType });
     const subRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": asaasKey },
+      headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       body: JSON.stringify(subscriptionBody),
     });
 
@@ -342,7 +342,7 @@ Deno.serve(async (req) => {
 
     try {
       const paymentsRes = await fetch(`${ASAAS_BASE}/subscriptions/${subData.id}/payments?limit=1`, {
-        headers: { "access_token": asaasKey },
+        headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       });
       const paymentsData = await paymentsRes.json();
       console.log("[asaas-criar-cliente] Primeiro pagamento response:", JSON.stringify(paymentsData));

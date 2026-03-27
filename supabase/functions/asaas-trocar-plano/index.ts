@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     try {
       const pendingRes = await fetch(
         `${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}/payments?status=PENDING&limit=5`,
-        { headers: { "access_token": asaasKey } }
+        { headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey } }
       );
       const pendingData = await pendingRes.json();
       const pendingPayments = (pendingData.data || []).filter((p: any) => p.status === "PENDING");
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
         console.log(`[asaas-trocar-plano] Cancelando cobrança ${payment.id} (valor=${payment.value})`);
         const delRes = await fetch(`${ASAAS_BASE}/payments/${payment.id}`, {
           method: "DELETE",
-          headers: { "access_token": asaasKey },
+          headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         });
         if (delRes.ok) {
           await supabaseAdmin.from("asaas_pagamentos")
@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
     // Update subscription in Asaas
     const res = await fetch(`${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": asaasKey },
+      headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       body: JSON.stringify({
         value: novoValor,
         description: `ViaHub — Plano ${PLANO_LABEL[novo_plano]}`,

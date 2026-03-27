@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     }
 
     const res = await fetch(`${ASAAS_BASE}/payments/${payment_id}`, {
-      headers: { "access_token": asaasKey },
+      headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
     });
 
     const data = await res.json();

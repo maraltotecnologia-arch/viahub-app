@@ -68,6 +68,7 @@ Deno.serve(async (req) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "User-Agent": "ViaHub/1.0",
         access_token: ASAAS_API_KEY,
       },
       body: JSON.stringify(body),

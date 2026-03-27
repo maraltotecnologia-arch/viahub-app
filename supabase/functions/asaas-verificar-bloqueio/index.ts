@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
 
             try {
               const res = await fetch(`${ASAAS_BASE}/payments/${pag.asaas_payment_id}`, {
-                headers: { "access_token": asaasKey },
+                headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
               });
               const data = await res.json();
 
@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
           try {
             const res = await fetch(
               `${ASAAS_BASE}/subscriptions/${ag.asaas_subscription_id}/payments?status=PENDING&limit=1`,
-              { headers: { "access_token": asaasKey } }
+              { headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey } }
             );
             const data = await res.json();
 

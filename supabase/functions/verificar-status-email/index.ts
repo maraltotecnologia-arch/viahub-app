@@ -111,7 +111,7 @@ Deno.serve(async (req) => {
         try {
           console.log(`[verificar-status-email] Verificando assinatura ${agencia.asaas_subscription_id} no Asaas`);
           const subRes = await fetch(`${ASAAS_BASE}/subscriptions/${agencia.asaas_subscription_id}`, {
-            headers: { "access_token": asaasKey },
+            headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
           });
 
           let subscriptionDeleted = false;
@@ -186,7 +186,7 @@ Deno.serve(async (req) => {
 
           try {
             const asaasRes = await fetch(`${ASAAS_BASE}/payments/${pagamento.asaas_payment_id}`, {
-              headers: { "access_token": asaasKey },
+              headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
             });
             const asaasData = await asaasRes.json();
 

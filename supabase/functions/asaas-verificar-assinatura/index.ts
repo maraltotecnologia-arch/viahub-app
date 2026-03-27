@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
 
     // Step 3: Query Asaas
     const subRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}`, {
-      headers: { "access_token": asaasKey },
+      headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
     });
 
     // Step 4: Handle 404 or deleted

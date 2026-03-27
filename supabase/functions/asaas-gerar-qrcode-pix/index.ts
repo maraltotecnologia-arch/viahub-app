@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     // Step 1: Get payment details
     const paymentRes = await fetch(`${ASAAS_BASE}/payments/${payment_id}`, {
-      headers: { "access_token": asaasKey },
+      headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
     });
     const paymentData = await paymentRes.json();
 
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     // Step 3: Get QR Code
     console.log(`[asaas-gerar-qrcode-pix] Buscando QR Code para ${payment_id}`);
     const qrRes = await fetch(`${ASAAS_BASE}/payments/${payment_id}/pixQrCode`, {
-      headers: { "access_token": asaasKey },
+      headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
     });
     const qrData = await qrRes.json();
 

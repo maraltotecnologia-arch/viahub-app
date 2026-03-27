@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
 
         const res = await fetch(url.toString(), {
           headers: {
+            "User-Agent": "ViaHub/1.0",
             access_token: asaasKey,
             "Content-Type": "application/json",
           },

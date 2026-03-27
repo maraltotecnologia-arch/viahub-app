@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     if (subscriptionId) {
       console.log(`[asaas-trocar-pagamento] Verificando assinatura ${subscriptionId} no Asaas`);
       const checkRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}`, {
-        headers: { "access_token": asaasKey },
+        headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       });
 
       if (checkRes.ok) {
@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
 
       const newSubRes = await fetch(`${ASAAS_BASE}/subscriptions`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify(newSubBody),
       });
       const newSubData = await newSubRes.json();
@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
       // Get first payment of new subscription
       try {
         const paymentsRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}/payments?limit=1`, {
-          headers: { "access_token": asaasKey },
+          headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         });
         const paymentsData = await paymentsRes.json();
 
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
           // If PIX, get QR code
           if (novo_metodo === "PIX") {
             const pixRes = await fetch(`${ASAAS_BASE}/payments/${firstPayment.id}/pixQrCode`, {
-              headers: { "access_token": asaasKey },
+              headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
             });
             const pixData = await pixRes.json();
 
@@ -251,7 +251,7 @@ Deno.serve(async (req) => {
 
     const subRes = await fetch(`${ASAAS_BASE}/subscriptions/${subscriptionId}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "access_token": asaasKey },
+      headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       body: JSON.stringify(subBody),
     });
 
@@ -270,7 +270,7 @@ Deno.serve(async (req) => {
 
     const pendingRes = await fetch(
       `${ASAAS_BASE}/subscriptions/${subscriptionId}/payments?status=PENDING&limit=5`,
-      { headers: { "access_token": asaasKey } }
+      { headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey } }
     );
     const pendingData = await pendingRes.json();
     const pendingPayments = (pendingData.data || []).filter((p: any) => p.status === "PENDING");
@@ -290,7 +290,7 @@ Deno.serve(async (req) => {
       // Cancel the pending payment
       const delRes = await fetch(`${ASAAS_BASE}/payments/${pending.id}`, {
         method: "DELETE",
-        headers: { "access_token": asaasKey },
+        headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
       });
       const delData = await delRes.json();
       console.log(`[asaas-trocar-pagamento] Cobrança ${pending.id} cancelada:`, JSON.stringify(delData));
@@ -340,7 +340,7 @@ Deno.serve(async (req) => {
 
       const createRes = await fetch(`${ASAAS_BASE}/payments`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "access_token": asaasKey },
+        headers: { "Content-Type": "application/json", "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         body: JSON.stringify(newPaymentBody),
       });
       newPaymentResult = await createRes.json();
@@ -385,7 +385,7 @@ Deno.serve(async (req) => {
       // If PIX, fetch QR code
       if (novo_metodo === "PIX" && paymentResult.id) {
         const pixRes = await fetch(`${ASAAS_BASE}/payments/${paymentResult.id}/pixQrCode`, {
-          headers: { "access_token": asaasKey },
+          headers: { "User-Agent": "ViaHub/1.0", "access_token": asaasKey },
         });
         const pixData = await pixRes.json();
 
