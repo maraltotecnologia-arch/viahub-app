@@ -140,16 +140,16 @@ export default function Clientes() {
     enabled: !!agenciaId,
     staleTime: 60 * 1000,
     queryFn: async () => {
-      let query = supabase
+      let query: any = supabase
         .from("clientes")
         .select("id, nome, email, telefone, criado_em, tags, origem_lead, temperatura, data_nascimento, orcamentos(count)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
         .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
 
       if (search.trim()) query = query.or(`nome.ilike.%${search}%,email.ilike.%${search}%`);
-      if (origemFilter)  query = query.eq("origem_lead" as any, origemFilter);
-      if (tempFilter)    query = query.eq("temperatura" as any, tempFilter);
-      if (tagsFilter.length > 0) query = (query as any).overlaps("tags", tagsFilter);
+      if (origemFilter)  query = query.eq("origem_lead", origemFilter);
+      if (tempFilter)    query = query.eq("temperatura", tempFilter);
+      if (tagsFilter.length > 0) query = query.overlaps("tags", tagsFilter);
 
       query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       const { data, error, count } = await query;

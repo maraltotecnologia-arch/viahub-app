@@ -353,7 +353,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      console.log(`[asaas-trocar-pagamento] Nova cobrança criada: id=${newPaymentResult.id}, método=${novo_metodo}, dueDate=${dueDate}`);
+      // At this point newPaymentResult is guaranteed non-null (error case returned above)
+      const paymentResult = newPaymentResult!;
+      console.log(`[asaas-trocar-pagamento] Nova cobrança criada: id=${paymentResult.id}, método=${novo_metodo}, dueDate=${dueDate}`);
 
       // ─── STEP 4: Update asaas_pagamentos table ───
       // Mark old payment as cancelled
@@ -368,21 +370,21 @@ Deno.serve(async (req) => {
       // Insert new payment record
       await supabaseAdmin.from("asaas_pagamentos").insert({
         agencia_id,
-        asaas_payment_id: newPaymentResult.id,
-        status: newPaymentResult.status,
-        valor: newPaymentResult.value,
-        vencimento: newPaymentResult.dueDate,
+        asaas_payment_id: paymentResult.id,
+        status: paymentResult.status,
+        valor: paymentResult.value,
+        vencimento: paymentResult.dueDate,
         forma_pagamento: novo_metodo,
-        boleto_url: newPaymentResult.bankSlipUrl || null,
-        boleto_linha_digitavel: newPaymentResult.nossoNumero || null,
+        boleto_url: paymentResult.bankSlipUrl || null,
+        boleto_linha_digitavel: paymentResult.nossoNumero || null,
         pix_copia_cola: null,
         pix_qr_code: null,
       });
       console.log("[asaas-trocar-pagamento] Novo registro inserido na tabela asaas_pagamentos");
 
       // If PIX, fetch QR code
-      if (novo_metodo === "PIX" && newPaymentResult.id) {
-        const pixRes = await fetch(`${ASAAS_BASE}/payments/${newPaymentResult.id}/pixQrCode`, {
+      if (novo_metodo === "PIX" && paymentResult.id) {
+        const pixRes = await fetch(`${ASAAS_BASE}/payments/${paymentResult.id}/pixQrCode`, {
           headers: { "access_token": asaasKey },
         });
         const pixData = await pixRes.json();
@@ -395,7 +397,7 @@ Deno.serve(async (req) => {
               pix_qr_code: pixData.encodedImage,
               pix_copia_cola: pixData.payload,
             })
-            .eq("asaas_payment_id", newPaymentResult.id);
+            .eq("asaas_payment_id", paymentResult.id);
 
           console.log("[asaas-trocar-pagamento] QR Code PIX obtido e salvo");
 
@@ -404,7 +406,7 @@ Deno.serve(async (req) => {
             metodo: "PIX",
             pixQrCodeImage: pixData.encodedImage,
             pixCopiaECola: pixData.payload,
-            pixPaymentId: newPaymentResult.id,
+            pixPaymentId: paymentResult.id,
           }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -416,8 +418,8 @@ Deno.serve(async (req) => {
         return new Response(JSON.stringify({
           success: true,
           metodo: "BOLETO",
-          boletoUrl: newPaymentResult.bankSlipUrl || null,
-          boletoLinhaDigitavel: newPaymentResult.nossoNumero || null,
+          boletoUrl: paymentResult.bankSlipUrl || null,
+          boletoLinhaDigitavel: paymentResult.nossoNumero || null,
         }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
