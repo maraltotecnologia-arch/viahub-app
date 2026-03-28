@@ -454,6 +454,7 @@ export type Database = {
       }
       itens_orcamento: {
         Row: {
+          categoria: string | null
           checkin_data: string | null
           checkin_hora: string | null
           checkout_data: string | null
@@ -464,6 +465,7 @@ export type Database = {
           detalhes: Json | null
           id: string
           markup_percentual: number | null
+          num_viajantes: number | null
           observacao: string | null
           orcamento_id: string
           partida_data: string | null
@@ -475,6 +477,7 @@ export type Database = {
           valor_final: number | null
         }
         Insert: {
+          categoria?: string | null
           checkin_data?: string | null
           checkin_hora?: string | null
           checkout_data?: string | null
@@ -485,6 +488,7 @@ export type Database = {
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
+          num_viajantes?: number | null
           observacao?: string | null
           orcamento_id: string
           partida_data?: string | null
@@ -496,6 +500,7 @@ export type Database = {
           valor_final?: number | null
         }
         Update: {
+          categoria?: string | null
           checkin_data?: string | null
           checkin_hora?: string | null
           checkout_data?: string | null
@@ -506,6 +511,7 @@ export type Database = {
           detalhes?: Json | null
           id?: string
           markup_percentual?: number | null
+          num_viajantes?: number | null
           observacao?: string | null
           orcamento_id?: string
           partida_data?: string | null
@@ -754,8 +760,13 @@ export type Database = {
           atualizado_em: string | null
           cliente_id: string | null
           criado_em: string | null
+          data_validade: string | null
+          email_aberto_em: string | null
+          enviado_email: boolean | null
+          enviado_email_em: string | null
           enviado_whatsapp: boolean | null
           enviado_whatsapp_em: string | null
+          expirado: boolean | null
           forma_pagamento: string | null
           id: string
           lucro_bruto: number | null
@@ -765,10 +776,12 @@ export type Database = {
           observacoes: string | null
           pago_em: string | null
           status: string | null
+          status_viagem: string | null
           titulo: string | null
           token_publico: string | null
           usuario_id: string | null
           validade: string | null
+          validade_dias: number | null
           valor_custo: number | null
           valor_final: number | null
         }
@@ -779,8 +792,13 @@ export type Database = {
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null
+          data_validade?: string | null
+          email_aberto_em?: string | null
+          enviado_email?: boolean | null
+          enviado_email_em?: string | null
           enviado_whatsapp?: boolean | null
           enviado_whatsapp_em?: string | null
+          expirado?: boolean | null
           forma_pagamento?: string | null
           id?: string
           lucro_bruto?: number | null
@@ -790,10 +808,12 @@ export type Database = {
           observacoes?: string | null
           pago_em?: string | null
           status?: string | null
+          status_viagem?: string | null
           titulo?: string | null
           token_publico?: string | null
           usuario_id?: string | null
           validade?: string | null
+          validade_dias?: number | null
           valor_custo?: number | null
           valor_final?: number | null
         }
@@ -804,8 +824,13 @@ export type Database = {
           atualizado_em?: string | null
           cliente_id?: string | null
           criado_em?: string | null
+          data_validade?: string | null
+          email_aberto_em?: string | null
+          enviado_email?: boolean | null
+          enviado_email_em?: string | null
           enviado_whatsapp?: boolean | null
           enviado_whatsapp_em?: string | null
+          expirado?: boolean | null
           forma_pagamento?: string | null
           id?: string
           lucro_bruto?: number | null
@@ -815,10 +840,12 @@ export type Database = {
           observacoes?: string | null
           pago_em?: string | null
           status?: string | null
+          status_viagem?: string | null
           titulo?: string | null
           token_publico?: string | null
           usuario_id?: string | null
           validade?: string | null
+          validade_dias?: number | null
           valor_custo?: number | null
           valor_final?: number | null
         }

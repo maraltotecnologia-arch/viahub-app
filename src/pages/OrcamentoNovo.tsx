@@ -16,14 +16,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { validarValidade, validarData, todayStr, formatarDataSemTimezone } from "@/lib/date-utils";
-import DatePickerInput from "@/components/ui/DatePickerInput";
 import { getPlanoMultiplier } from "@/lib/plan-commission";
 import { calcularLucroReal, getTaxaEmbutida, isMargemZero } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatError } from "@/lib/errors";
+import { CATEGORIAS_ITEM, type CategoriaItem } from "@/lib/categorias-item";
 
 interface Item {
   id: string;
@@ -33,6 +32,8 @@ interface Item {
   markup_percentual: number;
   taxa_fixa: number;
   quantidade: number;
+  categoria?: CategoriaItem;
+  num_viajantes?: number | null;
   observacao?: string;
   partida_data?: string;
   partida_hora?: string;
@@ -93,7 +94,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [newTelefone, setNewTelefone] = useState("");
 
   const [titulo, setTitulo] = useState("");
-  const [validade, setValidade] = useState("");
+  const [validadeDias, setValidadeDias] = useState(5);
   const [moeda, setMoeda] = useState("BRL");
   const copilotData = (location.state as any)?.copilot;
   const [observacoes, setObservacoes] = useState(copilotData?.observacoes || (location.state as any)?.observacoesPrefill || "");
@@ -109,7 +110,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   const [copilotBanner, setCopilotBanner] = useState(false);
   const itensSectionRef = useRef<HTMLDivElement>(null);
   const [itens, setItens] = useState<Item[]>([
-    { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1 },
+    { id: "1", tipo: "Aéreo", descricao: "", valor_custo: 0, markup_percentual: 0, taxa_fixa: 0, quantidade: 1, categoria: "aereo", num_viajantes: null },
   ]);
 
   // Fetch agency plan for silent commission
@@ -193,8 +194,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
   useEffect(() => {
     if (isEdicao && existingOrc && existingItens && !initialized) {
       setTitulo(existingOrc.titulo || "");
-      // Format date properly for input type="date"
-      setValidade(existingOrc.validade ? formatarDataSemTimezone(existingOrc.validade) : "");
+      setValidadeDias(existingOrc.validade_dias ?? 5);
       setMoeda(existingOrc.moeda || "BRL");
       setObservacoes(existingOrc.observacoes || "");
       setFormaPagamento(existingOrc.forma_pagamento || "pix");
@@ -213,15 +213,17 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           markup_percentual: Number(i.markup_percentual) || 0,
           taxa_fixa: Number(i.taxa_fixa) || 0,
           quantidade: i.quantidade || 1,
-          observacao: (i as any).observacao || "",
-          partida_data: (i as any).partida_data || "",
-          partida_hora: (i as any).partida_hora || "",
-          chegada_data: (i as any).chegada_data || "",
-          chegada_hora: (i as any).chegada_hora || "",
-          checkin_data: (i as any).checkin_data || "",
-          checkin_hora: (i as any).checkin_hora || "",
-          checkout_data: (i as any).checkout_data || "",
-          checkout_hora: (i as any).checkout_hora || "",
+          categoria: (i.categoria as CategoriaItem) || "outros",
+          num_viajantes: i.num_viajantes ?? null,
+          observacao: i.observacao || "",
+          partida_data: i.partida_data || "",
+          partida_hora: i.partida_hora || "",
+          chegada_data: i.chegada_data || "",
+          chegada_hora: i.chegada_hora || "",
+          checkin_data: i.checkin_data || "",
+          checkin_hora: i.checkin_hora || "",
+          checkout_data: i.checkout_data || "",
+          checkout_hora: i.checkout_hora || "",
         }))
       );
       setInitialized(true);
@@ -259,6 +261,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           markup_percentual: isObservacao ? 0 : (Number(item.markup) || 0),
           taxa_fixa: isObservacao ? 0 : (Number(item.taxa_fixa) || 0),
           quantidade: isObservacao ? 1 : (Number(item.quantidade) || 1),
+          categoria: (item.categoria as CategoriaItem) || "outros",
+          num_viajantes: null,
           observacao: item.observacao || "",
           partida_data: isObservacao ? "" : (item.partida_data || ""),
           partida_hora: isObservacao ? "" : (item.partida_hora || ""),
@@ -336,6 +340,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       markup_percentual: aeroConfig ? Number(aeroConfig.markup_percentual) || 0 : 0,
       taxa_fixa: aeroConfig ? Number(aeroConfig.taxa_fixa) || 0 : 0,
       quantidade: 1,
+      categoria: "aereo",
+      num_viajantes: null,
     }]);
   };
 
@@ -375,6 +381,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       markup_percentual: Number(i.markup_percentual) || 0,
       taxa_fixa: Number(i.taxa_fixa) || 0,
       quantidade: i.quantidade || 1,
+      categoria: (i.categoria as CategoriaItem) || "outros",
+      num_viajantes: null,
     }));
     if (tplItens.length > 0) setItens(tplItens);
     if (tpl.forma_pagamento) setFormaPagamento(tpl.forma_pagamento);
@@ -382,6 +390,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
     setShowTemplateModal(false);
     toast({ title: "Template aplicado! Revise os valores antes de salvar." });
   };
+
+  // Compute validade date string from validadeDias
+  const validade = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + Math.max(1, validadeDias));
+    return d.toISOString().slice(0, 10);
+  })();
+  const validadeDisplay = validade
+    ? validade.split("-").reverse().join("/")
+    : "";
 
   const custoTotal = itens.reduce((sum, i) => sum + i.valor_custo * i.quantidade, 0);
   const valorFinalBase = itens.reduce((sum, i) => sum + calcValorFinal(i), 0);
@@ -408,14 +426,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
       toast({ title: "Selecione um cliente para o orçamento", variant: "destructive" });
       return;
     }
-    if (!validade) {
-      toast({ title: "Defina a data de validade do orçamento", variant: "destructive" });
-      return;
-    }
-    const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
-    if (new Date(validade + "T00:00:00") < hoje) {
-      toast({ title: "A data de validade deve ser uma data futura", variant: "destructive" });
+    if (validadeDias < 1) {
+      toast({ title: "A validade deve ser de pelo menos 1 dia", variant: "destructive" });
       return;
     }
     if (itens.length === 0) {
@@ -449,7 +461,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           lucro_bruto: valorFinal - custoTotal,
           margem_percentual: Number(((custoTotal > 0 ? ((valorFinal - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
           moeda,
-          validade: validade || null,
+          validade: validade,
+          validade_dias: validadeDias,
           observacoes,
           forma_pagamento: formaPagamento,
         })
@@ -469,6 +482,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         taxa_fixa: i.taxa_fixa,
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
+        categoria: i.categoria || "outros",
+        num_viajantes: i.num_viajantes || null,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
         partida_hora: i.partida_hora || null,
@@ -478,7 +493,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         checkin_hora: i.checkin_hora || null,
         checkout_data: i.checkout_data || null,
         checkout_hora: i.checkout_hora || null,
-      } as any));
+      }));
 
       const { error: itensError } = await supabase.from("itens_orcamento").insert(itensRows);
       if (itensError) { toast({ title: "Erro ao salvar itens", description: itensError.message, variant: "destructive" }); setLoading(false); return; }
@@ -567,7 +582,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           lucro_bruto: valorFinalComCredito - custoTotal,
           margem_percentual: Number(((custoTotal > 0 ? ((valorFinalComCredito - custoTotal) / custoTotal) * 100 : 0)).toFixed(2)),
           moeda,
-          validade: validade || null,
+          validade: validade,
+          validade_dias: validadeDias,
           observacoes,
           forma_pagamento: formaPagamento,
           numero_orcamento,
@@ -578,7 +594,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
 
       if (error) { toast({ title: formatError("ORC001"), variant: "destructive" }); setLoading(false); return; }
 
-      const itensRows: any[] = itens.map((i) => ({
+      const itensRows = itens.map((i) => ({
         orcamento_id: orc.id,
         tipo: i.tipo,
         descricao: i.descricao,
@@ -587,6 +603,8 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
         taxa_fixa: i.taxa_fixa,
         valor_final: calcValorFinal(i),
         quantidade: i.quantidade,
+        categoria: i.categoria || "outros",
+        num_viajantes: i.num_viajantes || null,
         observacao: i.observacao || null,
         partida_data: i.partida_data || null,
         partida_hora: i.partida_hora || null,
@@ -600,7 +618,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
 
       // Item de desconto de crédito (valor negativo)
       if (descontoCredito > 0) {
-        itensRows.push({
+        (itensRows as any[]).push({
           orcamento_id: orc.id,
           tipo: "credito",
           descricao: "Crédito aplicado",
@@ -609,6 +627,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           taxa_fixa: 0,
           valor_final: -descontoCredito,
           quantidade: 1,
+          categoria: "credito",
         });
       }
 
@@ -844,19 +863,16 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2"><Label>Título</Label><Input placeholder="Ex: Lua de mel - Maldivas" value={titulo} onChange={(e) => setTitulo(e.target.value)} /></div>
             <div className="space-y-2">
-              <Label>Validade</Label>
-              <DatePickerInput
-                value={validade}
-                onChange={setValidade}
-                placeholder="Selecione a validade"
-                minDate={new Date()}
-                maxDate={new Date(2099, 11, 31)}
+              <Label>Validade (dias)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={365}
+                value={validadeDias}
+                onChange={(e) => setValidadeDias(Math.max(1, parseInt(e.target.value) || 1))}
+                className="w-full"
               />
-              {validade && !validarValidade(validade) && (
-                <p className="text-xs text-destructive">
-                  {!validarData(validade) ? "Data inválida" : "A validade deve ser uma data futura"}
-                </p>
-              )}
+              <p className="text-xs text-muted-foreground">Válido até {validadeDisplay}</p>
             </div>
             <div className="space-y-2">
               <Label>Moeda</Label>
@@ -910,7 +926,7 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                 <span className="text-sm font-semibold font-headline text-on-surface-variant">Item {idx + 1}</span>
                 {itens.length > 1 && <Button variant="ghost" size="icon" className="absolute top-4 right-4 text-on-surface-variant/50 hover:text-error hover:bg-error-container/20" onClick={() => setRemoveItemId(item.id)}><Trash2 className="h-4 w-4" /></Button>}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <div className="space-y-1">
                   <Label className="text-xs">Tipo</Label>
                   <Select value={item.tipo} onValueChange={(v) => updateItem(item.id, "tipo", v)}>
@@ -918,13 +934,27 @@ export default function OrcamentoNovo({ modo = "criacao" }: OrcamentoNovoProps) 
                     <SelectContent>{tiposServico.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1 md:col-span-2"><Label className="text-xs">Descrição</Label><Input placeholder="Descrição do serviço" value={item.descricao} onChange={(e) => updateItem(item.id, "descricao", e.target.value)} /></div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Categoria</Label>
+                  <Select value={item.categoria || "outros"} onValueChange={(v) => updateItem(item.id, "categoria" as keyof Item, v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIAS_ITEM.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          <span className="flex items-center gap-1.5">{c.emoji} {c.label}</span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1 sm:col-span-2"><Label className="text-xs">Descrição</Label><Input placeholder="Descrição do serviço" value={item.descricao} onChange={(e) => updateItem(item.id, "descricao", e.target.value)} /></div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-6 gap-3">
                 <div className="space-y-1"><Label className="text-xs">Custo (R$)</Label><Input type="number" min={0} value={item.valor_custo || ""} onChange={(e) => updateItem(item.id, "valor_custo", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Markup %</Label><Input type="number" min={0} value={item.markup_percentual || ""} onChange={(e) => updateItem(item.id, "markup_percentual", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Taxa Fixa (R$)</Label><Input type="number" min={0} value={item.taxa_fixa || ""} onChange={(e) => updateItem(item.id, "taxa_fixa", Number(e.target.value))} /></div>
                 <div className="space-y-1"><Label className="text-xs">Qtd</Label><Input type="number" min={1} value={item.quantidade} onChange={(e) => updateItem(item.id, "quantidade", Number(e.target.value) || 1)} /></div>
+                <div className="space-y-1"><Label className="text-xs">Nº Viajantes</Label><Input type="number" min={1} max={20} value={item.num_viajantes ?? ""} onChange={(e) => updateItem(item.id, "num_viajantes" as keyof Item, e.target.value === "" ? null : Number(e.target.value))} placeholder="Padrão" /></div>
                 <div className="space-y-1"><Label className="text-xs font-label">Valor Final</Label><div className="h-10 flex items-center px-3 rounded-xl bg-primary/8 text-sm font-semibold text-primary">{fmt(calcValorFinal(item) * planoMultiplier)}</div></div>
               </div>
               {/* Conditional date/time fields by service type */}

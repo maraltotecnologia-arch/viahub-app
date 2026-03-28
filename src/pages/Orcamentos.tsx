@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, MessageCircle, FileText, Wand2 } from "lucide-react";
+import { Plus, Search, ChevronLeft, ChevronRight, X, Clock, AlertTriangle, Eye, MessageCircle, FileText, Wand2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import EmptyState from "@/components/EmptyState";
 import { formatarApenasDatabrasilia } from "@/lib/date-utils";
 import AICopilotModal from "@/components/ai/AICopilotModal";
+import { CATEGORIAS_ITEM } from "@/lib/categorias-item";
+import { StatusViagemBadge } from "@/components/orcamento/StatusViagemStepper";
 
 const filtroLabels: Record<string, string> = {
   vencendo_hoje: "Vencendo hoje",
@@ -26,15 +28,19 @@ const filtroLabels: Record<string, string> = {
   aguardando: "Aguardando resposta",
 };
 
-function getValidadeIndicator(validade: string | null, status: string | null) {
-  if (!validade || !["rascunho", "enviado"].includes(status || "")) return null;
+function getValidadeIndicator(validade: string | null, status: string | null, expirado?: boolean | null, dataValidade?: string | null) {
+  // If explicitly marked as expirado
+  if (expirado) return { className: "text-muted-foreground line-through", icon: Clock, label: "Expirado" };
+  // Use data_validade if available, fallback to validade
+  const dateStr = dataValidade || validade;
+  if (!dateStr || !["rascunho", "enviado"].includes(status || "")) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const val = new Date(validade + "T00:00:00");
+  const val = new Date(dateStr + "T00:00:00");
   const diffDays = Math.ceil((val.getTime() - today.getTime()) / 86400000);
-  if (diffDays < 0) return { className: "text-destructive font-semibold", icon: Clock, label: "Vencido" };
-  if (diffDays === 0) return { className: "text-warning font-bold", icon: AlertTriangle, label: "Vence hoje" };
-  if (diffDays <= 3) return { className: "text-warning", icon: AlertTriangle, label: `Vence em ${diffDays}d` };
+  if (diffDays < 0) return { className: "text-destructive font-semibold", icon: Clock, label: "Expirado" };
+  if (diffDays === 0) return { className: "text-warning font-bold", icon: AlertTriangle, label: "Expira hoje" };
+  if (diffDays <= 3) return { className: "text-warning", icon: AlertTriangle, label: `Expira em ${diffDays}d` };
   return null;
 }
 
@@ -49,9 +55,11 @@ export default function Orcamentos() {
   const filtroAlerta = searchParams.get("filtro");
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [categoriaFilter, setCategoriaFilter] = useState("todas");
   const [page, setPage] = useState(0);
   const [ordenacao, setOrdenacao] = useState({ campo: "criado_em", direcao: "desc" as "asc" | "desc" });
   const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [statusViagemFilter, setStatusViagemFilter] = useState(() => searchParams.get("status_viagem") || "todas");
 
   const handleSort = (campo: string, direcao: "asc" | "desc") => {
     setOrdenacao({ campo, direcao });
@@ -63,16 +71,31 @@ export default function Orcamentos() {
     setSearchParams(searchParams);
   };
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["orcamentos", agenciaId, statusFilter, search, page, filtroAlerta, ordenacao.campo, ordenacao.direcao],
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["orcamentos", agenciaId, statusFilter, categoriaFilter, statusViagemFilter, search, page, filtroAlerta, ordenacao.campo, ordenacao.direcao],
     enabled: !!agenciaId,
     staleTime: 30 * 1000,
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
-        .select("id, titulo, valor_final, status, validade, criado_em, enviado_whatsapp, enviado_whatsapp_em, clientes(nome)", { count: "exact" })
+        .select("id, titulo, valor_final, status, status_viagem, validade, data_validade, expirado, criado_em, enviado_whatsapp, enviado_whatsapp_em, email_aberto_em, clientes(nome)", { count: "exact" })
         .eq("agencia_id", agenciaId!)
         .order(ordenacao.campo, { ascending: ordenacao.direcao === "asc" });
+
+      // Resolve orcamento IDs that match the categoria filter (two-step)
+      if (categoriaFilter !== "todas" && !filtroAlerta) {
+        const { data: matchItens } = await supabase
+          .from("itens_orcamento")
+          .select("orcamento_id")
+          .eq("categoria", categoriaFilter);
+        const ids = [...new Set((matchItens ?? []).map((r) => r.orcamento_id))];
+        if (ids.length === 0) return { rows: [], count: 0 };
+        query = query.in("id", ids);
+      }
+
+      if (statusViagemFilter !== "todas") {
+        query = query.eq("status_viagem", statusViagemFilter);
+      }
 
       if (filtroAlerta === "vencendo_hoje") {
         const today = new Date().toISOString().slice(0, 10);
@@ -128,15 +151,15 @@ export default function Orcamentos() {
 
       <Card className="rounded-2xl">
         <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
+          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+            <div className="relative flex-1 min-w-[160px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder="Buscar por título..." className="pl-9" value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); }} />
             </div>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
-              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="rascunho">Rascunho</SelectItem>
                 <SelectItem value="enviado">Enviado</SelectItem>
                 <SelectItem value="aprovado">Aprovado</SelectItem>
@@ -145,11 +168,39 @@ export default function Orcamentos() {
                 <SelectItem value="pago">Pago</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={categoriaFilter} onValueChange={(v) => { setCategoriaFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-full sm:w-[180px]"><SelectValue placeholder="Categoria de item" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as categorias</SelectItem>
+                {CATEGORIAS_ITEM.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    <span className="flex items-center gap-1.5">{c.emoji} {c.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={statusViagemFilter} onValueChange={(v) => { setStatusViagemFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Viagem" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas as viagens</SelectItem>
+                <SelectItem value="cotacao">Em cotação</SelectItem>
+                <SelectItem value="confirmado">Confirmado</SelectItem>
+                <SelectItem value="em_viagem">Em viagem</SelectItem>
+                <SelectItem value="concluido">Concluído</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <div className="space-y-3">{Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
+          ) : isError ? (
+            <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+              <p className="font-semibold mb-1">Erro ao carregar orçamentos</p>
+              <p className="font-mono text-xs opacity-80">{(error as Error)?.message ?? "Erro desconhecido"}</p>
+              <p className="mt-2 text-muted-foreground text-xs">Se a mensagem mencionar uma coluna inexistente, verifique se todas as migrations foram aplicadas ao banco.</p>
+            </div>
           ) : isMobile ? (
             <div className="space-y-3">
               {data?.rows?.map((o) => (
@@ -198,6 +249,7 @@ export default function Orcamentos() {
                     <SortableTableHead label="Status" field="status" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                     <SortableTableHead label="Validade" field="validade" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
                     <SortableTableHead label="Criado em" field="criado_em" currentField={ordenacao.campo} currentDirection={ordenacao.direcao} defaultField="criado_em" onSort={handleSort} />
+                    <TableHead>Viagem</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -219,6 +271,14 @@ export default function Orcamentos() {
                               <TooltipContent>Enviado via WhatsApp</TooltipContent>
                             </Tooltip>
                           )}
+                          {(o as any).email_aberto_em && (
+                            <Tooltip>
+                              <TooltipTrigger asChild><Eye className="h-3.5 w-3.5 text-primary cursor-help" /></TooltipTrigger>
+                              <TooltipContent>
+                                Email aberto em {new Date((o as any).email_aberto_em).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                           {o.status === "perdido" && o.validade && new Date(o.validade) < now && (
                             <Tooltip>
                               <TooltipTrigger asChild><Clock className="h-3.5 w-3.5 text-destructive cursor-help" /></TooltipTrigger>
@@ -229,7 +289,7 @@ export default function Orcamentos() {
                       </TableCell>
                       <TableCell>
                         {(() => {
-                          const ind = getValidadeIndicator(o.validade, o.status);
+                          const ind = getValidadeIndicator(o.validade, o.status, (o as any).expirado, (o as any).data_validade);
                           if (!ind) return <span className="text-muted-foreground">{o.validade ? formatarApenasDatabrasilia(o.validade + "T12:00:00") : "-"}</span>;
                           const IndIcon = ind.icon;
                           return (
@@ -241,10 +301,11 @@ export default function Orcamentos() {
                         })()}
                       </TableCell>
                       <TableCell className="text-muted-foreground">{o.criado_em ? formatarApenasDatabrasilia(o.criado_em) : "-"}</TableCell>
+                      <TableCell><StatusViagemBadge status={(o as any).status_viagem} /></TableCell>
                     </TableRow>
                   ))}
                   {data?.rows?.length === 0 && (
-                    <TableRow><TableCell colSpan={6}>
+                    <TableRow><TableCell colSpan={7}>
                       <EmptyState
                         icon={<FileText className="h-9 w-9" />}
                         title="Nenhum orçamento ainda"

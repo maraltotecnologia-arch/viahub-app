@@ -55,12 +55,39 @@ export default function OrcamentoPublico() {
     </div>
   );
 
+  if ((orc as any).expirado && orc.status !== "aprovado") {
+    const ag = (orc.agencias as any);
+    const handleWhatsAppExpirado = () => {
+      if (!ag?.telefone) return;
+      const phone = ag.telefone.replace(/\D/g, "");
+      const msg = encodeURIComponent(`Olá! Gostaria de solicitar um novo orçamento para ${orc.titulo || "viagem"}.`);
+      window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
+    };
+    return (
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-destructive/10 flex items-center justify-center mb-5">
+          <FileX className="w-7 h-7 text-destructive/60" />
+        </div>
+        <h1 className="text-2xl font-bold font-display tracking-tight text-on-surface mb-2">Orçamento expirado</h1>
+        <p className="text-sm text-on-surface-variant font-body mb-6 max-w-xs">
+          O prazo de aprovação deste orçamento se encerrou. Entre em contato com a agência para solicitar uma atualização.
+        </p>
+        {ag?.telefone && (
+          <Button onClick={handleWhatsAppExpirado} className="gap-2" style={{ backgroundColor: "#25D366", color: "#fff" }}>
+            <MessageCircle className="h-4 w-4" /> Solicitar novo orçamento
+          </Button>
+        )}
+      </div>
+    );
+  }
+
   const agencia = orc.agencias as any;
   const cliente = orc.clientes as any;
   const itens = (orc.itens_orcamento as any[]) || [];
   const total = itens.reduce((s: number, i: any) => s + (Number(i.valor_final) || 0), 0);
   const showStatus = ["aprovado", "emitido"].includes(orc.status || "");
-  const canApprove = orc.status === "enviado" && !approvedInfo;
+  const isExpirado = !!(orc as any).expirado;
+  const canApprove = orc.status === "enviado" && !approvedInfo && !isExpirado;
 
   const handleWhatsApp = () => {
     if (!agencia?.telefone) return;

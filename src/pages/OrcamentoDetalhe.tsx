@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck, UserCheck } from "lucide-react";
+import { ArrowLeft, BookmarkPlus, Copy, Download, Eye, Mail, Pencil, Smartphone, Clock, MessageCircle, ChevronDown, History, Link2, CheckCheck, UserCheck } from "lucide-react";
 import { validarTelefone, getTransicoesPermitidas, isTransicaoPermitida } from "@/lib/validators";
 import { maskTelefone } from "@/lib/masks";
 import { calcularDiasUteis, type HorarioFuncionamento, DEFAULT_HORARIO } from "@/lib/business-days";
@@ -39,12 +39,14 @@ import OrcamentoPDFDocument from "@/components/pdf/OrcamentoPDFDocument";
 import WhatsAppModal from "@/components/whatsapp/WhatsAppModal";
 import HistoricoOrcamento from "@/components/orcamento/HistoricoOrcamento";
 import NotasInternas from "@/components/orcamento/NotasInternas";
+import StatusViagemStepper, { type StatusViagem, STATUS_VIAGEM_LABELS } from "@/components/orcamento/StatusViagemStepper";
 import { registrarHistorico } from "@/lib/historico-orcamento";
 import { formatarApenasDatabrasilia, formatarDataHoraBrasilia } from "@/lib/date-utils";
 import { isMargemZero, calcularLucroReal, getTaxaEmbutida } from "@/lib/profit-utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import { formatError } from "@/lib/errors";
+import { getCategoriaInfo } from "@/lib/categorias-item";
 
 const statusVariant: Record<string, "muted" | "default" | "success" | "destructive" | "info"> = {
   rascunho: "muted", enviado: "default", aprovado: "success", perdido: "destructive", emitido: "info", pago: "success",
@@ -79,6 +81,14 @@ export default function OrcamentoDetalhe() {
   const [sendingEvolution, setSendingEvolution] = useState(false);
   const [showEvolutionModal, setShowEvolutionModal] = useState(false);
   const [evolutionPhone, setEvolutionPhone] = useState("");
+  const [showRenovarDialog, setShowRenovarDialog] = useState(false);
+  const [renovarDias, setRenovarDias] = useState(5);
+  const [renovando, setRenovando] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailDestino, setEmailDestino] = useState("");
+  const [emailMensagem, setEmailMensagem] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [changingStatusViagem, setChangingStatusViagem] = useState(false);
 
   // Collapsible state with localStorage persistence
   const [historicoOpen, setHistoricoOpen] = useState(() => {
@@ -248,6 +258,54 @@ export default function OrcamentoDetalhe() {
       queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
     }
     setChangingStatus(false);
+  };
+
+  const handleAdvanceStatusViagem = async (next: StatusViagem) => {
+    if (!id || !agenciaId || !user) return;
+    setChangingStatusViagem(true);
+    const { error } = await supabase.from("orcamentos").update({ status_viagem: next } as any).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao atualizar status da viagem", variant: "destructive" });
+    } else {
+      await registrarHistorico({
+        orcamento_id: id,
+        usuario_id: user.id,
+        agencia_id: agenciaId,
+        tipo: "status_viagem_alterado",
+        status_novo: next,
+        descricao: `Status da viagem avançado para ${STATUS_VIAGEM_LABELS[next]}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-viagens-ativas"] });
+      toast({ title: `Status da viagem: ${STATUS_VIAGEM_LABELS[next]} ✓` });
+    }
+    setChangingStatusViagem(false);
+  };
+
+  const handleCancelViagem = async () => {
+    if (!id || !agenciaId || !user) return;
+    setChangingStatusViagem(true);
+    const { error } = await supabase.from("orcamentos").update({ status_viagem: "cancelado" } as any).eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao cancelar viagem", variant: "destructive" });
+    } else {
+      await registrarHistorico({
+        orcamento_id: id,
+        usuario_id: user.id,
+        agencia_id: agenciaId,
+        tipo: "status_viagem_alterado",
+        status_novo: "cancelado",
+        descricao: "Viagem cancelada",
+      });
+      queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-viagens-ativas"] });
+      toast({ title: "Viagem cancelada" });
+    }
+    setChangingStatusViagem(false);
   };
 
   const handleMarcarPago = async () => {
@@ -443,6 +501,27 @@ export default function OrcamentoDetalhe() {
     setShowWhatsApp(false);
   };
 
+  const handleRenovar = async () => {
+    if (!id || !orc) return;
+    setRenovando(true);
+    const novaValidade = new Date();
+    novaValidade.setDate(novaValidade.getDate() + renovarDias);
+    const novaValidadeStr = novaValidade.toISOString().slice(0, 10);
+    const { error } = await supabase
+      .from("orcamentos")
+      .update({ validade_dias: renovarDias, validade: novaValidadeStr, expirado: false } as any)
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Erro ao renovar orçamento", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Orçamento renovado!", description: `Válido até ${novaValidadeStr.split("-").reverse().join("/")}` });
+      queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+      queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+      setShowRenovarDialog(false);
+    }
+    setRenovando(false);
+  };
+
   if (isLoading) return (
     <div className="space-y-6"><Skeleton className="h-8 w-64" /><Skeleton className="h-64 w-full" /></div>
   );
@@ -484,6 +563,69 @@ export default function OrcamentoDetalhe() {
         );
       })()}
 
+      {/* Expiry banners */}
+      {(orc as any).expirado && (
+        <Card className="border-l-4 border-destructive bg-destructive/10 dark:bg-destructive/5">
+          <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
+            <p className="text-sm flex items-center gap-2">
+              <Clock className="h-4 w-4 text-destructive shrink-0" />
+              Este orçamento está <strong>expirado</strong>. Renove para reabrir o prazo de aprovação.
+            </p>
+            <Button size="sm" variant="destructive" onClick={() => { setRenovarDias(5); setShowRenovarDialog(true); }}>
+              Renovar orçamento
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+      {!(orc as any).expirado && (orc as any).data_validade && ["rascunho", "enviado"].includes(orc.status || "") && (() => {
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const val = new Date((orc as any).data_validade + "T00:00:00");
+        const diffDays = Math.ceil((val.getTime() - today.getTime()) / 86400000);
+        if (diffDays > 3) return null;
+        return (
+          <Card className="border-l-4 border-warning bg-warning/10 dark:bg-warning/5">
+            <CardContent className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-4">
+              <p className="text-sm flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+                {diffDays <= 0
+                  ? "Este orçamento expira hoje!"
+                  : `Este orçamento expira em ${diffDays} dia${diffDays > 1 ? "s" : ""}.`}
+              </p>
+              <Button size="sm" variant="outline" onClick={() => { setRenovarDias(5); setShowRenovarDialog(true); }}>
+                Renovar orçamento
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      <Dialog open={showRenovarDialog} onOpenChange={setShowRenovarDialog}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Renovar orçamento</DialogTitle></DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label>Renovar por quantos dias?</Label>
+            <Input
+              type="number" min={1} max={365}
+              value={renovarDias}
+              onChange={(e) => setRenovarDias(Math.max(1, parseInt(e.target.value) || 1))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Nova validade: {(() => {
+                const d = new Date();
+                d.setDate(d.getDate() + renovarDias);
+                return d.toISOString().slice(0, 10).split("-").reverse().join("/");
+              })()}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRenovarDialog(false)}>Cancelar</Button>
+            <Button onClick={handleRenovar} disabled={renovando}>
+              {renovando ? "Renovando..." : "Confirmar renovação"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center gap-3 mb-8">
         <Button variant="ghost" size="icon" asChild><Link to="/orcamentos"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div className="flex-1">
@@ -523,10 +665,26 @@ export default function OrcamentoDetalhe() {
             </CardContent>
           </Card>
 
+          {/* Status da Viagem */}
+          {orc.status !== "perdido" && (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Status da Viagem</CardTitle></CardHeader>
+              <CardContent>
+                <StatusViagemStepper
+                  statusViagem={(orc as any).status_viagem}
+                  orcStatus={orc.status || "rascunho"}
+                  onAdvance={handleAdvanceStatusViagem}
+                  onCancel={handleCancelViagem}
+                  loading={changingStatusViagem}
+                />
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader><CardTitle className="text-base">Itens</CardTitle></CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {itens?.map((item) => {
                   const markup = Number(item.markup_percentual) || 0;
                   const taxaFixa = Number(item.taxa_fixa) || 0;
@@ -534,13 +692,26 @@ export default function OrcamentoDetalhe() {
                   if (markup > 0) { detalhes.push(`Markup: ${markup}%`); } else { detalhes.push("Sem markup"); }
                   if (taxaFixa > 0) { detalhes.push(`Taxa: ${fmt(taxaFixa)}`); }
                   detalhes.push(`Qtd: ${item.quantidade}`);
+                  if (item.num_viajantes) { detalhes.push(`${item.num_viajantes} viaj.`); }
+                  const cat = getCategoriaInfo(item.categoria);
+                  const CatIcon = cat.icon;
                   return (
                   <div key={item.id} className="flex items-center justify-between py-3 border-b last:border-0">
-                    <div>
-                      <p className="font-medium text-sm">{item.descricao || item.tipo}</p>
-                      <p className="text-xs text-muted-foreground">{detalhes.join(" • ")}</p>
+                    <div className="flex items-start gap-2 min-w-0">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="mt-0.5 shrink-0 cursor-default">
+                            <CatIcon className="h-4 w-4 text-muted-foreground" style={{ color: cat.color }} />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{cat.label}</TooltipContent>
+                      </Tooltip>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm leading-tight">{item.descricao || item.tipo}</p>
+                        <p className="text-xs text-muted-foreground">{detalhes.join(" • ")}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0 ml-3">
                       <p className="font-semibold">{fmt(Number(item.valor_final) || 0)}</p>
                       <p className="text-xs text-muted-foreground">Custo: {fmt(Number(item.valor_custo) || 0)}</p>
                     </div>
@@ -549,6 +720,35 @@ export default function OrcamentoDetalhe() {
                 })}
                 {(!itens || itens.length === 0) && <p className="text-sm text-muted-foreground text-center py-4">Nenhum item</p>}
               </div>
+
+              {/* Subtotais por categoria */}
+              {itens && itens.length > 0 && (() => {
+                const map: Record<string, number> = {};
+                itens.forEach((i) => {
+                  const cat = i.categoria || "outros";
+                  map[cat] = (map[cat] || 0) + (Number(i.valor_final) || 0);
+                });
+                const entries = Object.entries(map).filter(([, v]) => v !== 0);
+                if (entries.length <= 1) return null;
+                return (
+                  <div className="mt-4 pt-3 border-t space-y-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Subtotal por categoria</p>
+                    {entries.map(([cat, total]) => {
+                      const info = getCategoriaInfo(cat);
+                      const SubIcon = info.icon;
+                      return (
+                        <div key={cat} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <SubIcon className="h-3.5 w-3.5" style={{ color: info.color }} />
+                            <span className="text-muted-foreground">{info.label}</span>
+                          </div>
+                          <span className="font-medium tabular-nums">{fmt(total)}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </CardContent>
           </Card>
 
@@ -734,6 +934,17 @@ export default function OrcamentoDetalhe() {
               >
                 <Smartphone className="h-4 w-4 mr-2" /> Enviar via WhatsApp
               </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => {
+                  setEmailDestino((orc.clientes as any)?.email || "");
+                  setEmailMensagem("");
+                  setShowEmailModal(true);
+                }}
+              >
+                <Mail className="h-4 w-4 mr-2" /> Enviar por Email
+              </Button>
               <Button variant="outline" className="w-full justify-start" onClick={() => setShowDuplicateConfirm(true)} disabled={duplicating}>
                 <Copy className="h-4 w-4 mr-2" /> {duplicating ? "Duplicando..." : "Duplicar"}
               </Button>
@@ -776,6 +987,18 @@ export default function OrcamentoDetalhe() {
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5 text-success" /> Enviado via WhatsApp</span>
                     <span>{(orc as any).enviado_whatsapp_em ? formatarDataHoraBrasilia((orc as any).enviado_whatsapp_em) : "Sim"}</span>
+                  </div>
+                )}
+                {(orc as any).enviado_email && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-primary" /> Enviado por email</span>
+                    <span>{(orc as any).enviado_email_em ? formatarDataHoraBrasilia((orc as any).enviado_email_em) : "Sim"}</span>
+                  </div>
+                )}
+                {(orc as any).email_aberto_em && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground flex items-center gap-1.5"><Eye className="h-3.5 w-3.5 text-success" /> Email aberto</span>
+                    <span>{formatarDataHoraBrasilia((orc as any).email_aberto_em)}</span>
                   </div>
                 )}
               </div>
@@ -934,6 +1157,99 @@ export default function OrcamentoDetalhe() {
               }}
             >
               {sendingEvolution ? "Enviando..." : "Enviar WhatsApp ✓"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Enviar Orçamento por Email
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="email-destino">Email do destinatário</Label>
+              <Input
+                id="email-destino"
+                type="email"
+                placeholder="cliente@email.com"
+                value={emailDestino}
+                onChange={(e) => setEmailDestino(e.target.value)}
+              />
+              {!(orc.clientes as any)?.email && (
+                <p className="text-xs text-muted-foreground">O cliente não tem email cadastrado. Informe um email acima.</p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="email-mensagem">Mensagem personalizada <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Textarea
+                id="email-mensagem"
+                placeholder="Adicione uma mensagem personalizada que será incluída no email..."
+                rows={3}
+                value={emailMensagem}
+                onChange={(e) => setEmailMensagem(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEmailModal(false)} disabled={sendingEmail}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={sendingEmail || !emailDestino.includes("@")}
+              onClick={async () => {
+                setSendingEmail(true);
+                try {
+                  // Generate PDF as Base64 on the client
+                  let pdf_base64: string | null = null;
+                  const pdfDataForSend = buildPdfData();
+                  if (pdfDataForSend) {
+                    try {
+                      const pdfBlob = await pdf(<OrcamentoPDFDocument data={pdfDataForSend} />).toBlob();
+                      const arrayBuffer = await pdfBlob.arrayBuffer();
+                      const uint8 = new Uint8Array(arrayBuffer);
+                      let binary = "";
+                      for (let i = 0; i < uint8.byteLength; i++) {
+                        binary += String.fromCharCode(uint8[i]);
+                      }
+                      pdf_base64 = btoa(binary);
+                    } catch (pdfErr) {
+                      console.warn("Erro ao gerar PDF para email:", pdfErr);
+                    }
+                  }
+
+                  const { data, error } = await supabase.functions.invoke("enviar-orcamento-email", {
+                    body: {
+                      orcamento_id: id,
+                      agencia_id: agenciaId,
+                      email_destino: emailDestino,
+                      mensagem_personalizada: emailMensagem || undefined,
+                      pdf_base64,
+                    },
+                  });
+
+                  if (error || data?.error) {
+                    const msg = data?.error || "Erro ao enviar email";
+                    toast({ title: msg, variant: "destructive" });
+                  } else {
+                    toast({ title: `Email enviado para ${emailDestino} ✓` });
+                    setShowEmailModal(false);
+                    queryClient.invalidateQueries({ queryKey: ["orcamento", id] });
+                    queryClient.invalidateQueries({ queryKey: ["orcamentos"] });
+                    queryClient.invalidateQueries({ queryKey: ["historico-orcamento", id] });
+                  }
+                } catch (e) {
+                  toast({ title: "Erro ao enviar email", variant: "destructive" });
+                }
+                setSendingEmail(false);
+              }}
+            >
+              {sendingEmail ? "Enviando..." : "Enviar email"}
             </Button>
           </DialogFooter>
         </DialogContent>

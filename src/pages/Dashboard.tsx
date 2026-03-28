@@ -62,11 +62,14 @@ export default function Dashboard() {
 }
 
 /* ===== METRIC CARD ===== */
-function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle }: {
-  title: string; value: string; icon: any; iconBg: string; isLoading?: boolean; subtitle?: string;
+function MetricCard({ title, value, icon: Icon, iconBg, isLoading, subtitle, onClick }: {
+  title: string; value: string; icon: any; iconBg: string; isLoading?: boolean; subtitle?: string; onClick?: () => void;
 }) {
   return (
-    <Card className="rounded-2xl shadow-ambient">
+    <Card
+      className={`rounded-2xl shadow-ambient ${onClick ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+      onClick={onClick}
+    >
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
@@ -615,6 +618,21 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
     enabled: agenciaInfo !== undefined,
   });
 
+  const { data: viagensAtivas } = useQuery({
+    queryKey: ["dashboard-viagens-ativas", agenciaId],
+    enabled: !!agenciaId,
+    staleTime: 60 * 1000,
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("orcamentos")
+        .select("id", { count: "exact", head: true })
+        .eq("agencia_id", agenciaId)
+        .eq("status_viagem", "em_viagem");
+      if (error) throw error;
+      return count ?? 0;
+    },
+  });
+
   const { data: chartData, isLoading: chartLoading } = useQuery({
     queryKey: ["dashboard-chart", agenciaId],
     queryFn: async () => {
@@ -657,6 +675,17 @@ function AgencyDashboard({ agenciaId }: { agenciaId: string }) {
         {metricCards.map((m) => (
           <MetricCard key={m.title} title={m.title} value={m.value} icon={m.icon} iconBg={m.iconBg} isLoading={metricsLoading} subtitle={m.subtitle} />
         ))}
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 -mt-4">
+        <MetricCard
+          title="Viagens ativas"
+          value={viagensAtivas != null ? String(viagensAtivas) : "0"}
+          icon={Eye}
+          iconBg="bg-green-500/10 text-green-600 dark:bg-green-500/15 dark:text-green-400"
+          subtitle="Clique para filtrar"
+          onClick={() => navigate("/orcamentos?status_viagem=em_viagem")}
+        />
       </div>
 
       <MinhaMetaCard agenciaId={agenciaId} />

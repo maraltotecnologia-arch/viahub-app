@@ -26,6 +26,7 @@ import type { RelatorioPDFProps } from "@/components/pdf/RelatorioPDFDocument";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import RelatorioAgentes from "@/components/relatorios/RelatorioAgentes";
+import { getCategoriaInfo } from "@/lib/categorias-item";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -101,7 +102,7 @@ export default function Relatorios() {
     queryFn: async () => {
       let query = supabase
         .from("orcamentos")
-        .select("id, numero_orcamento, criado_em, valor_final, lucro_bruto, margem_percentual, status, cliente_id, clientes(nome), itens_orcamento(tipo)")
+        .select("id, numero_orcamento, criado_em, valor_final, lucro_bruto, margem_percentual, status, cliente_id, clientes(nome), itens_orcamento(tipo, categoria)")
         .eq("agencia_id", agenciaId!)
         .gte("criado_em", dateRange.start.toISOString())
         .lte("criado_em", dateRange.end.toISOString())
@@ -117,12 +118,16 @@ export default function Relatorios() {
       if (error) throw error;
 
       return (orcamentos || []).map((o) => {
-        const tipos = (o.itens_orcamento as any[] || []).map((i: any) => i.tipo as string);
+        const itensList = o.itens_orcamento as any[] || [];
+        const tipos = itensList.map((i: any) => i.tipo as string);
         const uniqueTipos = [...new Set(tipos)];
+        const categorias = itensList.map((i: any) => (i.categoria as string) || "outros");
+        const uniqueCategorias = [...new Set(categorias)];
         return {
           ...o,
           cliente_nome: (o.clientes as any)?.nome || "Sem cliente",
           tipos_servico: uniqueTipos,
+          categorias_servico: uniqueCategorias,
         };
       });
     },
@@ -211,6 +216,24 @@ export default function Relatorios() {
   }, [filteredData]);
 
   const pieTotal = pieData.reduce((s, d) => s + d.value, 0);
+
+  // Receita (valor_final) por categoria de item
+  const categoriaRevenueData = useMemo(() => {
+    const map: Record<string, number> = {};
+    filteredData.forEach((o) => {
+      const cats = (o as any).categorias_servico as string[];
+      if (!cats || cats.length === 0) return;
+      const share = (Number(o.valor_final) || 0) / cats.length;
+      cats.forEach((cat) => { map[cat] = (map[cat] || 0) + share; });
+    });
+    return Object.entries(map)
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1])
+      .map(([cat, value]) => {
+        const info = getCategoriaInfo(cat);
+        return { name: info.label, value: Math.round(value * 100) / 100, color: info.color, emoji: info.emoji };
+      });
+  }, [filteredData]);
 
   // Pagination
   const pagedData = filteredData.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -521,6 +544,30 @@ export default function Relatorios() {
               </CardContent>
             </Card>
           </div>
+
+          {/* CATEGORIA REVENUE CHART */}
+          <Card>
+            <CardHeader><CardTitle className="text-base">Receita por Categoria de Item</CardTitle></CardHeader>
+            <CardContent>
+              {categoriaRevenueData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={categoriaRevenueData} layout="vertical" margin={{ left: 8, right: 24 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" horizontal={false} />
+                    <XAxis type="number" fontSize={11} tick={{ fill: "var(--text-secondary)", fontSize: 12 }} axisLine={{ stroke: "var(--border-color)" }} tickLine={false} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis type="category" dataKey="name" width={90} fontSize={11} tick={{ fill: "var(--text-secondary)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                    <RechartsTooltip formatter={(v: number) => fmt(v)} contentStyle={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", color: "var(--text-primary)" }} labelStyle={{ color: "var(--text-primary)" }} itemStyle={{ color: "var(--text-secondary)" }} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      {categoriaRevenueData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyState icon={<BarChart2 className="h-9 w-9" />} title="Sem dados no período" description="Aprove orçamentos para começar a ver seus relatórios por categoria" />
+              )}
+            </CardContent>
+          </Card>
 
           {/* TABLE */}
           <Card>
